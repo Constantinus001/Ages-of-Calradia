@@ -133,6 +133,8 @@ namespace TwelveMonthCalendar
             CopyNativeState(source);
             DetachProxyGamepadHandler();
 
+            bool nativeCalendarSettingsEnabled = !OptionalMcmIntegration.IsSettingsRegistered;
+
             List<IOptionData> options = new List<IOptionData>
             {
                 new CalendarSelectionOptionData(
@@ -216,8 +218,13 @@ namespace TwelveMonthCalendar
                 this,
                 new TextObject("Calendar"),
                 category,
-                true,
+                nativeCalendarSettingsEnabled,
                 true);
+
+            if (!nativeCalendarSettingsEnabled)
+            {
+                Diagnostics.Info("Native Calendar Options tab disabled because MCM settings are active.");
+            }
 
             ApplyCalendarOptionLabels(options);
 

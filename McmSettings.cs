@@ -193,14 +193,17 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        public static void RegisterSettings()
+        public static bool RegisterSettings()
         {
-            if (Instance != null)
+            if (Instance == null)
             {
-                Instance.SubscribeToCoreState();
-                Instance.SyncFromCoreState();
-                Instance.Apply();
+                return false;
             }
+
+            Instance.SubscribeToCoreState();
+            Instance.SyncFromCoreState();
+            Instance.Apply();
+            return true;
         }
 
         private void Apply()

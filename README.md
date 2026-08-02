@@ -105,6 +105,11 @@ MCM and the XML settings file also support custom format
 tokens: `{Month}`, `{Season}`, `{Day}`, `{Year}`, `{MonthNumber}`, and
 `{DayOfYear}`.
 
+When the optional MCM settings page successfully loads, the native **Calendar**
+tab is hidden so players have one settings screen instead of two. If MCM is not
+installed or its optional adapter cannot initialize, the native tab remains as a
+fully functional fallback.
+
 Standalone settings are saved to:
 
 ```text
