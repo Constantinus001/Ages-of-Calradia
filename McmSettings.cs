@@ -6,7 +6,6 @@ namespace TwelveMonthCalendar.MCM
 {
     internal sealed class CalendarMcmSettings : AttributeGlobalSettings<CalendarMcmSettings>
     {
-        private string _calendarSystem = CalendarSettingsState.CalendarSystem;
         private bool _useLeapYears = CalendarSettingsState.UseLeapYears;
         private bool _showDayLabel = CalendarSettingsState.ShowDayLabel;
         private bool _showYearLabel = CalendarSettingsState.ShowYearLabel;
@@ -25,21 +24,7 @@ namespace TwelveMonthCalendar.MCM
         public override string FolderName => "TwelveMonthCalendar";
         public override string FormatType => "json";
 
-        [SettingPropertyText("Calendar System", Order = 0, RequireRestart = true,
-            HintText = "Use Gregorian12Month or Native84Day. Additional systems can be added later.")]
-        [SettingPropertyGroup("Calendar")]
-        public string CalendarSystem
-        {
-            get { return _calendarSystem; }
-            set
-            {
-                _calendarSystem = value;
-                Apply();
-                OnPropertyChanged();
-            }
-        }
-
-        [SettingPropertyBool("Use Leap Years", Order = 1, RequireRestart = true,
+        [SettingPropertyBool("Use Leap Years", Order = 0, RequireRestart = true,
             HintText = "Adds February 29 using the Gregorian leap-year rule.")]
         [SettingPropertyGroup("Calendar")]
         public bool UseLeapYears
@@ -53,7 +38,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Show Day Label", Order = 2, RequireRestart = false,
+        [SettingPropertyBool("Show Day Label", Order = 1, RequireRestart = false,
             HintText = "Displays Day before the day number.")]
         [SettingPropertyGroup("Display")]
         public bool ShowDayLabel
@@ -67,7 +52,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Use Ordinal Day Suffixes", Order = 3, RequireRestart = false,
+        [SettingPropertyBool("Use Ordinal Day Suffixes", Order = 2, RequireRestart = false,
             HintText = "Displays dates as 1st, 2nd, 3rd, and so on.")]
         [SettingPropertyGroup("Display")]
         public bool UseOrdinalDaySuffixes
@@ -81,7 +66,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Show Year Label", Order = 4, RequireRestart = false,
+        [SettingPropertyBool("Show Year Label", Order = 3, RequireRestart = false,
             HintText = "Displays Year before the year number.")]
         [SettingPropertyGroup("Display")]
         public bool ShowYearLabel
@@ -95,7 +80,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Campaign Time Scale", 0.01f, 1.0f, "0.000", Order = 5,
+        [SettingPropertyFloatingInteger("Campaign Time Scale", 0.01f, 1.0f, "0.000", Order = 4,
             RequireRestart = true, HintText = "Controls how quickly campaign time advances. Default is 0.230.")]
         [SettingPropertyGroup("Economy")]
         public float CampaignTimeScale
@@ -109,7 +94,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 6, RequireRestart = true,
+        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 5, RequireRestart = true,
             HintText = "Derives pacing from the configured native and calendar year lengths.")]
         [SettingPropertyGroup("Economy")]
         public bool AutoCampaignTimeScale
@@ -123,8 +108,8 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyText("Date Format", Order = 7, RequireRestart = false,
-            HintText = "Tokens: {Month}, {Season}, {Day}, {Year}, {MonthNumber}, {DayOfYear}. Example: {Month} {Day} {Year}. Season is always shown first.")]
+        [SettingPropertyText("Date Format", Order = 6, RequireRestart = false,
+            HintText = "Tokens: {Month}, {Season}, {Day}, {Year}, {MonthNumber}, {DayOfYear}. Example: {Month} {Day} {Year}. The map bar shows the season separately to the right of the clock.")]
         [SettingPropertyGroup("Display")]
         public string DateFormat
         {
@@ -137,7 +122,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 8, RequireRestart = false,
+        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = false,
             HintText = "Uses the configured number of calendar months for future pregnancies.")]
         [SettingPropertyGroup("Life Cycle")]
         public bool UseCalendarMonthPregnancy
@@ -151,7 +136,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyInteger("Pregnancy Duration (Months)", 1, 24, "0", Order = 9,
+        [SettingPropertyInteger("Pregnancy Duration (Months)", 1, 24, "0", Order = 8,
             RequireRestart = false, HintText = "Calendar months from conception to birth.")]
         [SettingPropertyGroup("Life Cycle")]
         public int PregnancyDurationMonths
@@ -165,7 +150,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Fixed Pregnancy Duration (Days)", 0.1f, 10000f, "0.00", Order = 10,
+        [SettingPropertyFloatingInteger("Fixed Pregnancy Duration (Days)", 0.1f, 10000f, "0.00", Order = 9,
             RequireRestart = false, HintText = "Fallback duration when calendar-month pregnancy is disabled.")]
         [SettingPropertyGroup("Life Cycle")]
         public float PregnancyDurationInDays
@@ -179,7 +164,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Renown Gain Multiplier", 0f, 1f, "0.00", Order = 11,
+        [SettingPropertyFloatingInteger("Renown Gain Multiplier", 0f, 1f, "0.00", Order = 10,
             RequireRestart = false, HintText = "Scales positive renown awards. Default is 0.50.")]
         [SettingPropertyGroup("Progression")]
         public float RenownGainMultiplier
@@ -214,7 +199,7 @@ namespace TwelveMonthCalendar.MCM
             }
 
             CalendarSettingsState.Apply(
-                _calendarSystem,
+                CalendarSettingsState.CalendarSystem,
                 _useLeapYears,
                 _showDayLabel,
                 _showYearLabel,
@@ -240,7 +225,6 @@ namespace TwelveMonthCalendar.MCM
             _synchronizing = true;
             try
             {
-                _calendarSystem = CalendarSettingsState.CalendarSystem;
                 _useLeapYears = CalendarSettingsState.UseLeapYears;
                 _showDayLabel = CalendarSettingsState.ShowDayLabel;
                 _showYearLabel = CalendarSettingsState.ShowYearLabel;
@@ -267,7 +251,6 @@ namespace TwelveMonthCalendar.MCM
             }
 
             SyncFromCoreState();
-            OnPropertyChanged(nameof(CalendarSystem));
             OnPropertyChanged(nameof(UseLeapYears));
             OnPropertyChanged(nameof(ShowDayLabel));
             OnPropertyChanged(nameof(ShowYearLabel));

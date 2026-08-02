@@ -110,6 +110,25 @@ namespace TwelveMonthCalendar
         }
     }
 
+    // Reuse Bannerlord's visible per-category Reset to Defaults button for the
+    // Calendar page. The generic reset would only restore values captured when
+    // the page was opened; this invokes the mod's real persisted defaults.
+    [HarmonyPatch(typeof(GroupedOptionCategoryVM), nameof(GroupedOptionCategoryVM.ExecuteResetToDefault))]
+    internal static class CalendarOptionsTopResetPatch
+    {
+        [HarmonyPrefix]
+        private static bool Prefix(GroupedOptionCategoryVM __instance)
+        {
+            if (!CalendarOptionsVM.IsCalendarOptionsCategory(__instance))
+            {
+                return true;
+            }
+
+            CalendarOptionsVM.ShowTopResetConfirmation(__instance);
+            return false;
+        }
+    }
+
     internal sealed class CalendarOptionsVM : OptionsVM
     {
         private readonly OptionsVM _nativeOptions;
@@ -137,14 +156,6 @@ namespace TwelveMonthCalendar
 
             List<IOptionData> options = new List<IOptionData>
             {
-                new CalendarSelectionOptionData(
-                    "Calendar System",
-                    new[] { "Gregorian 12-Month", "Native 84-Day" },
-                    delegate { return CalendarSettingsState.ExtendedCalendarEnabled ? 0f : 1f; },
-                    delegate(float value)
-                    {
-                        Apply(calendarSystem: value < 0.5f ? "Gregorian12Month" : "Native84Day");
-                    }),
                 new CalendarBooleanOptionData(
                     "Use Leap Years",
                     delegate { return CalendarSettingsState.UseLeapYears; },
@@ -205,10 +216,7 @@ namespace TwelveMonthCalendar
                     false,
                     0,
                     delegate { return CalendarSettingsState.RenownGainMultiplier; },
-                    delegate(float value) { Apply(renownGainMultiplier: value); }),
-                new CalendarResetOptionData(
-                    "Reset Calendar Settings",
-                    delegate { CalendarSettingsState.ResetToDefaults(); })
+                    delegate(float value) { Apply(renownGainMultiplier: value); })
             };
 
             OptionCategory category = new OptionCategory(
@@ -260,6 +268,43 @@ namespace TwelveMonthCalendar
                 Diagnostics.Error("Calendar Settings could not route screen close through the native OptionsVM.", exception);
                 return false;
             }
+        }
+
+        internal static bool IsCalendarOptionsCategory(GroupedOptionCategoryVM category)
+        {
+            if (category == null)
+            {
+                return false;
+            }
+
+            foreach (GenericOptionDataVM option in category.AllOptions)
+            {
+                if (option.GetOptionData() is CalendarOptionDataBase)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal static void ShowTopResetConfirmation(GroupedOptionCategoryVM category)
+        {
+            InformationManager.ShowInquiry(
+                new InquiryData(
+                    "Reset Calendar Settings",
+                    "This will restore every Twelve Month Calendar setting to its default value. You will not be able to undo this action. Are you sure?",
+                    true,
+                    true,
+                    "Yes",
+                    "No",
+                    delegate
+                    {
+                        CalendarSettingsState.ResetToDefaults();
+                        category.RefreshValues();
+                        Diagnostics.Info("Calendar Settings reset from the native Reset to Defaults button.");
+                    },
+                    null));
         }
 
         private void DetachProxyGamepadHandler()
@@ -357,7 +402,6 @@ namespace TwelveMonthCalendar
         }
 
         private static void Apply(
-            string calendarSystem = null,
             bool? useLeapYears = null,
             bool? showDayLabel = null,
             bool? showYearLabel = null,
@@ -370,7 +414,6 @@ namespace TwelveMonthCalendar
             float? pregnancyDurationInDays = null,
             float? renownGainMultiplier = null)
         {
-            string requestedCalendarSystem = calendarSystem ?? CalendarSettingsState.CalendarSystem;
             bool requestedLeapYears = useLeapYears ?? CalendarSettingsState.UseLeapYears;
             bool requestedShowDayLabel = showDayLabel ?? CalendarSettingsState.ShowDayLabel;
             bool requestedShowYearLabel = showYearLabel ?? CalendarSettingsState.ShowYearLabel;
@@ -390,8 +433,7 @@ namespace TwelveMonthCalendar
             // Bannerlord initializes option controls by writing their current
             // value back to the data source. Do not treat those UI refreshes as
             // genuine settings edits or repeatedly save/synchronize the file.
-            if (string.Equals(requestedCalendarSystem, CalendarSettingsState.CalendarSystem, StringComparison.OrdinalIgnoreCase)
-                && requestedLeapYears == CalendarSettingsState.UseLeapYears
+            if (requestedLeapYears == CalendarSettingsState.UseLeapYears
                 && requestedShowDayLabel == CalendarSettingsState.ShowDayLabel
                 && requestedShowYearLabel == CalendarSettingsState.ShowYearLabel
                 && requestedOrdinalDaySuffixes == CalendarSettingsState.UseOrdinalDaySuffixes
@@ -407,7 +449,7 @@ namespace TwelveMonthCalendar
             }
 
             CalendarSettingsState.Apply(
-                requestedCalendarSystem,
+                CalendarSettingsState.CalendarSystem,
                 requestedLeapYears,
                 requestedShowDayLabel,
                 requestedShowYearLabel,
@@ -469,8 +511,6 @@ namespace TwelveMonthCalendar
             {
                 switch (_name)
                 {
-                    case "Calendar System":
-                        return "Choose between the Gregorian 12-month calendar and Bannerlord's native 84-day calendar.";
                     case "Use Leap Years":
                         return "Adds February 29 in Gregorian leap years and keeps the calendar synchronized with leap-year rules.";
                     case "Show Day Label":
@@ -484,7 +524,7 @@ namespace TwelveMonthCalendar
                     case "Campaign Time Scale":
                         return "Controls how quickly campaign time advances when automatic pacing is disabled. Lower values are slower.";
                     case "Date Format":
-                        return "Select the order of the month, day, and year. The season is always displayed first.";
+                        return "Select the order of the month, day, and year. The season is displayed separately to the right of the map clock.";
                     case "Use Calendar-Month Pregnancy":
                         return "Uses calendar months for pregnancy duration instead of the fixed day value.";
                     case "Pregnancy Duration (Months)":
@@ -493,8 +533,6 @@ namespace TwelveMonthCalendar
                         return "Sets pregnancy length in days when calendar-month pregnancy is disabled. The default is 273.75 days.";
                     case "Renown Gain Multiplier":
                         return "Scales positive renown rewards. A value of 0.50 gives half the normal positive renown.";
-                    case "Reset Calendar Settings":
-                        return "Click to restore the mod's default calendar, pacing, display, pregnancy, and renown settings.";
                     default:
                         return string.Empty;
                 }
@@ -692,37 +730,4 @@ namespace TwelveMonthCalendar
         }
     }
 
-    internal sealed class CalendarResetOptionData : CalendarOptionDataBase, IBooleanOptionData
-    {
-        private readonly Action _action;
-
-        internal CalendarResetOptionData(string name, Action action)
-            : base(name)
-        {
-            _action = action;
-        }
-
-        public override float GetDefaultValue()
-        {
-            return 0f;
-        }
-
-        public override float GetValue(bool forceRefresh)
-        {
-            return 0f;
-        }
-
-        public override void SetValue(float value)
-        {
-            if (value >= 0.5f)
-            {
-                _action();
-            }
-        }
-
-        public override object GetOptionType()
-        {
-            return OptionsVM.OptionsDataType.BooleanOption;
-        }
-    }
 }

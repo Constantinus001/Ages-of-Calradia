@@ -17,7 +17,10 @@ namespace TwelveMonthCalendar
 
         public static event Action SettingsChanged;
 
-        private const string DefaultCalendarSystem = "Gregorian12Month";
+        // This module always owns a 365-day Gregorian-style calendar. Keep a
+        // stable value for legacy adapters/configuration, but do not expose a
+        // selectable native-calendar mode.
+        private const string FixedCalendarSystem = "Gregorian12Month";
         private const string DefaultDateFormat = "{Month} {Day} {Year}";
         private const bool DefaultUseOrdinalDaySuffixes = true;
         internal const int DefaultNativeDaysInYear = 84;
@@ -43,7 +46,6 @@ namespace TwelveMonthCalendar
             31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
         };
 
-        private static bool _extendedCalendarEnabled = true;
         private static bool _useLeapYears = true;
         private static bool _showDayLabel;
         private static bool _showYearLabel;
@@ -70,7 +72,7 @@ namespace TwelveMonthCalendar
 
         public static bool ExtendedCalendarEnabled
         {
-            get { lock (SyncRoot) return _extendedCalendarEnabled; }
+            get { return true; }
         }
 
         public static bool UseLeapYears
@@ -193,7 +195,7 @@ namespace TwelveMonthCalendar
 
         public static string CalendarSystem
         {
-            get { return ExtendedCalendarEnabled ? "Gregorian12Month" : "Native84Day"; }
+            get { return FixedCalendarSystem; }
         }
 
         public static string ConfigPath
@@ -229,19 +231,22 @@ namespace TwelveMonthCalendar
         {
             lock (SyncRoot)
             {
-                bool requestedExtended = !string.Equals(
-                    calendarSystem,
-                    "Native84Day",
-                    StringComparison.OrdinalIgnoreCase);
                 if (_campaignSessionStarted
-                    && (requestedExtended != _extendedCalendarEnabled || useLeapYears != _useLeapYears))
+                    && useLeapYears != _useLeapYears)
                 {
-                    Diagnostics.Info("Structural calendar settings change ignored after campaign session start; restart the campaign to apply it.");
+                    Diagnostics.Info("Leap-year setting change ignored after campaign session start; restart the campaign to apply it.");
                 }
                 else
                 {
-                    _extendedCalendarEnabled = requestedExtended;
                     _useLeapYears = useLeapYears;
+                }
+
+                if (!string.IsNullOrWhiteSpace(calendarSystem)
+                    && !string.Equals(calendarSystem, FixedCalendarSystem, StringComparison.OrdinalIgnoreCase))
+                {
+                    Diagnostics.Info(
+                        "Ignoring legacy calendar-system setting '" + calendarSystem
+                        + "'; Twelve Month Calendar is always Gregorian12Month.");
                 }
                 _showDayLabel = showDayLabel;
                 _showYearLabel = showYearLabel;
@@ -272,9 +277,8 @@ namespace TwelveMonthCalendar
 
             Diagnostics.Info(
                 string.Format(
-                    "Settings applied. CalendarSystem={0}; Extended={1}; LeapYears={2}; ShowDayLabel={3}; ShowYearLabel={4}; OrdinalDays={5}; TimeScale={6:F6}; DateFormat={7}",
-                    calendarSystem,
-                    ExtendedCalendarEnabled,
+                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; TimeScale={5:F6}; DateFormat={6}",
+                    FixedCalendarSystem,
                     UseLeapYears,
                     ShowDayLabel,
                     ShowYearLabel,
@@ -299,7 +303,7 @@ namespace TwelveMonthCalendar
         public static void ResetToDefaults()
         {
             Apply(
-                DefaultCalendarSystem,
+                FixedCalendarSystem,
                 true,
                 false,
                 false,
@@ -347,7 +351,7 @@ namespace TwelveMonthCalendar
                 }
 
                 Apply(
-                    ReadAttribute(root, "CalendarSystem", DefaultCalendarSystem),
+                    ReadAttribute(root, "CalendarSystem", FixedCalendarSystem),
                     ReadBoolean(root, "UseLeapYears", true),
                     ReadBoolean(root, "ShowDayLabel", false),
                     ReadBoolean(root, "ShowYearLabel", false),
@@ -388,7 +392,6 @@ namespace TwelveMonthCalendar
                 XmlDocument document = new XmlDocument();
                 XmlElement root = document.CreateElement("TwelveMonthCalendar");
                 document.AppendChild(root);
-                root.SetAttribute("CalendarSystem", CalendarSystem);
                 root.SetAttribute("UseLeapYears", UseLeapYears.ToString());
                 root.SetAttribute("ShowDayLabel", ShowDayLabel.ToString());
                 root.SetAttribute("ShowYearLabel", ShowYearLabel.ToString());

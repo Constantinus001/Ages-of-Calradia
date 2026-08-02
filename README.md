@@ -40,6 +40,9 @@ The module uses:
   removed because it made parties move approximately 4.35x too fast
 - pregnancy due dates set to nine configured calendar months after conception
 - positive renown rewards reduced to 50% by default to slow clan-tier progression
+- native diplomacy kept on its original annual cadence: AI kingdom proposals,
+  war/peace cooldowns, treaty durations, alliance durations, clan and mercenary
+  tenure, and army/raid/siege influence awards are scaled for the 365-day year
 
 The date is changed by patching `CampaignTime.ToString()`, which is also what
 the campaign map time-control UI uses for its visible date. This means dates in
@@ -74,6 +77,14 @@ campaign day by the native-84-day to 365-day ratio, preserving their
 approximate annual rates. Party map speed remains at native values, and
 pregnancy defaults to nine calendar months from the moment conception starts.
 
+Native diplomacy is scaled by the same ratio. This preserves the usual annual
+frequency of AI peace, war, alliance, trade, policy, and annexation proposals;
+the 20-day post-peace cooldown and war-duration score curves use their native
+day equivalents; and a 100-day native tribute agreement becomes about 435
+calendar days while its effective daily payment is balanced by the finance
+layer. Alliance contracts last one calendar year, with call-to-war commitments
+lasting half a calendar year.
+
 ## Diagnostics
 
 The module writes diagnostics to:
@@ -89,26 +100,30 @@ every campaign tick. It also records the active campaign-time multiplier.
 ## Optional MCM settings
 
 MCM is optional. If MCM is installed, the calendar exposes an in-game settings
-page with calendar system, leap-year, display-label, campaign-time, and date
+page with leap-year, display-label, campaign-time, and date
 format settings. The date format supports `{Month}`, `{Season}`, `{Day}`,
 `{Year}`, `{MonthNumber}`, and `{DayOfYear}`. Without MCM, the native
-**Calendar** Options tab provides the same core controls. The season is always
-shown first and dates use spaces rather than hyphens (for example
-`Spring April 3rd 1084`). The preset default is **Month-Day-Year**.
+**Calendar** Options tab provides the same core controls. On the map bar, the
+date appears left of the clock and the current season appears separately to its
+right (for example `April 3rd 1084` and `Spring`). The preset default is
+**Month-Day-Year**.
 
 ## Standalone in-game settings
 
-MCM is not required. The module adds calendar-system, leap-year, label, pacing,
+MCM is not required. The module adds leap-year, label, pacing,
 and preset-format controls to a separate **Calendar** tab in Bannerlord's native
 **Options** screen. Open the game's Options screen and select the Calendar tab.
 MCM and the XML settings file also support custom format
 tokens: `{Month}`, `{Season}`, `{Day}`, `{Year}`, `{MonthNumber}`, and
 `{DayOfYear}`.
 
+Use the native tab's top-right **Reset to Defaults** button to restore calendar
+settings. The old duplicate reset row is intentionally not shown.
+
 When the optional MCM settings page successfully loads, the native **Calendar**
-tab is hidden so players have one settings screen instead of two. If MCM is not
-installed or its optional adapter cannot initialize, the native tab remains as a
-fully functional fallback.
+tab remains visible but is disabled so there is one active settings screen. If
+MCM is not installed or its optional adapter cannot initialize, the native tab
+remains fully functional.
 
 Standalone settings are saved to:
 
@@ -120,8 +135,7 @@ The file is created automatically on first launch. Every calendar setting is
 kept there, including the twelve month names and month lengths. For example:
 
 ```xml
-<TwelveMonthCalendar CalendarSystem="Gregorian12Month"
-  UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
+<TwelveMonthCalendar UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
   UseOrdinalDaySuffixes="true"
   AutoCampaignTimeScale="true" CampaignTimeScale="0.2299842"
   DateFormat="{Month} {Day} {Year}"
@@ -153,9 +167,9 @@ available on the separate native **Calendar** tab in the Options screen, and in
 MCM when MCM is installed.
 The date-format selector uses **Month-Day-Year** as the default and also provides
 **Day-Month-Year** and **Year-Month-Day**. The season name is always displayed
-before the date, regardless of the selected date order. Changes apply immediately
-to display settings; campaign-time pacing changes affect subsequent campaign-time
-advancement.
+to the right of the map clock, regardless of the selected date order. Changes
+apply immediately to display settings; campaign-time pacing changes affect
+subsequent campaign-time advancement.
 
 Positive renown rewards are multiplied by `RenownGainMultiplier`, which defaults
 to `0.5` and can be changed from the Calendar settings tab, MCM, or XML.

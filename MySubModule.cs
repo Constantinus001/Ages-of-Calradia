@@ -37,6 +37,10 @@ namespace TwelveMonthCalendar
                         1f,
                         CalendarSettingsState.PregnancyDurationMonths,
                         CalendarTimeMath.PregnancyDurationInDays));
+                Diagnostics.Info(
+                    "Native diplomacy balance support registered. Active="
+                    + CalendarSettingsState.ExtendedCalendarEnabled
+                    + "; it scales annual proposal cadence, war/peace cooldowns, treaty durations, alliance timing, and hourly influence rewards while the Gregorian calendar is active.");
             }
             catch (Exception exception)
             {

@@ -33,8 +33,9 @@ namespace TwelveMonthCalendar
                     ? string.Format("Year {0}", year)
                     : year.ToString();
 
-                // The season is a fixed leading component. This keeps it first
-                // even when the user changes the month/day/year order.
+                // The map bar renders the season in its own label to the right
+                // of the clock. Keep accepting the old token for configuration
+                // compatibility, but do not duplicate it in the date label.
                 string format = CalendarSettingsState.DateFormat;
                 format = Regex.Replace(format, "\\{Season\\}", string.Empty, RegexOptions.IgnoreCase);
                 format = Regex.Replace(format, "\\s{2,}", " ").Trim();
@@ -46,7 +47,7 @@ namespace TwelveMonthCalendar
                     .Replace("{MonthNumber}", (month + 1).ToString())
                     .Replace("{DayOfYear}", (dayOfYear + 1).ToString());
 
-                return CalendarSettingsState.GetSeasonName(CalendarTimeMath.GetSeason(time)) + " " + date;
+                return date;
             }
             catch (Exception exception)
             {

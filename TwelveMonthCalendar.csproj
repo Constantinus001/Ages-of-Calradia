@@ -118,9 +118,11 @@
     <Compile Include="CampaignTimeCalendarPatches.cs" />
     <Compile Include="CampaignTimeToStringPatch.cs" />
     <Compile Include="MapTimeTrackerPatch.cs" />
+    <Compile Include="MapBarSeasonDataSourcePatch.cs" />
     <Compile Include="EconomyAndLifeCyclePatches.cs" />
     <Compile Include="SettlementBalancePatches.cs" />
     <Compile Include="DailyRateBalancePatches.cs" />
+    <Compile Include="DiplomacyBalancePatches.cs" />
     <Compile Include="NavalDlcCompatibilityPatch.cs" />
     <Compile Include="CrashDiagnosticsPatches.cs" />
     <!-- Game.Current accessor fallback is not used in the diagnostic build. -->
