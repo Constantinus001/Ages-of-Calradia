@@ -1,0 +1,16 @@
+# Build output and IDE state
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.cache
+
+# Generated deployment and diagnostic artifacts
+*.dll
+*.pdb
+*.log
+backups/
+
+# Local reverse-engineering helpers and their generated files
+tools/

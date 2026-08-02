@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="Twelve Month Calendar" />
+  <Id value="_TwelveMonthCalendar" />
+  <Version value="v1.2.0" />
+  <SingleplayerModule value="true" />
+  <MultiplayerModule value="false" />
+
+  <DependedModules>
+    <DependedModule Id="Native" />
+  </DependedModules>
+
+  <SubModules>
+    <SubModule>
+      <Name value="Twelve Month Calendar" />
+      <DLLName value="TwelveMonthCalendar.dll" />
+      <SubModuleClassType value="TwelveMonthCalendar.MySubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>

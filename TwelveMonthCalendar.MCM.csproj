@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6D9B6A1E-1D8D-4E36-BD42-3BEA3E4B42F7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>TwelveMonthCalendar.MCM</RootNamespace>
+    <AssemblyName>TwelveMonthCalendar.MCM</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <OutputPath>bin\Win64_Shipping_Client\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <NetStandardPath Condition=" '$(NetStandardPath)' == '' ">C:\Program Files\dotnet\sdk\3.1.426\Microsoft\Microsoft.NET.Build.Extensions\net461\lib\netstandard.dll</NetStandardPath>
+    <McmAssemblyPath Condition=" '$(McmAssemblyPath)' == '' ">$(UserProfile)\.nuget\packages\bannerlord.mcm\5.12.2\lib\netstandard2.0\MCMv5.dll</McmAssemblyPath>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="netstandard">
+      <HintPath>$(NetStandardPath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TwelveMonthCalendar">
+      <HintPath>bin\Win64_Shipping_Client\TwelveMonthCalendar.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="MCMv5">
+      <HintPath>$(McmAssemblyPath)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bannerlord.MCM" Version="5.12.2" IncludeAssets="compile" />
+    <Compile Include="McmSettings.cs" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
