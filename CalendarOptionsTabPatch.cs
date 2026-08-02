@@ -7,6 +7,7 @@ using TaleWorlds.Engine.Options;
 using TaleWorlds.GauntletUI;
 using TaleWorlds.GauntletUI.Data;
 using TaleWorlds.GauntletUI.PrefabSystem;
+using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade.Options;
@@ -84,8 +85,34 @@ namespace TwelveMonthCalendar
         }
     }
 
+    // The native GauntletOptionsScreen retains its original OptionsVM and owns
+    // the active-state registration used to close the screen. The Calendar VM
+    // is only the movie's data source, so it must never close the screen itself.
+    [HarmonyPatch(typeof(OptionsVM), nameof(OptionsVM.ExecuteCancel))]
+    internal static class CalendarOptionsCancelPatch
+    {
+        [HarmonyPrefix]
+        private static bool Prefix(OptionsVM __instance)
+        {
+            CalendarOptionsVM calendarOptions = __instance as CalendarOptionsVM;
+            return calendarOptions == null || !calendarOptions.TryCloseThroughNativeOptions(false);
+        }
+    }
+
+    [HarmonyPatch(typeof(OptionsVM), nameof(OptionsVM.ExecuteDone))]
+    internal static class CalendarOptionsDonePatch
+    {
+        [HarmonyPrefix]
+        private static bool Prefix(OptionsVM __instance)
+        {
+            CalendarOptionsVM calendarOptions = __instance as CalendarOptionsVM;
+            return calendarOptions == null || !calendarOptions.TryCloseThroughNativeOptions(true);
+        }
+    }
+
     internal sealed class CalendarOptionsVM : OptionsVM
     {
+        private readonly OptionsVM _nativeOptions;
         private readonly GroupedOptionCategoryVM _calendarOptions;
 
         [DataSourceProperty]
@@ -102,7 +129,9 @@ namespace TwelveMonthCalendar
                 delegate { },
                 delegate { })
         {
+            _nativeOptions = source;
             CopyNativeState(source);
+            DetachProxyGamepadHandler();
 
             List<IOptionData> options = new List<IOptionData>
             {
@@ -193,6 +222,59 @@ namespace TwelveMonthCalendar
             ApplyCalendarOptionLabels(options);
 
             AddCategoryToNativeLists(_calendarOptions);
+        }
+
+        internal bool TryCloseThroughNativeOptions(bool applyChanges)
+        {
+            if (_nativeOptions == null)
+            {
+                Diagnostics.Info("Calendar Settings proxy could not find the native OptionsVM while closing.");
+                return false;
+            }
+
+            try
+            {
+                Diagnostics.Info(
+                    "Calendar Settings close routed through the native OptionsVM. ApplyChanges="
+                    + applyChanges + ".");
+                if (applyChanges)
+                {
+                    _nativeOptions.ExecuteDone();
+                }
+                else
+                {
+                    _nativeOptions.ExecuteCancel();
+                }
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Calendar Settings could not route screen close through the native OptionsVM.", exception);
+                return false;
+            }
+        }
+
+        private void DetachProxyGamepadHandler()
+        {
+            try
+            {
+                MethodInfo method = AccessTools.Method(typeof(OptionsVM), "OnGamepadActiveStateChanged");
+                if (method == null)
+                {
+                    Diagnostics.Info("Calendar Settings proxy could not locate the native gamepad handler.");
+                    return;
+                }
+
+                Action handler = (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+                Input.OnGamepadActiveStateChanged = (Action)Delegate.Remove(
+                    Input.OnGamepadActiveStateChanged,
+                    handler);
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Calendar Settings proxy could not detach its unused gamepad handler.", exception);
+            }
         }
 
         private void ApplyCalendarOptionLabels(IList<IOptionData> options)
