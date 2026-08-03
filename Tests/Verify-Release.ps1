@@ -1,9 +1,17 @@
 param(
     [string]$ModuleRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$ReleaseArchive
+    [string]$ReleaseArchive,
+    [switch]$AllowDirtySource
 )
 
 $ErrorActionPreference = 'Stop'
+
+if (-not $AllowDirtySource) {
+    $sourceChanges = @(git -C $ModuleRoot status --porcelain)
+    if ($sourceChanges.Count -gt 0) {
+        throw 'Source tree has uncommitted changes. Commit the exact release source before packaging.'
+    }
+}
 
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
@@ -52,8 +60,8 @@ foreach ($unsafeSymbol in @(
 
 [xml]$manifest = Get-Content -Raw -LiteralPath $moduleXml
 $version = $manifest.Module.Version.value
-if ([string]::IsNullOrWhiteSpace($version)) {
-    throw 'SubModule.xml does not define a module version.'
+if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^v\d+\.\d+\.\d+$') {
+    throw 'SubModule.xml must define a valid Bannerlord version in vMajor.Minor.Patch format.'
 }
 
 if ([string]::IsNullOrWhiteSpace($ReleaseArchive)) {
@@ -124,5 +132,6 @@ if ($detections) {
 }
 
 $archiveHash = (Get-FileHash $ReleaseArchive -Algorithm SHA256).Hash
-Write-Output ('PASS: Defender scan clean; Archive={0}; SHA256={1}; DailyFactor={2:F8}; DurationFactor={3:F8}; MainDLL={4}; MCMDLL={5}' -f `
-    $ReleaseArchive, $archiveHash, $dailyFactor, $durationFactor, (Get-FileHash $mainDll -Algorithm SHA256).Hash, (Get-FileHash $mcmDll -Algorithm SHA256).Hash)
+$releaseCommit = (git -C $ModuleRoot rev-parse HEAD).Trim()
+Write-Output ('PASS: Defender scan clean; Commit={0}; Archive={1}; SHA256={2}; DailyFactor={3:F8}; DurationFactor={4:F8}; MainDLL={5}; MCMDLL={6}' -f `
+    $releaseCommit, $ReleaseArchive, $archiveHash, $dailyFactor, $durationFactor, (Get-FileHash $mainDll -Algorithm SHA256).Hash, (Get-FileHash $mcmDll -Algorithm SHA256).Hash)

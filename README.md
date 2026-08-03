@@ -65,7 +65,9 @@ Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 
 This command builds the module, creates the complete runtime ZIP in
 `artifacts`, verifies its exact file list, and runs a mandatory Microsoft
-Defender scan. Only upload an archive after it reports `PASS`.
+Defender scan. It also refuses uncommitted sources and rejects an invalid
+Bannerlord module-version format. Only upload an archive after it reports
+`PASS`.
 
 The build output is written to `bin\Win64_Shipping_Client`. Copy the module
 folder into the game's `Modules` directory, then enable **Twelve Month Calendar** in the

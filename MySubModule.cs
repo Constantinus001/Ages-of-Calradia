@@ -1,5 +1,8 @@
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
 using TaleWorlds.CampaignSystem.Party;
@@ -11,6 +14,13 @@ namespace TwelveMonthCalendar
     public sealed class MySubModule : MBSubModuleBase
     {
         private const string HarmonyId = "com.codex.twelvemonthcalendar";
+        private static readonly HashSet<string> CorePatchTypeNames = new HashSet<string>(
+            StringComparer.Ordinal)
+        {
+            nameof(CampaignTimeCalendarPatches),
+            nameof(CampaignTimeToStringPatch),
+            nameof(MapTimeTrackerPatch)
+        };
         private Harmony _harmony;
         private bool _runtimePatchesApplied;
 
@@ -28,7 +38,7 @@ namespace TwelveMonthCalendar
             try
             {
                 _harmony = new Harmony(HarmonyId);
-                _harmony.PatchAll(typeof(MySubModule).Assembly);
+                ApplyPatchGroups();
                 _runtimePatchesApplied = true;
                 CrashFlightRecorder.Record("Harmony", "All runtime patches registered successfully.");
                 Diagnostics.Info("Harmony patches applied successfully.");
@@ -151,6 +161,71 @@ namespace TwelveMonthCalendar
                 "SettingsChanged; TimeScale=" + CalendarSettingsState.CampaignTimeScale.ToString("F6")
                 + "; LeapYears=" + CalendarSettingsState.UseLeapYears
                 + "; DateFormat=" + CalendarSettingsState.DateFormat);
+        }
+
+        /// <summary>
+        /// Core calendar patches are all-or-nothing. UI, diagnostics, and
+        /// balance patches are applied independently so an API change in one
+        /// optional feature cannot disable the calendar or crash startup.
+        /// </summary>
+        private void ApplyPatchGroups()
+        {
+            Type[] patchTypes = GetPatchTypes();
+            foreach (Type patchType in patchTypes.Where(
+                type => CorePatchTypeNames.Contains(type.Name)))
+            {
+                try
+                {
+                    _harmony.CreateClassProcessor(patchType).Patch();
+                    Diagnostics.Info("Core Harmony patch registered: " + patchType.Name + ".");
+                }
+                catch (Exception exception)
+                {
+                    throw new InvalidOperationException(
+                        "Required calendar patch could not be registered: " + patchType.FullName,
+                        exception);
+                }
+            }
+
+            foreach (Type patchType in patchTypes.Where(
+                type => !CorePatchTypeNames.Contains(type.Name)))
+            {
+                try
+                {
+                    _harmony.CreateClassProcessor(patchType).Patch();
+                    Diagnostics.Info("Optional Harmony patch registered: " + patchType.Name + ".");
+                }
+                catch (Exception exception)
+                {
+                    Diagnostics.Error(
+                        "Optional Harmony patch was disabled because its Bannerlord target is incompatible: "
+                        + patchType.FullName,
+                        exception);
+                }
+            }
+        }
+
+        private static Type[] GetPatchTypes()
+        {
+            try
+            {
+                return typeof(MySubModule).Assembly
+                    .GetTypes()
+                    .Where(type => type.GetCustomAttributes(typeof(HarmonyPatch), false).Length > 0)
+                    .OrderBy(type => type.FullName, StringComparer.Ordinal)
+                    .ToArray();
+            }
+            catch (ReflectionTypeLoadException exception)
+            {
+                string failures = string.Join(
+                    "; ",
+                    exception.LoaderExceptions
+                        .Where(loaderException => loaderException != null)
+                        .Select(loaderException => loaderException.GetType().Name));
+                throw new InvalidOperationException(
+                    "Calendar patch types could not be discovered. " + failures,
+                    exception);
+            }
         }
 
         private static void InstallAnnualBalanceModels(CampaignGameStarter campaignStarter)

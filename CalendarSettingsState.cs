@@ -21,6 +21,7 @@ namespace TwelveMonthCalendar
         // stable value for legacy adapters/configuration, but do not expose a
         // selectable native-calendar mode.
         private const string FixedCalendarSystem = "Gregorian12Month";
+        private const int RequiredCommonDaysInYear = 365;
         private const string DefaultDateFormat = "{Month} {Day} {Year}";
         private const bool DefaultUseOrdinalDaySuffixes = true;
         internal const int DefaultNativeDaysInYear = 84;
@@ -298,7 +299,14 @@ namespace TwelveMonthCalendar
                 ApplyMonthNames(monthNames);
                 ApplySeasonNames(seasonNames);
                 ApplyMonthLengths(monthLengths);
-                _nativeDaysInYear = Math.Max(1, nativeDaysInYear ?? _nativeDaysInYear);
+                int requestedNativeDaysInYear = nativeDaysInYear ?? _nativeDaysInYear;
+                if (requestedNativeDaysInYear != DefaultNativeDaysInYear)
+                {
+                    Diagnostics.Info(
+                        "Ignoring NativeDaysInYear=" + requestedNativeDaysInYear
+                        + "; annual balance is calibrated to Bannerlord's native 84-day year.");
+                }
+                _nativeDaysInYear = DefaultNativeDaysInYear;
                 float requestedPregnancyDays = pregnancyDurationInDays ?? _pregnancyDurationInDays;
                 _pregnancyDurationInDays = IsFinite(requestedPregnancyDays)
                     ? Math.Max(0.1f, Math.Min(10000f, requestedPregnancyDays))
@@ -623,6 +631,35 @@ namespace TwelveMonthCalendar
             if (values == null || values.Length != _monthLengths.Length)
             {
                 return;
+            }
+
+            int totalDays = 0;
+            for (int i = 0; i < values.Length; i++)
+            {
+                totalDays += Math.Max(1, Math.Min(MaximumConfiguredMonthLength, values[i]));
+            }
+
+            if (totalDays != RequiredCommonDaysInYear)
+            {
+                Diagnostics.Info(
+                    "Ignoring custom month lengths totaling " + totalDays
+                    + " days; Twelve Month Calendar requires exactly "
+                    + RequiredCommonDaysInYear + " common-year days.");
+                return;
+            }
+
+            if (_campaignSessionStarted)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    int normalized = Math.Max(1, Math.Min(MaximumConfiguredMonthLength, values[i]));
+                    if (normalized != _monthLengths[i])
+                    {
+                        Diagnostics.Info(
+                            "Custom month-length change ignored after campaign session start; restart the campaign to apply it.");
+                        return;
+                    }
+                }
             }
 
             for (int i = 0; i < _monthLengths.Length; i++)
