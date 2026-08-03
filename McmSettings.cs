@@ -17,6 +17,12 @@ namespace TwelveMonthCalendar.MCM
         private int _pregnancyDurationMonths = CalendarSettingsState.PregnancyDurationMonths;
         private float _pregnancyDurationInDays = CalendarSettingsState.PregnancyDurationInDays;
         private float _renownGainMultiplier = CalendarSettingsState.RenownGainMultiplier;
+        private bool _balancePartyImpairment = CalendarSettingsState.BalancePartyImpairment;
+        private bool _balancePrisonerRecruitment = CalendarSettingsState.BalancePrisonerRecruitment;
+        private bool _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
+        private bool _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
+        private bool _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+        private bool _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
         private bool _synchronizing;
 
         public override string Id => "TwelveMonthCalendar_MCM";
@@ -178,6 +184,60 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
+        [SettingPropertyBool("Balance Party Impairment", Order = 20, RequireRestart = true,
+            HintText = "Scales post-battle disorganization and vulnerability durations to the 365-day year.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalancePartyImpairment
+        {
+            get { return _balancePartyImpairment; }
+            set { _balancePartyImpairment = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance Prisoner Recruitment", Order = 21, RequireRestart = true,
+            HintText = "Scales prisoner conformity gained per campaign hour for player and AI parties.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalancePrisonerRecruitment
+        {
+            get { return _balancePrisonerRecruitment; }
+            set { _balancePrisonerRecruitment = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance NPC Marriage", Order = 22, RequireRestart = true,
+            HintText = "Converts NPC marriage chance to preserve its annual rate across the 365-day year.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalanceNpcMarriage
+        {
+            get { return _balanceNpcMarriage; }
+            set { _balanceNpcMarriage = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance Map Tracks", Order = 23, RequireRestart = true,
+            HintText = "Scales track lifetime while preserving native track detection and spotting rules.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalanceMapTracks
+        {
+            get { return _balanceMapTracks; }
+            set { _balanceMapTracks = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance Quest Deadlines", Order = 24, RequireRestart = true,
+            HintText = "Extends deadlines only for quests started while this setting is enabled.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalanceQuestDeadlines
+        {
+            get { return _balanceQuestDeadlines; }
+            set { _balanceQuestDeadlines = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Annual Balance Diagnostics", Order = 25, RequireRestart = false,
+            HintText = "Writes sampled annual-balance checkpoints to crash reports.")]
+        [SettingPropertyGroup("Diagnostics")]
+        public bool AnnualBalanceDiagnosticsEnabled
+        {
+            get { return _annualBalanceDiagnosticsEnabled; }
+            set { _annualBalanceDiagnosticsEnabled = value; Apply(); OnPropertyChanged(); }
+        }
+
         public static bool RegisterSettings()
         {
             if (Instance == null)
@@ -210,7 +270,13 @@ namespace TwelveMonthCalendar.MCM
                 pregnancyDurationInDays: _pregnancyDurationInDays,
                 useCalendarMonthPregnancy: _useCalendarMonthPregnancy,
                 renownGainMultiplier: _renownGainMultiplier,
-                useOrdinalDaySuffixes: _useOrdinalDaySuffixes);
+                useOrdinalDaySuffixes: _useOrdinalDaySuffixes,
+                balancePartyImpairment: _balancePartyImpairment,
+                balancePrisonerRecruitment: _balancePrisonerRecruitment,
+                balanceNpcMarriage: _balanceNpcMarriage,
+                balanceMapTracks: _balanceMapTracks,
+                balanceQuestDeadlines: _balanceQuestDeadlines,
+                annualBalanceDiagnosticsEnabled: _annualBalanceDiagnosticsEnabled);
             CalendarSettingsState.Save();
         }
 
@@ -236,6 +302,12 @@ namespace TwelveMonthCalendar.MCM
                 _pregnancyDurationMonths = CalendarSettingsState.PregnancyDurationMonths;
                 _pregnancyDurationInDays = CalendarSettingsState.PregnancyDurationInDays;
                 _renownGainMultiplier = CalendarSettingsState.RenownGainMultiplier;
+                _balancePartyImpairment = CalendarSettingsState.BalancePartyImpairment;
+                _balancePrisonerRecruitment = CalendarSettingsState.BalancePrisonerRecruitment;
+                _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
+                _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
+                _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+                _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
             }
             finally
             {
@@ -262,6 +334,12 @@ namespace TwelveMonthCalendar.MCM
             OnPropertyChanged(nameof(PregnancyDurationMonths));
             OnPropertyChanged(nameof(PregnancyDurationInDays));
             OnPropertyChanged(nameof(RenownGainMultiplier));
+            OnPropertyChanged(nameof(BalancePartyImpairment));
+            OnPropertyChanged(nameof(BalancePrisonerRecruitment));
+            OnPropertyChanged(nameof(BalanceNpcMarriage));
+            OnPropertyChanged(nameof(BalanceMapTracks));
+            OnPropertyChanged(nameof(BalanceQuestDeadlines));
+            OnPropertyChanged(nameof(AnnualBalanceDiagnosticsEnabled));
         }
     }
 }

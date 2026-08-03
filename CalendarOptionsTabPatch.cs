@@ -25,9 +25,9 @@ namespace TwelveMonthCalendar
     [HarmonyPatch]
     internal static class CalendarOptionsMoviePatch
     {
-        private static MethodBase TargetMethod()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
-            return AccessTools.Constructor(
+            MethodBase target = AccessTools.Constructor(
                 typeof(GauntletMovie),
                 new[]
                 {
@@ -37,6 +37,15 @@ namespace TwelveMonthCalendar
                     typeof(IViewModel),
                     typeof(bool)
                 });
+
+            if (target == null)
+            {
+                Diagnostics.Info(
+                    "Native Options movie constructor was not found; the optional in-game Calendar settings tab is disabled.");
+                return new MethodBase[0];
+            }
+
+            return new[] { target };
         }
 
         [HarmonyPrefix]
@@ -216,7 +225,31 @@ namespace TwelveMonthCalendar
                     false,
                     0,
                     delegate { return CalendarSettingsState.RenownGainMultiplier; },
-                    delegate(float value) { Apply(renownGainMultiplier: value); })
+                    delegate(float value) { Apply(renownGainMultiplier: value); }),
+                new CalendarBooleanOptionData(
+                    "Balance Party Impairment",
+                    delegate { return CalendarSettingsState.BalancePartyImpairment; },
+                    delegate(bool value) { Apply(balancePartyImpairment: value); }),
+                new CalendarBooleanOptionData(
+                    "Balance Prisoner Recruitment",
+                    delegate { return CalendarSettingsState.BalancePrisonerRecruitment; },
+                    delegate(bool value) { Apply(balancePrisonerRecruitment: value); }),
+                new CalendarBooleanOptionData(
+                    "Balance NPC Marriage",
+                    delegate { return CalendarSettingsState.BalanceNpcMarriage; },
+                    delegate(bool value) { Apply(balanceNpcMarriage: value); }),
+                new CalendarBooleanOptionData(
+                    "Balance Map Tracks",
+                    delegate { return CalendarSettingsState.BalanceMapTracks; },
+                    delegate(bool value) { Apply(balanceMapTracks: value); }),
+                new CalendarBooleanOptionData(
+                    "Balance Quest Deadlines",
+                    delegate { return CalendarSettingsState.BalanceQuestDeadlines; },
+                    delegate(bool value) { Apply(balanceQuestDeadlines: value); }),
+                new CalendarBooleanOptionData(
+                    "Annual Balance Diagnostics",
+                    delegate { return CalendarSettingsState.AnnualBalanceDiagnosticsEnabled; },
+                    delegate(bool value) { Apply(annualBalanceDiagnosticsEnabled: value); })
             };
 
             OptionCategory category = new OptionCategory(
@@ -412,7 +445,13 @@ namespace TwelveMonthCalendar
             bool? useCalendarMonthPregnancy = null,
             int? pregnancyDurationMonths = null,
             float? pregnancyDurationInDays = null,
-            float? renownGainMultiplier = null)
+            float? renownGainMultiplier = null,
+            bool? balancePartyImpairment = null,
+            bool? balancePrisonerRecruitment = null,
+            bool? balanceNpcMarriage = null,
+            bool? balanceMapTracks = null,
+            bool? balanceQuestDeadlines = null,
+            bool? annualBalanceDiagnosticsEnabled = null)
         {
             bool requestedLeapYears = useLeapYears ?? CalendarSettingsState.UseLeapYears;
             bool requestedShowDayLabel = showDayLabel ?? CalendarSettingsState.ShowDayLabel;
@@ -429,6 +468,18 @@ namespace TwelveMonthCalendar
                 ?? CalendarSettingsState.PregnancyDurationInDays;
             float requestedRenownMultiplier = renownGainMultiplier
                 ?? CalendarSettingsState.RenownGainMultiplier;
+            bool requestedBalancePartyImpairment = balancePartyImpairment
+                ?? CalendarSettingsState.BalancePartyImpairment;
+            bool requestedBalancePrisonerRecruitment = balancePrisonerRecruitment
+                ?? CalendarSettingsState.BalancePrisonerRecruitment;
+            bool requestedBalanceNpcMarriage = balanceNpcMarriage
+                ?? CalendarSettingsState.BalanceNpcMarriage;
+            bool requestedBalanceMapTracks = balanceMapTracks
+                ?? CalendarSettingsState.BalanceMapTracks;
+            bool requestedBalanceQuestDeadlines = balanceQuestDeadlines
+                ?? CalendarSettingsState.BalanceQuestDeadlines;
+            bool requestedAnnualBalanceDiagnostics = annualBalanceDiagnosticsEnabled
+                ?? CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
 
             // Bannerlord initializes option controls by writing their current
             // value back to the data source. Do not treat those UI refreshes as
@@ -443,7 +494,13 @@ namespace TwelveMonthCalendar
                 && requestedCalendarMonthPregnancy == CalendarSettingsState.UseCalendarMonthPregnancy
                 && requestedPregnancyMonths == CalendarSettingsState.PregnancyDurationMonths
                 && NearlyEqual(requestedPregnancyDays, CalendarSettingsState.PregnancyDurationInDays)
-                && NearlyEqual(requestedRenownMultiplier, CalendarSettingsState.RenownGainMultiplier))
+                && NearlyEqual(requestedRenownMultiplier, CalendarSettingsState.RenownGainMultiplier)
+                && requestedBalancePartyImpairment == CalendarSettingsState.BalancePartyImpairment
+                && requestedBalancePrisonerRecruitment == CalendarSettingsState.BalancePrisonerRecruitment
+                && requestedBalanceNpcMarriage == CalendarSettingsState.BalanceNpcMarriage
+                && requestedBalanceMapTracks == CalendarSettingsState.BalanceMapTracks
+                && requestedBalanceQuestDeadlines == CalendarSettingsState.BalanceQuestDeadlines
+                && requestedAnnualBalanceDiagnostics == CalendarSettingsState.AnnualBalanceDiagnosticsEnabled)
             {
                 return;
             }
@@ -460,7 +517,13 @@ namespace TwelveMonthCalendar
                 pregnancyDurationMonths: requestedPregnancyMonths,
                 pregnancyDurationInDays: requestedPregnancyDays,
                 renownGainMultiplier: requestedRenownMultiplier,
-                useOrdinalDaySuffixes: requestedOrdinalDaySuffixes);
+                useOrdinalDaySuffixes: requestedOrdinalDaySuffixes,
+                balancePartyImpairment: requestedBalancePartyImpairment,
+                balancePrisonerRecruitment: requestedBalancePrisonerRecruitment,
+                balanceNpcMarriage: requestedBalanceNpcMarriage,
+                balanceMapTracks: requestedBalanceMapTracks,
+                balanceQuestDeadlines: requestedBalanceQuestDeadlines,
+                annualBalanceDiagnosticsEnabled: requestedAnnualBalanceDiagnostics);
             CalendarSettingsState.Save();
         }
 
@@ -533,6 +596,18 @@ namespace TwelveMonthCalendar
                         return "Sets pregnancy length in days when calendar-month pregnancy is disabled. The default is 273.75 days.";
                     case "Renown Gain Multiplier":
                         return "Scales positive renown rewards. A value of 0.50 gives half the normal positive renown.";
+                    case "Balance Party Impairment":
+                        return "Scales post-battle disorganization and vulnerability durations to the 365-day year. Best configured before starting a campaign.";
+                    case "Balance Prisoner Recruitment":
+                        return "Scales prisoner conformity gained per campaign hour for player and AI parties. Best configured before starting a campaign.";
+                    case "Balance NPC Marriage":
+                        return "Converts NPC marriage probability to preserve its annual rate across the 365-day year. Best configured before starting a campaign.";
+                    case "Balance Map Tracks":
+                        return "Scales map-track lifetime to the 365-day year while keeping detection and spotting rules native. Best configured before starting a campaign.";
+                    case "Balance Quest Deadlines":
+                        return "Extends deadlines for quests started while enabled. Existing quest deadlines are never changed. Best configured before starting a campaign.";
+                    case "Annual Balance Diagnostics":
+                        return "Writes sampled annual-balance checkpoints into crash reports. Disable only when diagnosing performance.";
                     default:
                         return string.Empty;
                 }

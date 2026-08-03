@@ -58,6 +58,12 @@ namespace TwelveMonthCalendar
         private static int _pregnancyDurationMonths = DefaultPregnancyDurationMonths;
         private static bool _useCalendarMonthPregnancy = true;
         private static float _renownGainMultiplier = DefaultRenownGainMultiplier;
+        private static bool _balancePartyImpairment = true;
+        private static bool _balancePrisonerRecruitment = true;
+        private static bool _balanceNpcMarriage = true;
+        private static bool _balanceMapTracks = true;
+        private static bool _balanceQuestDeadlines = true;
+        private static bool _annualBalanceDiagnosticsEnabled = true;
         private static bool _campaignSessionStarted;
         private static readonly string[] _monthNames = (string[])DefaultMonthNames.Clone();
         private static readonly string[] _seasonNames = (string[])DefaultSeasonNames.Clone();
@@ -133,6 +139,36 @@ namespace TwelveMonthCalendar
         public static float RenownGainMultiplier
         {
             get { lock (SyncRoot) return _renownGainMultiplier; }
+        }
+
+        public static bool BalancePartyImpairment
+        {
+            get { lock (SyncRoot) return _balancePartyImpairment; }
+        }
+
+        public static bool BalancePrisonerRecruitment
+        {
+            get { lock (SyncRoot) return _balancePrisonerRecruitment; }
+        }
+
+        public static bool BalanceNpcMarriage
+        {
+            get { lock (SyncRoot) return _balanceNpcMarriage; }
+        }
+
+        public static bool BalanceMapTracks
+        {
+            get { lock (SyncRoot) return _balanceMapTracks; }
+        }
+
+        public static bool BalanceQuestDeadlines
+        {
+            get { lock (SyncRoot) return _balanceQuestDeadlines; }
+        }
+
+        public static bool AnnualBalanceDiagnosticsEnabled
+        {
+            get { lock (SyncRoot) return _annualBalanceDiagnosticsEnabled; }
         }
 
         public static string GetMonthName(int month)
@@ -227,7 +263,13 @@ namespace TwelveMonthCalendar
             bool? useCalendarMonthPregnancy = null,
             bool? autoCampaignTimeScale = null,
             float? renownGainMultiplier = null,
-            bool? useOrdinalDaySuffixes = null)
+            bool? useOrdinalDaySuffixes = null,
+            bool? balancePartyImpairment = null,
+            bool? balancePrisonerRecruitment = null,
+            bool? balanceNpcMarriage = null,
+            bool? balanceMapTracks = null,
+            bool? balanceQuestDeadlines = null,
+            bool? annualBalanceDiagnosticsEnabled = null)
         {
             lock (SyncRoot)
             {
@@ -267,6 +309,12 @@ namespace TwelveMonthCalendar
                 _renownGainMultiplier = IsFinite(requestedRenownMultiplier)
                     ? Math.Max(0f, Math.Min(1f, requestedRenownMultiplier))
                     : DefaultRenownGainMultiplier;
+                ApplyCampaignStartSetting(ref _balancePartyImpairment, balancePartyImpairment, "BalancePartyImpairment");
+                ApplyCampaignStartSetting(ref _balancePrisonerRecruitment, balancePrisonerRecruitment, "BalancePrisonerRecruitment");
+                ApplyCampaignStartSetting(ref _balanceNpcMarriage, balanceNpcMarriage, "BalanceNpcMarriage");
+                ApplyCampaignStartSetting(ref _balanceMapTracks, balanceMapTracks, "BalanceMapTracks");
+                ApplyCampaignStartSetting(ref _balanceQuestDeadlines, balanceQuestDeadlines, "BalanceQuestDeadlines");
+                _annualBalanceDiagnosticsEnabled = annualBalanceDiagnosticsEnabled ?? _annualBalanceDiagnosticsEnabled;
                 _autoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
                 _campaignTimeScale = _autoCampaignTimeScale
                     ? GetAutomaticCampaignTimeScale()
@@ -318,7 +366,13 @@ namespace TwelveMonthCalendar
                 true,
                 true,
                 DefaultRenownGainMultiplier,
-                useOrdinalDaySuffixes: DefaultUseOrdinalDaySuffixes);
+                useOrdinalDaySuffixes: DefaultUseOrdinalDaySuffixes,
+                balancePartyImpairment: true,
+                balancePrisonerRecruitment: true,
+                balanceNpcMarriage: true,
+                balanceMapTracks: true,
+                balanceQuestDeadlines: true,
+                annualBalanceDiagnosticsEnabled: true);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
         }
@@ -366,7 +420,13 @@ namespace TwelveMonthCalendar
                     ReadBoolean(root, "UseCalendarMonthPregnancy", true),
                     ReadBoolean(root, "AutoCampaignTimeScale", true),
                     ReadFloat(root, "RenownGainMultiplier", DefaultRenownGainMultiplier),
-                    useOrdinalDaySuffixes: ReadBoolean(root, "UseOrdinalDaySuffixes", DefaultUseOrdinalDaySuffixes));
+                    useOrdinalDaySuffixes: ReadBoolean(root, "UseOrdinalDaySuffixes", DefaultUseOrdinalDaySuffixes),
+                    balancePartyImpairment: ReadBoolean(root, "BalancePartyImpairment", true),
+                    balancePrisonerRecruitment: ReadBoolean(root, "BalancePrisonerRecruitment", true),
+                    balanceNpcMarriage: ReadBoolean(root, "BalanceNpcMarriage", true),
+                    balanceMapTracks: ReadBoolean(root, "BalanceMapTracks", true),
+                    balanceQuestDeadlines: ReadBoolean(root, "BalanceQuestDeadlines", true),
+                    annualBalanceDiagnosticsEnabled: ReadBoolean(root, "AnnualBalanceDiagnosticsEnabled", true));
 
                 Diagnostics.Info(string.Format("Standalone settings loaded from {0}.", ConfigPath));
                 // Rewrite the file after loading so newly added configurable
@@ -404,6 +464,12 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("PregnancyDurationMonths", PregnancyDurationMonths.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("UseCalendarMonthPregnancy", UseCalendarMonthPregnancy.ToString());
                 root.SetAttribute("RenownGainMultiplier", RenownGainMultiplier.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("BalancePartyImpairment", BalancePartyImpairment.ToString());
+                root.SetAttribute("BalancePrisonerRecruitment", BalancePrisonerRecruitment.ToString());
+                root.SetAttribute("BalanceNpcMarriage", BalanceNpcMarriage.ToString());
+                root.SetAttribute("BalanceMapTracks", BalanceMapTracks.ToString());
+                root.SetAttribute("BalanceQuestDeadlines", BalanceQuestDeadlines.ToString());
+                root.SetAttribute("AnnualBalanceDiagnosticsEnabled", AnnualBalanceDiagnosticsEnabled.ToString());
                 string[] monthNames = MonthNamesSnapshot();
                 string[] seasonNames = SeasonNamesSnapshot();
                 int[] monthLengths = MonthLengthsSnapshot();
@@ -430,6 +496,22 @@ namespace TwelveMonthCalendar
         {
             string value = root.GetAttribute(name);
             return string.IsNullOrWhiteSpace(value) ? fallback : value;
+        }
+
+        private static void ApplyCampaignStartSetting(ref bool currentValue, bool? requestedValue, string name)
+        {
+            if (!requestedValue.HasValue || requestedValue.Value == currentValue)
+            {
+                return;
+            }
+
+            if (_campaignSessionStarted)
+            {
+                Diagnostics.Info(name + " change ignored after campaign session start; restart the campaign to apply it.");
+                return;
+            }
+
+            currentValue = requestedValue.Value;
         }
 
         private static bool ReadBoolean(XmlElement root, string name, bool fallback)

@@ -505,6 +505,15 @@ namespace TwelveMonthCalendar
         }
     }
 
+    // IMPORTANT: Do not add a Harmony target for DefaultClanFinanceModel here.
+    // Its static constructor reads Game.Current and GameTextManager.  During the
+    // initial map-bar construction (including character creation), Bannerlord
+    // can invoke that constructor before its native Game.Current is assigned.
+    // Harmony documents that discovering/patching a type can run its static
+    // constructor early; an exception then permanently poisons the type for the
+    // process.  These finance-model patches are deliberately excluded until a
+    // Bannerlord-supported post-initialization extension point is available.
+#if false
     internal sealed class FinanceTaxStockState
     {
         internal int Original;
@@ -800,4 +809,5 @@ namespace TwelveMonthCalendar
             return __exception;
         }
     }
+#endif
 }
