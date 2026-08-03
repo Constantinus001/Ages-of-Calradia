@@ -1,9 +1,9 @@
 using System.Reflection;
-using System.Collections;
 using System;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
+using TaleWorlds.Core;
 
 namespace TwelveMonthCalendar
 {
@@ -11,14 +11,6 @@ namespace TwelveMonthCalendar
     {
         private static readonly FieldInfo BaseNumberField = AccessTools.Field(
             typeof(ExplainedNumber), "<BaseNumber>k__BackingField");
-        private static readonly FieldInfo SumOfFactorsField = AccessTools.Field(
-            typeof(ExplainedNumber), "<SumOfFactors>k__BackingField");
-        private static readonly FieldInfo ExplainerField = AccessTools.Field(
-            typeof(ExplainedNumber), "_explainer");
-        private static readonly PropertyInfo ExplanationLinesProperty = ExplainerField == null
-            ? null
-            : AccessTools.Property(ExplainerField.FieldType, "Lines");
-        private static readonly FieldInfo ExplanationLineNumberField = GetExplanationLineNumberField();
 
         internal static float DailyRateFactor
         {
@@ -32,18 +24,16 @@ namespace TwelveMonthCalendar
 
         internal static void Scale(ref ExplainedNumber value, float factor)
         {
-            // The game exposes these setters as non-public. Set the backing
-            // fields directly on the ref struct so explanations and clamp
-            // limits remain intact while both numeric components are scaled.
-            if (BaseNumberField != null && SumOfFactorsField != null)
+            // ExplainedNumber evaluates as BaseNumber * (1 + SumOfFactors).
+            // Scale its base only: scaling factors too changes native
+            // modifiers (especially negative finance modifiers) instead of
+            // simply converting a daily result to the Gregorian cadence.
+            // Limits remain intentionally untouched.
+            if (BaseNumberField != null)
             {
-                ScaleExplanationLines(value, factor);
                 BaseNumberField.SetValueDirect(
                     __makeref(value),
                     value.BaseNumber * factor);
-                SumOfFactorsField.SetValueDirect(
-                    __makeref(value),
-                    value.SumOfFactors * factor);
                 return;
             }
 
@@ -53,86 +43,11 @@ namespace TwelveMonthCalendar
                 null);
         }
 
-        /// <summary>
-        /// ExplainedNumber keeps its visible breakdown in a separate reference
-        /// object. Scaling only BaseNumber/SumOfFactors made the daily total
-        /// correct but left finance tooltips at native 84-day values.
-        /// </summary>
-        private static void ScaleExplanationLines(ExplainedNumber value, float factor)
-        {
-            try
-            {
-                if (ExplainerField == null
-                    || ExplanationLinesProperty == null
-                    || ExplanationLineNumberField == null)
-                {
-                    return;
-                }
-
-                object explainer = ExplainerField.GetValue(value);
-                IList lines = explainer == null
-                    ? null
-                    : ExplanationLinesProperty.GetValue(explainer, null) as IList;
-                if (lines == null)
-                {
-                    return;
-                }
-
-                for (int index = 0; index < lines.Count; index++)
-                {
-                    object line = lines[index];
-                    if (line == null)
-                    {
-                        continue;
-                    }
-
-                    float number = (float)ExplanationLineNumberField.GetValue(line);
-                    ExplanationLineNumberField.SetValue(line, number * factor);
-                    lines[index] = line;
-                }
-            }
-            catch
-            {
-                // Explanation scaling is cosmetic. Never risk campaign
-                // calculations if a future game version changes this layout.
-            }
-        }
-
-        private static FieldInfo GetExplanationLineNumberField()
-        {
-            try
-            {
-                if (ExplanationLinesProperty == null)
-                {
-                    return null;
-                }
-
-                Type[] genericArguments = ExplanationLinesProperty.PropertyType.GetGenericArguments();
-                return genericArguments.Length == 1
-                    ? AccessTools.Field(genericArguments[0], "Number")
-                    : null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
     }
 
-    [HarmonyPatch(typeof(DefaultSettlementFoodModel), "CalculateTownFoodStocksChange")]
-    internal static class SettlementFoodBalancePatch
-    {
-        [HarmonyPostfix]
-        private static void Postfix(ref ExplainedNumber __result)
-        {
-            if (!CalendarSettingsState.ExtendedCalendarEnabled)
-            {
-                return;
-            }
-
-            SettlementBalanceMath.Scale(ref __result);
-        }
-    }
+    // Food is a coordinated system. The settlement-food wrapper scales direct
+    // town sources and consumption; food goods entering markets are scaled at
+    // their village/workshop sources and must not be scaled again there.
 
     [HarmonyPatch(typeof(DefaultVillageProductionCalculatorModel), "CalculateDailyFoodProductionAmount")]
     internal static class VillageFoodProductionBalancePatch
@@ -140,12 +55,7 @@ namespace TwelveMonthCalendar
         [HarmonyPostfix]
         private static void Postfix(ref float __result)
         {
-            if (!CalendarSettingsState.ExtendedCalendarEnabled)
-            {
-                return;
-            }
-
-            __result *= SettlementBalanceMath.DailyRateFactor;
+            DailyRateBalance.Scale(ref __result);
         }
     }
 
@@ -153,10 +63,21 @@ namespace TwelveMonthCalendar
     internal static class VillageProductionBalancePatch
     {
         [HarmonyPostfix]
-        private static void Postfix(ref ExplainedNumber __result)
+        private static void Postfix(ItemObject item, ref ExplainedNumber __result)
         {
             if (!CalendarSettingsState.ExtendedCalendarEnabled)
             {
+                return;
+            }
+
+            // Food goods enter the market before the settlement wrapper adds
+            // its market component, so they receive their one annual scale
+            // here.
+            if (item != null
+                && item.ItemCategory != null
+                && item.ItemCategory.Properties == ItemCategory.Property.BonusToFoodStores)
+            {
+                SettlementBalanceMath.Scale(ref __result);
                 return;
             }
 
@@ -172,6 +93,14 @@ namespace TwelveMonthCalendar
         {
             if (!CalendarSettingsState.ExtendedCalendarEnabled)
             {
+                return;
+            }
+
+            // WorkshopModel does not expose its output category. The scoped
+            // context is set only while Bannerlord runs a specific workshop.
+            if (WorkshopFoodContext.ProducesFood(WorkshopFoodContext.ActiveWorkshop))
+            {
+                SettlementBalanceMath.Scale(ref __result);
                 return;
             }
 

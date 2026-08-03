@@ -31,7 +31,7 @@ namespace TwelveMonthCalendar.BetterTimeUi
         {
             new Attribute("SuggestedWidth", "230"),
             new Attribute("PositionXOffset", "-30"),
-            new Attribute("PositionYOffset", "0"),
+            new Attribute("PositionYOffset", "-2"),
             new Attribute("Brush.FontSize", "17")
         };
     }
@@ -43,6 +43,6 @@ namespace TwelveMonthCalendar.BetterTimeUi
         public override InsertType Type => (InsertType)0;
 
         [PrefabExtensionText(false)]
-        public string Text => "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"105\" SuggestedHeight=\"22\" HorizontalAlignment=\"Left\" PositionXOffset=\"87\" VerticalAlignment=\"Bottom\" PositionYOffset=\"-2\" Brush=\"MapTextBrushGal\" Brush.FontSize=\"15\" Brush.FontColor=\"#FFF2D0FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@Season\" />";
+        public string Text => "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"105\" SuggestedHeight=\"22\" HorizontalAlignment=\"Left\" PositionXOffset=\"95\" VerticalAlignment=\"Bottom\" PositionYOffset=\"-4\" Brush=\"MapTextBrushGal\" Brush.FontSize=\"16\" Brush.FontColor=\"#FFF2D0FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@Season\" />";
     }
 }

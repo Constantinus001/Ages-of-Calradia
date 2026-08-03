@@ -44,11 +44,16 @@ namespace TwelveMonthCalendar
                 return DeferredNumber(includeDescriptions);
             }
 
-            ExplainedNumber result = Evaluate(
+            ExplainedNumber result = EvaluateClanFinance(
+                clan,
                 () => _native.CalculateClanGoldChange(
                     clan, includeDescriptions, applyWithdrawals, includeDetails),
                 applyWithdrawals);
             float nativeResult = result.ResultNumber;
+            // Finance Harmony patches are deliberately disabled to avoid
+            // triggering DefaultClanFinanceModel's startup-sensitive static
+            // constructor. The safe wrapper is therefore the single active
+            // annual-rate conversion point for the public finance result.
             Scale(ref result);
             CalendarFinanceTelemetry.RecordFinanceResult(
                 clan,
@@ -66,7 +71,8 @@ namespace TwelveMonthCalendar
                 return DeferredNumber(includeDescriptions);
             }
 
-            ExplainedNumber result = Evaluate(
+            ExplainedNumber result = EvaluateClanFinance(
+                clan,
                 () => _native.CalculateClanIncome(
                     clan, includeDescriptions, applyWithdrawals, includeDetails),
                 applyWithdrawals);
@@ -82,7 +88,8 @@ namespace TwelveMonthCalendar
                 return DeferredNumber(includeDescriptions);
             }
 
-            ExplainedNumber result = Evaluate(
+            ExplainedNumber result = EvaluateClanFinance(
+                clan,
                 () => _native.CalculateClanExpenses(
                     clan, includeDescriptions, applyWithdrawals, includeDetails),
                 applyWithdrawals);
@@ -172,6 +179,55 @@ namespace TwelveMonthCalendar
             }
         }
 
+        /// <summary>
+        /// Native clan finance mutates KingdomBudgetWallet while calculating
+        /// both wealthy-clan contributions and emergency support payments.
+        /// The returned finance number is annualized by the wrapper/patch
+        /// chain, but this side effect is not. Reconcile that one bounded
+        /// wallet delta after the native call, without Harmony-patching the
+        /// DefaultClanFinanceModel type during Bannerlord startup.
+        /// </summary>
+        private static T EvaluateClanFinance<T>(Clan clan, Func<T> calculation, bool applyWithdrawals)
+        {
+            Kingdom kingdom = null;
+            int originalWallet = 0;
+            if (CalendarSettingsState.ExtendedCalendarEnabled
+                && applyWithdrawals
+                && clan != null
+                && (kingdom = clan.Kingdom) != null)
+            {
+                originalWallet = kingdom.KingdomBudgetWallet;
+            }
+
+            T result = Evaluate(calculation, applyWithdrawals);
+
+            if (kingdom != null)
+            {
+                ReconcileKingdomBudgetWallet(kingdom, originalWallet);
+            }
+
+            return result;
+        }
+
+        private static void ReconcileKingdomBudgetWallet(Kingdom kingdom, int originalWallet)
+        {
+            int nativeDelta = kingdom.KingdomBudgetWallet - originalWallet;
+            if (nativeDelta == 0)
+            {
+                return;
+            }
+
+            int scaledDelta = DailyRateBalance.ScaleDiscreteDailyValue(
+                nativeDelta,
+                "KingdomBudgetWallet",
+                kingdom);
+            kingdom.KingdomBudgetWallet = Math.Max(0, originalWallet + scaledDelta);
+            CalendarFinanceTelemetry.RecordKingdomBudgetTransfer(
+                kingdom,
+                nativeDelta,
+                scaledDelta);
+        }
+
         private static ExplainedNumber DeferredNumber(bool includeDescriptions)
         {
             LogDeferredCall();
@@ -212,5 +268,6 @@ namespace TwelveMonthCalendar
         {
             return DailyRateBalance.ScaleDiscreteDailyValue(value, "ClanFinance", null);
         }
+
     }
 }

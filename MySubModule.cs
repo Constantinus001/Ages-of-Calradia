@@ -129,12 +129,59 @@ namespace TwelveMonthCalendar
                     CrashFlightRecorder.Record("Movement", "Common base-speed party/army wrapper installed; base=4.00.");
                 }
 
+                MobilePartyFoodConsumptionModel nativeFoodConsumption = campaignStarter.GetModel<MobilePartyFoodConsumptionModel>();
+                if (nativeFoodConsumption == null)
+                {
+                    Diagnostics.Info("Calendar party-food model was not installed because Bannerlord did not provide a MobilePartyFoodConsumptionModel.");
+                }
+                else if (nativeFoodConsumption is CalendarMobilePartyFoodConsumptionModel)
+                {
+                    Diagnostics.Info("Calendar party-food model was already installed.");
+                }
+                else
+                {
+                    campaignStarter.AddModel(new CalendarMobilePartyFoodConsumptionModel(nativeFoodConsumption));
+                    Diagnostics.Info("Calendar party-food model installed; daily rations and AI reserve durations preserve their native fraction of a year.");
+                }
+
+                PartyFoodBuyingModel nativeFoodBuying = campaignStarter.GetModel<PartyFoodBuyingModel>();
+                if (nativeFoodBuying == null)
+                {
+                    Diagnostics.Info("Calendar party-food buying model was not installed because Bannerlord did not provide a PartyFoodBuyingModel.");
+                }
+                else if (nativeFoodBuying is CalendarPartyFoodBuyingModel)
+                {
+                    Diagnostics.Info("Calendar party-food buying model was already installed.");
+                }
+                else
+                {
+                    campaignStarter.AddModel(new CalendarPartyFoodBuyingModel(nativeFoodBuying));
+                    Diagnostics.Info("Calendar party-food buying model installed; town and village reserve targets match the Gregorian ration cadence.");
+                }
+
+                SettlementFoodModel nativeSettlementFood = campaignStarter.GetModel<SettlementFoodModel>();
+                if (nativeSettlementFood == null)
+                {
+                    Diagnostics.Info("Calendar settlement-food model was not installed because Bannerlord did not provide a SettlementFoodModel.");
+                }
+                else if (nativeSettlementFood is CalendarSettlementFoodModel)
+                {
+                    Diagnostics.Info("Calendar settlement-food model was already installed.");
+                }
+                else
+                {
+                    campaignStarter.AddModel(new CalendarSettlementFoodModel(nativeSettlementFood));
+                    Diagnostics.Info("Calendar settlement-food model installed; direct town food balance, village food, food workshops, party rations, and AI reserves use the matched Gregorian cadence.");
+                }
+
                 InstallAnnualBalanceModels(campaignStarter);
 
                 campaignStarter.AddBehavior(new CalendarDiagnosticsBehavior());
                 campaignStarter.AddBehavior(new CalendarSaveCompatibilityBehavior());
+                campaignStarter.AddBehavior(new CalendarTreatyMigrationBehavior());
                 Diagnostics.Info("Calendar diagnostics behavior registered for campaign.");
                 Diagnostics.Info("Calendar save-compatibility marker registered; saves written by v1.3 require Twelve Month Calendar to load.");
+                Diagnostics.Info("Calendar treaty migration behavior registered for existing tribute agreements.");
             }
         }
 

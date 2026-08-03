@@ -98,6 +98,8 @@ namespace TwelveMonthCalendar
     [HarmonyPatch(typeof(KingdomDecisionProposalBehavior), "GetRandomWarDecision")]
     internal static class KingdomWarCooldownPatch
     {
+        private const float GregorianTruceDays = 100f;
+
         [HarmonyPostfix]
         private static void Postfix(Clan clan, ref KingdomDecision __result)
         {
@@ -113,7 +115,10 @@ namespace TwelveMonthCalendar
             }
 
             StanceLink stance = clan.Kingdom.GetStanceWith(warDecision.FactionToDeclareWarOn);
-            if (DiplomacyBalanceMath.GetNativeEquivalentDays(stance.PeaceDeclarationDate) <= 20f)
+            // Use an explicit 100-calendar-day truce. The native candidate
+            // picker still performs its own 20-day preliminary filter; this
+            // guard is the authoritative extended-calendar cooldown.
+            if (stance.PeaceDeclarationDate.ElapsedDaysUntilNow <= GregorianTruceDays)
             {
                 __result = null;
             }
@@ -366,13 +371,21 @@ namespace TwelveMonthCalendar
     [HarmonyPatch(typeof(DefaultDiplomacyModel), "GetDailyTributeToPay")]
     internal static class TributeDurationDiplomacyBalancePatch
     {
+        private const int GregorianTributeTreatyDays = 235;
+
         [HarmonyPostfix]
         private static void Postfix(ref int tributeDurationInDays)
         {
-            if (DiplomacyBalanceMath.IsEnabled && tributeDurationInDays > 0)
+            if (!DiplomacyBalanceMath.IsEnabled || tributeDurationInDays <= 0)
             {
-                tributeDurationInDays = DailyRateBalance.ToGregorianCalendarDays(tributeDurationInDays);
+                return;
             }
+
+            // Keep tribute treaties deliberately shorter than a full native
+            // cadence conversion: 235 calendar days. The daily payment stays
+            // native here because ClanFinanceModel performs the one required
+            // daily-rate conversion when it credits or debits each clan.
+            tributeDurationInDays = GregorianTributeTreatyDays;
         }
     }
 
@@ -405,6 +418,9 @@ namespace TwelveMonthCalendar
                 return false;
             }
 
+            // Existing saves store native daily tribute amounts in StanceLink;
+            // new treaties are already scaled at negotiation.  The war score
+            // therefore converts the stored value exactly once here.
             float declaringFactionTribute = stance.GetDailyTributeToPay(factionDeclaresWar)
                 * DailyRateBalance.Factor;
             float declaredFactionTribute = stance.GetDailyTributeToPay(factionDeclaredWar)

@@ -21,6 +21,57 @@ dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /v:minimal
 dotnet msbuild $betterTimeProject /t:Rebuild /p:Configuration=Release /v:minimal
 & (Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1') -ModuleRoot $ModuleRoot
 
+$settlementBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'SettlementBalancePatches.cs')
+$dailyBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'DailyRateBalancePatches.cs')
+if ($dailyBalanceSource -match 'SettlementDemandBalancePatch[\s\S]{0,500}BonusToFoodStores' -or
+    $dailyBalanceSource -match 'SettlementBudgetBalancePatch[\s\S]{0,500}BonusToFoodStores') {
+    throw 'Civilian food demand and market budget must share the Gregorian food cadence.'
+}
+if ($dailyBalanceSource -notmatch 'SettlementMarketSmoothingBalancePatch' -or
+    $dailyBalanceSource -notmatch 'ScaleDailySmoothingFactor') {
+    throw 'Settlement market convergence must preserve its native annual cadence.'
+}
+if ($settlementBalanceSource -match 'SumOfFactorsField\.SetValueDirect' -or
+    $settlementBalanceSource -notmatch 'BaseNumber \* factor') {
+    throw 'ExplainedNumber annual scaling must preserve native factor modifiers and scale only its base.'
+}
+$financeSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarClanFinanceModel.cs')
+if ($settlementBalanceSource -match 'FoodSupplyRateFactor' -or
+    $settlementBalanceSource -notmatch 'VillageFoodProductionBalancePatch') {
+    throw 'Village food must use the coordinated Gregorian production path.'
+}
+$partyFoodSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarFoodLogisticsModels.cs')
+if ($partyFoodSource -notmatch 'CalendarMobilePartyFoodConsumptionModel' -or
+    $partyFoodSource -notmatch 'CalendarPartyFoodBuyingModel' -or
+    $partyFoodSource -notmatch 'CalendarSettlementFoodModel' -or
+    $partyFoodSource -notmatch 'nativeDays / SettlementBalanceMath\.DailyRateFactor' -or
+    $partyFoodSource -notmatch 'nativeMarketResult') {
+    throw 'Town food, food production, party rations, and AI reserve targets must use matched Gregorian logistics without market double-scaling.'
+}
+$balanceTelemetrySource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarBalanceTelemetry.cs')
+if ($balanceTelemetrySource -notmatch 'AvgDirectFoodChange' -or
+    $balanceTelemetrySource -notmatch 'AvgMarketFoodChange' -or
+    $balanceTelemetrySource -notmatch 'CappedFoodTowns') {
+    throw 'Monthly diagnostics must report direct and market food balance separately.'
+}
+if ($financeSource -match 'ApplyAiReserveSurcharge|reserveTarget|maximumSurcharge') {
+    throw 'AI finance must use Bannerlord''s native high-cash expense rather than an additional surcharge.'
+}
+if ($financeSource -notmatch 'wrapper is therefore the single active' -or
+    $financeSource -notmatch 'Scale\(ref result\);') {
+    throw 'The startup-safe clan-finance wrapper must perform the single active annual scaling.'
+}
+if ($financeSource -notmatch 'EvaluateClanFinance' -or
+    $financeSource -notmatch 'ReconcileKingdomBudgetWallet' -or
+    $financeSource -notmatch 'ScaleDiscreteDailyValue\(') {
+    throw 'Clan-finance side effects must reconcile Kingdom Budget transfers through the safe wrapper.'
+}
+$financeTelemetrySource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarFinanceTelemetry.cs')
+if ($financeTelemetrySource -notmatch 'KingdomBudgetTransfers' -or
+    $financeTelemetrySource -notmatch 'RecordKingdomBudgetTransfer') {
+    throw 'Monthly finance diagnostics must report native and scaled Kingdom Budget transfers.'
+}
+
 $dailyFactor = 84.0 / 365.2425
 $durationFactor = 365.2425 / 84.0
 if ([Math]::Abs(($dailyFactor * $durationFactor) - 1.0) -gt 0.000001) {
@@ -33,6 +84,30 @@ $nativeAnnualSurvival = [Math]::Pow(1.0 - $nativeProbability, 84.0)
 $annualSurvival = [Math]::Pow(1.0 - $annualProbability, 365.2425)
 if ([Math]::Abs($nativeAnnualSurvival - $annualSurvival) -gt 0.000001) {
     throw 'Daily probability conversion does not preserve annual probability.'
+}
+
+$nativeMarketSmoothing = 0.15
+$calendarMarketSmoothing = 1.0 - [Math]::Pow(1.0 - $nativeMarketSmoothing, $dailyFactor)
+$nativeMarketRetention = [Math]::Pow(1.0 - $nativeMarketSmoothing, 84.0)
+$calendarMarketRetention = [Math]::Pow(1.0 - $calendarMarketSmoothing, 365.2425)
+if ([Math]::Abs($nativeMarketRetention - $calendarMarketRetention) -gt 0.000001) {
+    throw 'Settlement market smoothing does not preserve native annual convergence.'
+}
+
+$nativeTributePerDay = 100
+$nativeTributeDays = 100
+$calendarTributePerDay = $nativeTributePerDay * $dailyFactor
+$calendarTributeDays = 235
+$nativeTributeTotal = $nativeTributePerDay * $nativeTributeDays
+$calendarTributeTotal = $calendarTributePerDay * $calendarTributeDays
+if ($calendarTributeDays -ne 235 -or $calendarTributeTotal -le 0) {
+    throw 'Tribute treaties must use the configured 235-calendar-day term with a positive finance payment cadence.'
+}
+
+$diplomacySource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'DiplomacyBalancePatches.cs')
+if ($diplomacySource -notmatch 'GregorianTruceDays = 100f' -or
+    $diplomacySource -notmatch 'PeaceDeclarationDate\.ElapsedDaysUntilNow <= GregorianTruceDays') {
+    throw 'War declarations must enforce the configured 100-calendar-day truce.'
 }
 
 $mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.dll'
@@ -59,14 +134,14 @@ $calendarDate = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterP
 if ($calendarDate.Count -ne 1) {
     throw 'Map bar must contain exactly one calendar date label.'
 }
-if ($calendarDate[0].PositionYOffset -ne '0' -or $calendarDate[0].'Brush.FontSize' -ne '17') {
-    throw 'Map bar calendar date must retain Y=0 and 17-point text.'
+if ($calendarDate[0].PositionYOffset -ne '-2' -or $calendarDate[0].'Brush.FontSize' -ne '17') {
+    throw 'Map bar calendar date must retain Y=-2 and 17-point text.'
 }
 if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXOffset -ne '-50') {
     throw 'Map bar calendar date must move 20 pixels left while preserving sundial clearance.'
 }
 $seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Season"]'))
-if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].PositionXOffset -ne '87' -or $seasonLabel[0].VerticalAlignment -ne 'Bottom' -or $seasonLabel[0].PositionYOffset -ne '-2') {
+if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].PositionXOffset -ne '95' -or $seasonLabel[0].VerticalAlignment -ne 'Bottom' -or $seasonLabel[0].PositionYOffset -ne '-4') {
     throw 'Map bar season label must be independently placed two pixels higher at the marked position.'
 }
 

@@ -5,6 +5,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
 
 namespace TwelveMonthCalendar
 {
@@ -119,6 +120,18 @@ namespace TwelveMonthCalendar
             }
         }
 
+        internal static float ScaleDailySmoothingFactor(float nativeFactor)
+        {
+            if (!IsExtendedCalendar || nativeFactor <= 0f || nativeFactor >= 1f)
+            {
+                return nativeFactor;
+            }
+
+            // Preserve the same annual convergence: (1 - scaled)^365 =
+            // (1 - native)^84.
+            return 1f - (float)Math.Pow(1f - nativeFactor, Factor);
+        }
+
         /// <summary>
         /// Treats a Gregorian-calendar duration as the equivalent duration on
         /// Bannerlord's native 84-day campaign calendar. This is used for
@@ -212,7 +225,10 @@ namespace TwelveMonthCalendar
         [HarmonyPostfix]
         private static void Postfix(ref ExplainedNumber __result)
         {
-            DailyRateBalance.Scale(ref __result);
+            // Rations are discrete daily inventory consumption.  Keeping this
+            // at the game's daily cadence matches the unscaled village-food
+            // production and prevents food from accumulating or vanishing
+            // solely because a year has more named calendar days.
         }
     }
 
@@ -440,8 +456,10 @@ namespace TwelveMonthCalendar
     internal static class SettlementDemandBalancePatch
     {
         [HarmonyPostfix]
-        private static void Postfix(ref float __result)
+        private static void Postfix(ItemCategory category, ref float __result)
         {
+            // Food goods are produced on the Gregorian cadence too, so
+            // civilian demand must use the matching rate.
             DailyRateBalance.Scale(ref __result);
         }
     }
@@ -450,9 +468,35 @@ namespace TwelveMonthCalendar
     internal static class SettlementBudgetBalancePatch
     {
         [HarmonyPostfix]
-        private static void Postfix(ref float __result)
+        private static void Postfix(ItemCategory category, ref float __result)
         {
+            // Keep the market budget aligned with the scaled food demand and
+            // food production paths.
             DailyRateBalance.Scale(ref __result);
+        }
+    }
+
+    [HarmonyPatch(typeof(DefaultSettlementEconomyModel), "GetSupplyDemandForCategory")]
+    internal static class SettlementMarketSmoothingBalancePatch
+    {
+        [HarmonyPostfix]
+        private static void Postfix(
+            float dailySupply,
+            float dailyDemand,
+            float oldSupply,
+            float oldDemand,
+            ref ValueTuple<float, float> __result)
+        {
+            if (!CalendarSettingsState.ExtendedCalendarEnabled)
+            {
+                return;
+            }
+
+            const float nativeDailySmoothing = 0.15f;
+            float smoothing = DailyRateBalance.ScaleDailySmoothingFactor(nativeDailySmoothing);
+            float supply = Math.Max(0.1f, oldSupply * (1f - smoothing) + dailySupply * smoothing);
+            float demand = oldDemand * (1f - smoothing) + dailyDemand * smoothing;
+            __result = new ValueTuple<float, float>(supply, demand);
         }
     }
 

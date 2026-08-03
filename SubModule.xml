@@ -2,7 +2,7 @@
 <Module>
   <Name value="Twelve Month Calendar" />
   <Id value="_TwelveMonthCalendar" />
-  <Version value="v1.3.0" />
+  <Version value="v1.4.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
 

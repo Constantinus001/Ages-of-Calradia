@@ -119,6 +119,7 @@
     <Compile Include="Diagnostics.cs" />
     <Compile Include="CrashFlightRecorder.cs" />
     <Compile Include="CalendarDiagnosticsBehavior.cs" />
+    <Compile Include="CalendarTreatyMigrationBehavior.cs" />
     <Compile Include="CalendarSaveCompatibility.cs" />
     <Compile Include="CalendarOptionsTabPatch.cs" />
     <Compile Include="CalendarSettingsState.cs" />
@@ -131,8 +132,10 @@
     <Compile Include="MapBarSeasonDataSourcePatch.cs" />
     <Compile Include="EconomyAndLifeCyclePatches.cs" />
     <Compile Include="SettlementBalancePatches.cs" />
+    <Compile Include="WorkshopFoodContextPatch.cs" />
     <Compile Include="DailyRateBalancePatches.cs" />
     <Compile Include="CalendarClanFinanceModel.cs" />
+    <Compile Include="CalendarFoodLogisticsModels.cs" />
     <Compile Include="CalendarPartySpeedModel.cs" />
     <Compile Include="CalendarAnnualBalance.cs" />
     <Compile Include="CalendarAnnualBalanceDiagnostics.cs" />
