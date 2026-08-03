@@ -50,8 +50,10 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 
 ## Build and release verification
 
-Release archives contain only the module XML, README, and the two compiled
-module DLLs. Development and verification scripts are intentionally excluded.
+Release archives contain the complete runtime module: module XML, README,
+Harmony dependency, compiled module DLLs, and UI prefab XML files.
+Development and verification scripts, logs, debug symbols, and backups are
+intentionally excluded.
 
 Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 
