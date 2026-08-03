@@ -58,9 +58,12 @@ intentionally excluded.
 Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 
 ```powershell
-dotnet msbuild TwelveMonthCalendar.csproj /t:Rebuild /p:Configuration=Release
 & .\Tests\Verify-Release.ps1
 ```
+
+This command builds the module, creates the complete runtime ZIP in
+`artifacts`, verifies its exact file list, and runs a mandatory Microsoft
+Defender scan. Only upload an archive after it reports `PASS`.
 
 The build output is written to `bin\Win64_Shipping_Client`. Copy the module
 folder into the game's `Modules` directory, then enable **Twelve Month Calendar** in the
