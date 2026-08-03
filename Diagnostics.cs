@@ -16,25 +16,71 @@ namespace TwelveMonthCalendar
         {
             try
             {
-                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                if (string.IsNullOrWhiteSpace(documentsPath))
+                string assemblyDirectory = Path.GetDirectoryName(typeof(Diagnostics).Assembly.Location);
+                string moduleDirectory = assemblyDirectory;
+
+                // The assembly lives in <module>\bin\Win64_Shipping_Client.
+                // Keep the primary diagnostic file beside the module so a crash
+                // report and its matching calendar log can be collected together.
+                if (!string.IsNullOrWhiteSpace(assemblyDirectory))
                 {
-                    documentsPath = Path.GetDirectoryName(typeof(Diagnostics).Assembly.Location);
+                    DirectoryInfo binaryDirectory = Directory.GetParent(assemblyDirectory);
+                    DirectoryInfo candidateModuleDirectory = binaryDirectory == null
+                        ? null
+                        : binaryDirectory.Parent;
+                    if (candidateModuleDirectory != null)
+                    {
+                        moduleDirectory = candidateModuleDirectory.FullName;
+                    }
                 }
 
-                string directory = Path.Combine(
-                    documentsPath,
-                    "Mount and Blade II Bannerlord",
-                    "Configs",
-                    "ModLogs");
+                string directory = Path.Combine(moduleDirectory, "Logs");
+                if (!TrySetLogPath(directory))
+                {
+                    // Some Windows installations deny a non-elevated game
+                    // process write access to Program Files. Preserve the
+                    // previous safe location only as a fallback.
+                    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    directory = Path.Combine(
+                        documentsPath,
+                        "Mount and Blade II Bannerlord",
+                        "Configs",
+                        "ModLogs");
 
-                Directory.CreateDirectory(directory);
-                _logPath = Path.Combine(directory, "TwelveMonthCalendar.log");
+                    if (!TrySetLogPath(directory))
+                    {
+                        return;
+                    }
+
+                    Write("INFO  Module log directory was not writable; using the Documents fallback.");
+                }
+
                 Write("=== Twelve Month Calendar diagnostics started " + DateTime.Now.ToString("O") + " ===");
             }
             catch
             {
                 // Diagnostics must never prevent the game from loading.
+            }
+        }
+
+        private static bool TrySetLogPath(string directory)
+        {
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                return false;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(directory);
+                string candidate = Path.Combine(directory, "TwelveMonthCalendar.log");
+                File.AppendAllText(candidate, string.Empty, Encoding.UTF8);
+                _logPath = candidate;
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -46,6 +92,28 @@ namespace TwelveMonthCalendar
         internal static void Error(string message, Exception exception)
         {
             Write("ERROR " + message + Environment.NewLine + exception);
+        }
+
+        internal static void WriteCrashSnapshot(string contents)
+        {
+            if (string.IsNullOrWhiteSpace(_logPath) || string.IsNullOrWhiteSpace(contents))
+            {
+                return;
+            }
+
+            try
+            {
+                string directory = Path.Combine(Path.GetDirectoryName(_logPath), "CrashReports");
+                Directory.CreateDirectory(directory);
+                string path = Path.Combine(
+                    directory,
+                    "TwelveMonthCalendar-crash-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + ".log");
+                File.WriteAllText(path, contents, Encoding.UTF8);
+            }
+            catch
+            {
+                // Failure to persist a report must never interfere with crash handling.
+            }
         }
 
         private static void Write(string message)

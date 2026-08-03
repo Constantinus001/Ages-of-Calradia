@@ -1,5 +1,7 @@
 # Twelve Month Calendar
 
+See [CHANGELOG.md](CHANGELOG.md) for the complete v1.0-to-v1.3 patch notes.
+
 This Bannerlord v1.4.7 module changes the campaign calendar to a 365-day year
 with Gregorian-style month lengths:
 
@@ -36,22 +38,36 @@ The module uses:
   the same real play time as Bannerlord's native 84-day year
 - daily party wages scaled to approximately 0.23x so annual wage pressure is
   comparable to the native 84-day year
-- party map speed left at native values; the previous speed compensation was
-  removed because it made parties move approximately 4.35x too fast
+- party map speed uses a common base speed of 4.0; Bannerlord's native troop,
+  prisoner, herd, terrain, skill, army, and encumbrance modifiers remain active
 - pregnancy due dates set to nine configured calendar months after conception
 - positive renown rewards reduced to 50% by default to slow clan-tier progression
+- native diplomacy kept on its original annual cadence: AI kingdom proposals,
+  war/peace cooldowns, treaty durations, alliance durations, clan and mercenary
+  tenure, and army/raid/siege influence awards are scaled for the 365-day year
 
 The date is changed by patching `CampaignTime.ToString()`, which is also what
 the campaign map time-control UI uses for its visible date. This means dates in
 other native messages that rely on `CampaignTime.ToString()` use the same format.
 
-## Build
+## Build and release verification
+
+Release archives contain the complete runtime module: module XML, README,
+Harmony dependency, compiled module DLLs, and UI prefab XML files.
+Development and verification scripts, logs, debug symbols, and backups are
+intentionally excluded.
 
 Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 
 ```powershell
-msbuild TwelveMonthCalendar.csproj /p:Configuration=Release
+& .\Tests\Verify-Release.ps1
 ```
+
+This command builds the module, creates the complete runtime ZIP in
+`artifacts`, verifies its exact file list, and runs a mandatory Microsoft
+Defender scan. It also refuses uncommitted sources and rejects an invalid
+Bannerlord module-version format. Only upload an archive after it reports
+`PASS`.
 
 The build output is written to `bin\Win64_Shipping_Client`. Copy the module
 folder into the game's `Modules` directory, then enable **Twelve Month Calendar** in the
@@ -64,6 +80,13 @@ day-based. Start a new campaign with the module enabled. Existing saves use
 Bannerlord's original 84-day year and are not compatible with this calendar
 without a save migration layer.
 
+## Save compatibility lock
+
+After a v1.3 campaign is saved, it requires Twelve Month Calendar to be enabled
+when loading. This prevents the save from loading without the module and
+silently reverting to Bannerlord's native calendar. A pre-v1.3 calendar save
+can load once with v1.3; save it again to apply the lock.
+
 Leap years use the Gregorian rule: divisible by 4, except century years unless
 they are also divisible by 400. The campaign's starting year, 1084, is treated
 as a leap year.
@@ -74,41 +97,56 @@ campaign day by the native-84-day to 365-day ratio, preserving their
 approximate annual rates. Party map speed remains at native values, and
 pregnancy defaults to nine calendar months from the moment conception starts.
 
+Native diplomacy is scaled by the same ratio. This preserves the usual annual
+frequency of AI peace, war, alliance, trade, policy, and annexation proposals;
+the 20-day post-peace cooldown and war-duration score curves use their native
+day equivalents; and a 100-day native tribute agreement becomes about 435
+calendar days while its effective daily payment is balanced by the finance
+layer. Alliance contracts last one calendar year, with call-to-war commitments
+lasting half a calendar year.
+
 ## Diagnostics
 
 The module writes diagnostics to:
 
 ```text
-Documents\Mount and Blade II Bannerlord\Configs\ModLogs\TwelveMonthCalendar.log
+<Bannerlord>\Modules\_TwelveMonthCalendar\Logs\TwelveMonthCalendar.log
 ```
 
 The log records module loading, Harmony patch registration, campaign startup,
 the current date/season conversion, and a main-hero age check. It does not log
 every campaign tick. It also records the active campaign-time multiplier.
+If Bannerlord does not have permission to write inside its installation folder,
+the module automatically falls back to
+`Documents\Mount and Blade II Bannerlord\Configs\ModLogs`.
 
 ## Optional MCM settings
 
 MCM is optional. If MCM is installed, the calendar exposes an in-game settings
-page with calendar system, leap-year, display-label, campaign-time, and date
+page with leap-year, display-label, campaign-time, and date
 format settings. The date format supports `{Month}`, `{Season}`, `{Day}`,
 `{Year}`, `{MonthNumber}`, and `{DayOfYear}`. Without MCM, the native
-**Calendar** Options tab provides the same core controls. The season is always
-shown first and dates use spaces rather than hyphens (for example
-`Spring April 3rd 1084`). The preset default is **Month-Day-Year**.
+**Calendar** Options tab provides the same core controls. On the map bar, the
+date appears left of the clock and the current season appears separately to its
+right (for example `April 3rd 1084` and `Spring`). The preset default is
+**Month-Day-Year**.
 
 ## Standalone in-game settings
 
-MCM is not required. The module adds calendar-system, leap-year, label, pacing,
+MCM is not required. The module adds leap-year, label, pacing,
 and preset-format controls to a separate **Calendar** tab in Bannerlord's native
 **Options** screen. Open the game's Options screen and select the Calendar tab.
 MCM and the XML settings file also support custom format
 tokens: `{Month}`, `{Season}`, `{Day}`, `{Year}`, `{MonthNumber}`, and
 `{DayOfYear}`.
 
+Use the native tab's top-right **Reset to Defaults** button to restore calendar
+settings. The old duplicate reset row is intentionally not shown.
+
 When the optional MCM settings page successfully loads, the native **Calendar**
-tab is hidden so players have one settings screen instead of two. If MCM is not
-installed or its optional adapter cannot initialize, the native tab remains as a
-fully functional fallback.
+tab remains visible but is disabled so there is one active settings screen. If
+MCM is not installed or its optional adapter cannot initialize, the native tab
+remains fully functional.
 
 Standalone settings are saved to:
 
@@ -117,16 +155,19 @@ Documents\Mount and Blade II Bannerlord\Configs\TwelveMonthCalendar\settings.xml
 ```
 
 The file is created automatically on first launch. Every calendar setting is
-kept there, including the twelve month names and month lengths. For example:
+kept there, including the twelve month names, month lengths, and annual-balance
+toggles. For example:
 
 ```xml
-<TwelveMonthCalendar CalendarSystem="Gregorian12Month"
-  UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
+<TwelveMonthCalendar UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
   UseOrdinalDaySuffixes="true"
   AutoCampaignTimeScale="true" CampaignTimeScale="0.2299842"
   DateFormat="{Month} {Day} {Year}"
   NativeDaysInYear="84" UseCalendarMonthPregnancy="true"
   PregnancyDurationMonths="9" PregnancyDurationDays="273.75" RenownGainMultiplier="0.5"
+  BalancePartyImpairment="true" BalancePrisonerRecruitment="true"
+  BalanceNpcMarriage="true" BalanceMapTracks="true" BalanceQuestDeadlines="true"
+  AnnualBalanceDiagnosticsEnabled="true"
   Season1Name="Spring" Season2Name="Summer" Season3Name="Autumn" Season4Name="Winter"
   Month1Name="January" Month1Days="31"
   Month2Name="February" Month2Days="28"
@@ -153,12 +194,17 @@ available on the separate native **Calendar** tab in the Options screen, and in
 MCM when MCM is installed.
 The date-format selector uses **Month-Day-Year** as the default and also provides
 **Day-Month-Year** and **Year-Month-Day**. The season name is always displayed
-before the date, regardless of the selected date order. Changes apply immediately
-to display settings; campaign-time pacing changes affect subsequent campaign-time
-advancement.
+to the right of the map clock, regardless of the selected date order. Changes
+apply immediately to display settings; campaign-time pacing changes affect
+subsequent campaign-time advancement.
 
 Positive renown rewards are multiplied by `RenownGainMultiplier`, which defaults
 to `0.5` and can be changed from the Calendar settings tab, MCM, or XML.
+
+The five annual-balance toggles are available in XML, optional MCM, and the
+native Calendar Options tab. They are campaign-start settings: changing one
+after a campaign session has started is ignored and logged, so the module does
+not attempt unsupported hot-swapping or rewrite existing quest deadlines.
 
 For the 365-day calendar, the balance layer scales identified native daily
 economy, settlement, progression, and probability systems by the native-84-day

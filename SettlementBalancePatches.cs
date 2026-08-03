@@ -19,6 +19,11 @@ namespace TwelveMonthCalendar
 
         internal static void Scale(ref ExplainedNumber value)
         {
+            Scale(ref value, DailyRateFactor);
+        }
+
+        internal static void Scale(ref ExplainedNumber value, float factor)
+        {
             // The game exposes these setters as non-public. Set the backing
             // fields directly on the ref struct so explanations and clamp
             // limits remain intact while both numeric components are scaled.
@@ -26,15 +31,15 @@ namespace TwelveMonthCalendar
             {
                 BaseNumberField.SetValueDirect(
                     __makeref(value),
-                    value.BaseNumber * DailyRateFactor);
+                    value.BaseNumber * factor);
                 SumOfFactorsField.SetValueDirect(
                     __makeref(value),
-                    value.SumOfFactors * DailyRateFactor);
+                    value.SumOfFactors * factor);
                 return;
             }
 
             value = new ExplainedNumber(
-                value.ResultNumber * DailyRateFactor,
+                value.ResultNumber * factor,
                 value.IncludeDescriptions,
                 null);
         }

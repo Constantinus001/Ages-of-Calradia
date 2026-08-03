@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -26,12 +27,14 @@ namespace TwelveMonthCalendar
         internal static void Trace(string location)
         {
             Diagnostics.Info("Crash trace: " + location);
+            CrashFlightRecorder.Record("Lifecycle", location);
         }
 
         internal static Exception LogAndPreserve(string location, Exception exception)
         {
             if (exception != null)
             {
+                CrashFlightRecorder.Flush(location, exception);
                 Diagnostics.Error("Crash trace caught an exception at " + location + ".", exception);
             }
 
@@ -45,12 +48,14 @@ namespace TwelveMonthCalendar
                 Exception exception = args.ExceptionObject as Exception;
                 if (exception != null)
                 {
+                    CrashFlightRecorder.Flush("AppDomain.UnhandledException", exception);
                     Diagnostics.Error(
                         "Process-level unhandled exception. IsTerminating=" + args.IsTerminating + ".",
                         exception);
                 }
                 else
                 {
+                    CrashFlightRecorder.Flush("AppDomain.UnhandledException (non-Exception)", null);
                     Diagnostics.Info(
                         "Process-level unhandled non-Exception object. IsTerminating="
                         + args.IsTerminating + "; Value=" + args.ExceptionObject);
@@ -66,12 +71,16 @@ namespace TwelveMonthCalendar
     [HarmonyPatch]
     internal static class CharacterCreationFinalizeDiagnosticsPatch
     {
-        private static MethodBase TargetMethod()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
-            return AccessTools.Method(
-                typeof(Campaign).Assembly.GetType(
-                    "TaleWorlds.CampaignSystem.CharacterCreationContent.CharacterCreationState"),
-                "FinalizeCharacterCreationState");
+            Type type = typeof(Campaign).Assembly.GetType(
+                "TaleWorlds.CampaignSystem.CharacterCreationContent.CharacterCreationState");
+            MethodBase target = type == null
+                ? null
+                : AccessTools.Method(type, "FinalizeCharacterCreationState");
+            return target == null
+                ? Enumerable.Empty<MethodBase>()
+                : new[] { target };
         }
 
         [HarmonyPrefix]
@@ -98,11 +107,13 @@ namespace TwelveMonthCalendar
     [HarmonyPatch]
     internal static class GameStateCreationDiagnosticsPatch
     {
-        private static MethodBase TargetMethod()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
-            return AccessTools.Method(
-                typeof(Game).Assembly.GetType("TaleWorlds.Core.GameStateManager"),
-                "HandleCreateState");
+            Type type = typeof(Game).Assembly.GetType("TaleWorlds.Core.GameStateManager");
+            MethodBase target = type == null ? null : AccessTools.Method(type, "HandleCreateState");
+            return target == null
+                ? Enumerable.Empty<MethodBase>()
+                : new[] { target };
         }
 
         [HarmonyPrefix]
@@ -123,12 +134,15 @@ namespace TwelveMonthCalendar
     [HarmonyPatch]
     internal static class MapScreenCreationDiagnosticsPatch
     {
-        private static MethodBase TargetMethod()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
             Type type = FindType("SandBox.View", "SandBox.View.Map.MapScreen");
-            return type == null
+            MethodBase target = type == null
                 ? null
                 : AccessTools.GetDeclaredConstructors(type).FirstOrDefault();
+            return target == null
+                ? Enumerable.Empty<MethodBase>()
+                : new[] { target };
         }
 
         [HarmonyPrefix]

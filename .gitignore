@@ -11,6 +11,7 @@
 *.pdb
 *.log
 backups/
+artifacts/
 
 # Local reverse-engineering helpers and their generated files
 tools/

@@ -6,7 +6,6 @@ namespace TwelveMonthCalendar.MCM
 {
     internal sealed class CalendarMcmSettings : AttributeGlobalSettings<CalendarMcmSettings>
     {
-        private string _calendarSystem = CalendarSettingsState.CalendarSystem;
         private bool _useLeapYears = CalendarSettingsState.UseLeapYears;
         private bool _showDayLabel = CalendarSettingsState.ShowDayLabel;
         private bool _showYearLabel = CalendarSettingsState.ShowYearLabel;
@@ -18,6 +17,12 @@ namespace TwelveMonthCalendar.MCM
         private int _pregnancyDurationMonths = CalendarSettingsState.PregnancyDurationMonths;
         private float _pregnancyDurationInDays = CalendarSettingsState.PregnancyDurationInDays;
         private float _renownGainMultiplier = CalendarSettingsState.RenownGainMultiplier;
+        private bool _balancePartyImpairment = CalendarSettingsState.BalancePartyImpairment;
+        private bool _balancePrisonerRecruitment = CalendarSettingsState.BalancePrisonerRecruitment;
+        private bool _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
+        private bool _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
+        private bool _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+        private bool _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
         private bool _synchronizing;
 
         public override string Id => "TwelveMonthCalendar_MCM";
@@ -25,21 +30,7 @@ namespace TwelveMonthCalendar.MCM
         public override string FolderName => "TwelveMonthCalendar";
         public override string FormatType => "json";
 
-        [SettingPropertyText("Calendar System", Order = 0, RequireRestart = true,
-            HintText = "Use Gregorian12Month or Native84Day. Additional systems can be added later.")]
-        [SettingPropertyGroup("Calendar")]
-        public string CalendarSystem
-        {
-            get { return _calendarSystem; }
-            set
-            {
-                _calendarSystem = value;
-                Apply();
-                OnPropertyChanged();
-            }
-        }
-
-        [SettingPropertyBool("Use Leap Years", Order = 1, RequireRestart = true,
+        [SettingPropertyBool("Use Leap Years", Order = 0, RequireRestart = true,
             HintText = "Adds February 29 using the Gregorian leap-year rule.")]
         [SettingPropertyGroup("Calendar")]
         public bool UseLeapYears
@@ -53,7 +44,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Show Day Label", Order = 2, RequireRestart = false,
+        [SettingPropertyBool("Show Day Label", Order = 1, RequireRestart = false,
             HintText = "Displays Day before the day number.")]
         [SettingPropertyGroup("Display")]
         public bool ShowDayLabel
@@ -67,7 +58,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Use Ordinal Day Suffixes", Order = 3, RequireRestart = false,
+        [SettingPropertyBool("Use Ordinal Day Suffixes", Order = 2, RequireRestart = false,
             HintText = "Displays dates as 1st, 2nd, 3rd, and so on.")]
         [SettingPropertyGroup("Display")]
         public bool UseOrdinalDaySuffixes
@@ -81,7 +72,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Show Year Label", Order = 4, RequireRestart = false,
+        [SettingPropertyBool("Show Year Label", Order = 3, RequireRestart = false,
             HintText = "Displays Year before the year number.")]
         [SettingPropertyGroup("Display")]
         public bool ShowYearLabel
@@ -95,7 +86,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Campaign Time Scale", 0.01f, 1.0f, "0.000", Order = 5,
+        [SettingPropertyFloatingInteger("Campaign Time Scale", 0.01f, 1.0f, "0.000", Order = 4,
             RequireRestart = true, HintText = "Controls how quickly campaign time advances. Default is 0.230.")]
         [SettingPropertyGroup("Economy")]
         public float CampaignTimeScale
@@ -109,7 +100,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 6, RequireRestart = true,
+        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 5, RequireRestart = true,
             HintText = "Derives pacing from the configured native and calendar year lengths.")]
         [SettingPropertyGroup("Economy")]
         public bool AutoCampaignTimeScale
@@ -123,8 +114,8 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyText("Date Format", Order = 7, RequireRestart = false,
-            HintText = "Tokens: {Month}, {Season}, {Day}, {Year}, {MonthNumber}, {DayOfYear}. Example: {Month} {Day} {Year}. Season is always shown first.")]
+        [SettingPropertyText("Date Format", Order = 6, RequireRestart = false,
+            HintText = "Tokens: {Month}, {Season}, {Day}, {Year}, {MonthNumber}, {DayOfYear}. Example: {Month} {Day} {Year}. The map bar shows the season separately to the right of the clock.")]
         [SettingPropertyGroup("Display")]
         public string DateFormat
         {
@@ -137,7 +128,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 8, RequireRestart = false,
+        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = false,
             HintText = "Uses the configured number of calendar months for future pregnancies.")]
         [SettingPropertyGroup("Life Cycle")]
         public bool UseCalendarMonthPregnancy
@@ -151,7 +142,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyInteger("Pregnancy Duration (Months)", 1, 24, "0", Order = 9,
+        [SettingPropertyInteger("Pregnancy Duration (Months)", 1, 24, "0", Order = 8,
             RequireRestart = false, HintText = "Calendar months from conception to birth.")]
         [SettingPropertyGroup("Life Cycle")]
         public int PregnancyDurationMonths
@@ -165,7 +156,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Fixed Pregnancy Duration (Days)", 0.1f, 10000f, "0.00", Order = 10,
+        [SettingPropertyFloatingInteger("Fixed Pregnancy Duration (Days)", 0.1f, 10000f, "0.00", Order = 9,
             RequireRestart = false, HintText = "Fallback duration when calendar-month pregnancy is disabled.")]
         [SettingPropertyGroup("Life Cycle")]
         public float PregnancyDurationInDays
@@ -179,7 +170,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Renown Gain Multiplier", 0f, 1f, "0.00", Order = 11,
+        [SettingPropertyFloatingInteger("Renown Gain Multiplier", 0f, 1f, "0.00", Order = 10,
             RequireRestart = false, HintText = "Scales positive renown awards. Default is 0.50.")]
         [SettingPropertyGroup("Progression")]
         public float RenownGainMultiplier
@@ -191,6 +182,60 @@ namespace TwelveMonthCalendar.MCM
                 Apply();
                 OnPropertyChanged();
             }
+        }
+
+        [SettingPropertyBool("Balance Party Impairment", Order = 20, RequireRestart = true,
+            HintText = "Scales post-battle disorganization and vulnerability durations to the 365-day year.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalancePartyImpairment
+        {
+            get { return _balancePartyImpairment; }
+            set { _balancePartyImpairment = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance Prisoner Recruitment", Order = 21, RequireRestart = true,
+            HintText = "Scales prisoner conformity gained per campaign hour for player and AI parties.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalancePrisonerRecruitment
+        {
+            get { return _balancePrisonerRecruitment; }
+            set { _balancePrisonerRecruitment = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance NPC Marriage", Order = 22, RequireRestart = true,
+            HintText = "Converts NPC marriage chance to preserve its annual rate across the 365-day year.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalanceNpcMarriage
+        {
+            get { return _balanceNpcMarriage; }
+            set { _balanceNpcMarriage = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance Map Tracks", Order = 23, RequireRestart = true,
+            HintText = "Scales track lifetime while preserving native track detection and spotting rules.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalanceMapTracks
+        {
+            get { return _balanceMapTracks; }
+            set { _balanceMapTracks = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance Quest Deadlines", Order = 24, RequireRestart = true,
+            HintText = "Extends deadlines only for quests started while this setting is enabled.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool BalanceQuestDeadlines
+        {
+            get { return _balanceQuestDeadlines; }
+            set { _balanceQuestDeadlines = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Annual Balance Diagnostics", Order = 25, RequireRestart = false,
+            HintText = "Writes sampled annual-balance checkpoints to crash reports.")]
+        [SettingPropertyGroup("Diagnostics")]
+        public bool AnnualBalanceDiagnosticsEnabled
+        {
+            get { return _annualBalanceDiagnosticsEnabled; }
+            set { _annualBalanceDiagnosticsEnabled = value; Apply(); OnPropertyChanged(); }
         }
 
         public static bool RegisterSettings()
@@ -214,7 +259,7 @@ namespace TwelveMonthCalendar.MCM
             }
 
             CalendarSettingsState.Apply(
-                _calendarSystem,
+                CalendarSettingsState.CalendarSystem,
                 _useLeapYears,
                 _showDayLabel,
                 _showYearLabel,
@@ -225,7 +270,13 @@ namespace TwelveMonthCalendar.MCM
                 pregnancyDurationInDays: _pregnancyDurationInDays,
                 useCalendarMonthPregnancy: _useCalendarMonthPregnancy,
                 renownGainMultiplier: _renownGainMultiplier,
-                useOrdinalDaySuffixes: _useOrdinalDaySuffixes);
+                useOrdinalDaySuffixes: _useOrdinalDaySuffixes,
+                balancePartyImpairment: _balancePartyImpairment,
+                balancePrisonerRecruitment: _balancePrisonerRecruitment,
+                balanceNpcMarriage: _balanceNpcMarriage,
+                balanceMapTracks: _balanceMapTracks,
+                balanceQuestDeadlines: _balanceQuestDeadlines,
+                annualBalanceDiagnosticsEnabled: _annualBalanceDiagnosticsEnabled);
             CalendarSettingsState.Save();
         }
 
@@ -240,7 +291,6 @@ namespace TwelveMonthCalendar.MCM
             _synchronizing = true;
             try
             {
-                _calendarSystem = CalendarSettingsState.CalendarSystem;
                 _useLeapYears = CalendarSettingsState.UseLeapYears;
                 _showDayLabel = CalendarSettingsState.ShowDayLabel;
                 _showYearLabel = CalendarSettingsState.ShowYearLabel;
@@ -252,6 +302,12 @@ namespace TwelveMonthCalendar.MCM
                 _pregnancyDurationMonths = CalendarSettingsState.PregnancyDurationMonths;
                 _pregnancyDurationInDays = CalendarSettingsState.PregnancyDurationInDays;
                 _renownGainMultiplier = CalendarSettingsState.RenownGainMultiplier;
+                _balancePartyImpairment = CalendarSettingsState.BalancePartyImpairment;
+                _balancePrisonerRecruitment = CalendarSettingsState.BalancePrisonerRecruitment;
+                _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
+                _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
+                _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+                _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
             }
             finally
             {
@@ -267,7 +323,6 @@ namespace TwelveMonthCalendar.MCM
             }
 
             SyncFromCoreState();
-            OnPropertyChanged(nameof(CalendarSystem));
             OnPropertyChanged(nameof(UseLeapYears));
             OnPropertyChanged(nameof(ShowDayLabel));
             OnPropertyChanged(nameof(ShowYearLabel));
@@ -279,6 +334,12 @@ namespace TwelveMonthCalendar.MCM
             OnPropertyChanged(nameof(PregnancyDurationMonths));
             OnPropertyChanged(nameof(PregnancyDurationInDays));
             OnPropertyChanged(nameof(RenownGainMultiplier));
+            OnPropertyChanged(nameof(BalancePartyImpairment));
+            OnPropertyChanged(nameof(BalancePrisonerRecruitment));
+            OnPropertyChanged(nameof(BalanceNpcMarriage));
+            OnPropertyChanged(nameof(BalanceMapTracks));
+            OnPropertyChanged(nameof(BalanceQuestDeadlines));
+            OnPropertyChanged(nameof(AnnualBalanceDiagnosticsEnabled));
         }
     }
 }

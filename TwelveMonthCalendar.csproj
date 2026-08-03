@@ -49,7 +49,7 @@
     </Reference>
 
     <Reference Include="0Harmony">
-      <HintPath>..\Villagenople\lib\0Harmony.dll</HintPath>
+      <HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll</HintPath>
       <Private>true</Private>
     </Reference>
     <Reference Include="TaleWorlds.CampaignSystem">
@@ -96,6 +96,10 @@
       <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="TaleWorlds.SaveSystem">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.SaveSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="TaleWorlds.MountAndBlade">
       <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath>
       <Private>false</Private>
@@ -107,9 +111,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
     <Compile Include="MySubModule.cs" />
     <Compile Include="Diagnostics.cs" />
+    <Compile Include="CrashFlightRecorder.cs" />
     <Compile Include="CalendarDiagnosticsBehavior.cs" />
+    <Compile Include="CalendarSaveCompatibility.cs" />
     <Compile Include="CalendarOptionsTabPatch.cs" />
     <Compile Include="CalendarSettingsState.cs" />
     <Compile Include="OptionalMcmIntegration.cs" />
@@ -118,15 +125,28 @@
     <Compile Include="CampaignTimeCalendarPatches.cs" />
     <Compile Include="CampaignTimeToStringPatch.cs" />
     <Compile Include="MapTimeTrackerPatch.cs" />
+    <Compile Include="MapBarSeasonDataSourcePatch.cs" />
     <Compile Include="EconomyAndLifeCyclePatches.cs" />
     <Compile Include="SettlementBalancePatches.cs" />
     <Compile Include="DailyRateBalancePatches.cs" />
-    <Compile Include="NavalDlcCompatibilityPatch.cs" />
+    <Compile Include="CalendarClanFinanceModel.cs" />
+    <Compile Include="CalendarPartySpeedModel.cs" />
+    <Compile Include="CalendarAnnualBalance.cs" />
+    <Compile Include="CalendarAnnualBalanceDiagnostics.cs" />
+    <Compile Include="CalendarPartyImpairmentModel.cs" />
+    <Compile Include="CalendarPrisonerRecruitmentModel.cs" />
+    <Compile Include="CalendarMarriageModel.cs" />
+    <Compile Include="CalendarMapTrackModel.cs" />
+    <Compile Include="PlayerPacingPatches.cs" />
+    <Compile Include="DiplomacyBalancePatches.cs" />
+    <!-- <Compile Include="NavalDlcCompatibilityPatch.cs" /> -->
     <Compile Include="CrashDiagnosticsPatches.cs" />
-    <!-- Game.Current accessor fallback is not used in the diagnostic build. -->
+    <!-- Do not patch Game.Current or Bannerlord's finance initialization. -->
     <!-- <Compile Include="GameCurrentFallbackPatch.cs" /> -->
-    <Compile Include="DefaultClanFinanceInitialization.cs" />
-    <Compile Include="DefaultClanFinanceStaticConstructorPatch.cs" />
+    <!-- <Compile Include="GameCurrentFinanceScopePatch.cs" /> -->
+    <!-- <Compile Include="DefaultClanFinanceInitialization.cs" /> -->
+    <!-- Do not transpile Bannerlord's static finance constructor. -->
+    <!-- <Compile Include="DefaultClanFinanceStaticConstructorPatch.cs" /> -->
     <None Include="SubModule.xml" />
     <None Include="README.md" />
   </ItemGroup>

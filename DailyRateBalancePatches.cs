@@ -120,6 +120,53 @@ namespace TwelveMonthCalendar
         }
 
         /// <summary>
+        /// Treats a Gregorian-calendar duration as the equivalent duration on
+        /// Bannerlord's native 84-day campaign calendar. This is used for
+        /// diplomatic cooldowns and score curves, which are not daily gains
+        /// and therefore cannot be balanced by simply scaling their result.
+        /// </summary>
+        internal static float ToNativeCalendarDays(float calendarDays)
+        {
+            return IsExtendedCalendar ? calendarDays * Factor : calendarDays;
+        }
+
+        /// <summary>
+        /// Converts a native-day contract length into a Gregorian-calendar
+        /// duration while preserving the same number of native campaign days.
+        /// </summary>
+        internal static int ToGregorianCalendarDays(int nativeDays)
+        {
+            if (!IsExtendedCalendar || nativeDays <= 0)
+            {
+                return nativeDays;
+            }
+
+            return Math.Max(1, (int)Math.Ceiling(nativeDays / (double)Factor));
+        }
+
+        /// <summary>
+        /// Some native one-time values are calculated by multiplying a daily
+        /// value by a duration. When that duration is expanded to a Gregorian
+        /// year, reduce the finished value back to its native-year equivalent.
+        /// </summary>
+        internal static int ScaleDurationBasedLumpSum(int value)
+        {
+            if (!IsExtendedCalendar
+                || value == 0
+                || value == int.MinValue
+                || value == int.MaxValue)
+            {
+                return value;
+            }
+
+            int sign = value < 0 ? -1 : 1;
+            int scaled = (int)Math.Round(
+                Math.Abs((double)value) * Factor,
+                MidpointRounding.AwayFromZero);
+            return sign * Math.Max(1, scaled);
+        }
+
+        /// <summary>
         /// Converts a per-day probability so that repeating it over 365 days
         /// has the same annual probability as repeating the native value over
         /// 84 days.
@@ -458,6 +505,15 @@ namespace TwelveMonthCalendar
         }
     }
 
+    // IMPORTANT: Do not add a Harmony target for DefaultClanFinanceModel here.
+    // Its static constructor reads Game.Current and GameTextManager.  During the
+    // initial map-bar construction (including character creation), Bannerlord
+    // can invoke that constructor before its native Game.Current is assigned.
+    // Harmony documents that discovering/patching a type can run its static
+    // constructor early; an exception then permanently poisons the type for the
+    // process.  These finance-model patches are deliberately excluded until a
+    // Bannerlord-supported post-initialization extension point is available.
+#if false
     internal sealed class FinanceTaxStockState
     {
         internal int Original;
@@ -753,4 +809,5 @@ namespace TwelveMonthCalendar
             return __exception;
         }
     }
+#endif
 }
