@@ -50,6 +50,9 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 
 ## Build and release verification
 
+Release archives contain only the module XML, README, and the two compiled
+module DLLs. Development and verification scripts are intentionally excluded.
+
 Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 
 ```powershell
