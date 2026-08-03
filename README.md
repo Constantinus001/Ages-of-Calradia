@@ -1,5 +1,7 @@
 # Twelve Month Calendar
 
+See [CHANGELOG.md](CHANGELOG.md) for the complete v1.0-to-v1.3 patch notes.
+
 This Bannerlord v1.4.7 module changes the campaign calendar to a 365-day year
 with Gregorian-style month lengths:
 
