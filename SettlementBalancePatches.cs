@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Collections;
+using System;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
@@ -11,6 +13,12 @@ namespace TwelveMonthCalendar
             typeof(ExplainedNumber), "<BaseNumber>k__BackingField");
         private static readonly FieldInfo SumOfFactorsField = AccessTools.Field(
             typeof(ExplainedNumber), "<SumOfFactors>k__BackingField");
+        private static readonly FieldInfo ExplainerField = AccessTools.Field(
+            typeof(ExplainedNumber), "_explainer");
+        private static readonly PropertyInfo ExplanationLinesProperty = ExplainerField == null
+            ? null
+            : AccessTools.Property(ExplainerField.FieldType, "Lines");
+        private static readonly FieldInfo ExplanationLineNumberField = GetExplanationLineNumberField();
 
         internal static float DailyRateFactor
         {
@@ -29,6 +37,7 @@ namespace TwelveMonthCalendar
             // limits remain intact while both numeric components are scaled.
             if (BaseNumberField != null && SumOfFactorsField != null)
             {
+                ScaleExplanationLines(value, factor);
                 BaseNumberField.SetValueDirect(
                     __makeref(value),
                     value.BaseNumber * factor);
@@ -42,6 +51,71 @@ namespace TwelveMonthCalendar
                 value.ResultNumber * factor,
                 value.IncludeDescriptions,
                 null);
+        }
+
+        /// <summary>
+        /// ExplainedNumber keeps its visible breakdown in a separate reference
+        /// object. Scaling only BaseNumber/SumOfFactors made the daily total
+        /// correct but left finance tooltips at native 84-day values.
+        /// </summary>
+        private static void ScaleExplanationLines(ExplainedNumber value, float factor)
+        {
+            try
+            {
+                if (ExplainerField == null
+                    || ExplanationLinesProperty == null
+                    || ExplanationLineNumberField == null)
+                {
+                    return;
+                }
+
+                object explainer = ExplainerField.GetValue(value);
+                IList lines = explainer == null
+                    ? null
+                    : ExplanationLinesProperty.GetValue(explainer, null) as IList;
+                if (lines == null)
+                {
+                    return;
+                }
+
+                for (int index = 0; index < lines.Count; index++)
+                {
+                    object line = lines[index];
+                    if (line == null)
+                    {
+                        continue;
+                    }
+
+                    float number = (float)ExplanationLineNumberField.GetValue(line);
+                    ExplanationLineNumberField.SetValue(line, number * factor);
+                    lines[index] = line;
+                }
+            }
+            catch
+            {
+                // Explanation scaling is cosmetic. Never risk campaign
+                // calculations if a future game version changes this layout.
+            }
+        }
+
+        private static FieldInfo GetExplanationLineNumberField()
+        {
+            try
+            {
+                if (ExplanationLinesProperty == null)
+                {
+                    return null;
+                }
+
+                Type[] genericArguments = ExplanationLinesProperty.PropertyType.GetGenericArguments();
+                return genericArguments.Length == 1
+                    ? AccessTools.Field(genericArguments[0], "Number")
+                    : null;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 

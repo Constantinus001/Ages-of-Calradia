@@ -48,7 +48,13 @@ namespace TwelveMonthCalendar
                 () => _native.CalculateClanGoldChange(
                     clan, includeDescriptions, applyWithdrawals, includeDetails),
                 applyWithdrawals);
+            float nativeResult = result.ResultNumber;
             Scale(ref result);
+            CalendarFinanceTelemetry.RecordFinanceResult(
+                clan,
+                nativeResult,
+                result.ResultNumber,
+                applyWithdrawals);
             return result;
         }
 

@@ -10,12 +10,15 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <BannerlordDir Condition=" '$(BannerlordDir)' == '' and '$(BANNERLORD_DIR)' != '' ">$(BANNERLORD_DIR)</BannerlordDir>
     <BannerlordDir Condition=" '$(BannerlordDir)' == '' ">C:\Program Files\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</BannerlordDir>
     <OutputPath>bin\Win64_Shipping_Client\</OutputPath>
     <PlatformTarget>x64</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
+    <NetStandardPath Condition=" '$(NetStandardPath)' == '' and '$(NETSTANDARD_PATH)' != '' ">$(NETSTANDARD_PATH)</NetStandardPath>
     <NetStandardPath Condition=" '$(NetStandardPath)' == '' ">C:\Program Files\dotnet\sdk\3.1.426\Microsoft\Microsoft.NET.Build.Extensions\net461\lib\netstandard.dll</NetStandardPath>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -133,10 +136,16 @@
     <Compile Include="CalendarPartySpeedModel.cs" />
     <Compile Include="CalendarAnnualBalance.cs" />
     <Compile Include="CalendarAnnualBalanceDiagnostics.cs" />
+    <Compile Include="CalendarBalanceTelemetry.cs" />
+    <Compile Include="CalendarFinanceTelemetry.cs" />
+    <Compile Include="ClanFinanceFlowAuditPatch.cs" />
     <Compile Include="CalendarPartyImpairmentModel.cs" />
     <Compile Include="CalendarPrisonerRecruitmentModel.cs" />
     <Compile Include="CalendarMarriageModel.cs" />
     <Compile Include="CalendarMapTrackModel.cs" />
+    <Compile Include="CalendarPregnancyModel.cs" />
+    <Compile Include="CalendarTournamentModel.cs" />
+    <Compile Include="CalendarSettlementPatrolModel.cs" />
     <Compile Include="PlayerPacingPatches.cs" />
     <Compile Include="DiplomacyBalancePatches.cs" />
     <!-- <Compile Include="NavalDlcCompatibilityPatch.cs" /> -->
@@ -149,6 +158,8 @@
     <!-- <Compile Include="DefaultClanFinanceStaticConstructorPatch.cs" /> -->
     <None Include="SubModule.xml" />
     <None Include="README.md" />
+    <None Include="BUILDING.md" />
+    <None Include="TwelveMonthCalendar.BetterTime.csproj" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

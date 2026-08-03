@@ -15,8 +15,11 @@ if (-not $AllowDirtySource) {
 
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
+$betterTimeProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.BetterTime.csproj'
 dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /v:minimal
 dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /v:minimal
+dotnet msbuild $betterTimeProject /t:Rebuild /p:Configuration=Release /v:minimal
+& (Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1') -ModuleRoot $ModuleRoot
 
 $dailyFactor = 84.0 / 365.2425
 $durationFactor = 365.2425 / 84.0
@@ -34,16 +37,37 @@ if ([Math]::Abs($nativeAnnualSurvival - $annualSurvival) -gt 0.000001) {
 
 $mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.dll'
 $mcmDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.MCM.dll'
+$betterTimeDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.BetterTime.dll'
 $harmonyDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\0Harmony.dll'
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
 $readme = Join-Path $ModuleRoot 'README.md'
-$mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
 $optionsXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\Options.xml'
-$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $mapBarXml, $optionsXml)
+$mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
+$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $betterTimeDll, $optionsXml, $mapBarXml)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
     }
+}
+
+[xml]$mapBar = Get-Content -Raw -LiteralPath $mapBarXml
+$centerPanel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]'))
+if ($centerPanel.Count -ne 1 -or $centerPanel[0].HorizontalAlignment -ne 'Center' -or $centerPanel[0].VerticalAlignment -ne 'Bottom') {
+    throw 'Map bar center panel must remain bottom-centered for resolution-independent placement.'
+}
+$calendarDate = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Date"]'))
+if ($calendarDate.Count -ne 1) {
+    throw 'Map bar must contain exactly one calendar date label.'
+}
+if ($calendarDate[0].PositionYOffset -ne '0' -or $calendarDate[0].'Brush.FontSize' -ne '17') {
+    throw 'Map bar calendar date must retain Y=0 and 17-point text.'
+}
+if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXOffset -ne '-50') {
+    throw 'Map bar calendar date must move 20 pixels left while preserving sundial clearance.'
+}
+$seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Season"]'))
+if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].PositionXOffset -ne '87' -or $seasonLabel[0].VerticalAlignment -ne 'Bottom' -or $seasonLabel[0].PositionYOffset -ne '-2') {
+    throw 'Map bar season label must be independently placed two pixels higher at the marked position.'
 }
 
 $binaryText = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($mainDll))
@@ -79,12 +103,12 @@ $moduleStage = Join-Path $stagingRoot '_TwelveMonthCalendar'
 try {
     New-Item -ItemType Directory -Force -Path `
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Map'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions') | Out-Null
+        (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
+        (Join-Path $moduleStage 'GUI\Prefabs\Map') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
-    Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
-    Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
+    Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll, $betterTimeDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
     Copy-Item -LiteralPath $optionsXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
+    Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
     Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
 }
 finally {
@@ -100,8 +124,9 @@ $expectedEntries = @(
     '_TwelveMonthCalendar/bin/Win64_Shipping_Client/0Harmony.dll',
     '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.dll',
     '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.MCM.dll',
-    '_TwelveMonthCalendar/GUI/Prefabs/Map/MapBar.xml',
-    '_TwelveMonthCalendar/GUI/Prefabs/Options/SPOptions/Options.xml'
+    '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.BetterTime.dll',
+    '_TwelveMonthCalendar/GUI/Prefabs/Options/SPOptions/Options.xml',
+    '_TwelveMonthCalendar/GUI/Prefabs/Map/MapBar.xml'
 )
 $archive = [IO.Compression.ZipFile]::OpenRead($ReleaseArchive)
 try {

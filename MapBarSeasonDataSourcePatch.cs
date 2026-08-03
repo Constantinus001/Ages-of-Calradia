@@ -7,11 +7,7 @@ using TaleWorlds.Library;
 
 namespace TwelveMonthCalendar
 {
-    /// <summary>
-    /// Adds a dedicated season property to the native map-time data source.
-    /// Keeping it separate from Date gives the map prefab two independently
-    /// positionable labels while preserving all native time-control behavior.
-    /// </summary>
+    /// <summary>Adds a separately positionable season property to the native map-time VM.</summary>
     internal sealed class CalendarMapTimeControlVM : MapTimeControlVM
     {
         private bool _seasonRefreshFailureLogged;
@@ -34,11 +30,7 @@ namespace TwelveMonthCalendar
             private set
             {
                 string normalized = value ?? string.Empty;
-                if (string.Equals(_season, normalized, StringComparison.Ordinal))
-                {
-                    return;
-                }
-
+                if (string.Equals(_season, normalized, StringComparison.Ordinal)) return;
                 _season = normalized;
                 OnPropertyChangedWithValue(_season, "Season");
             }
@@ -60,17 +52,14 @@ namespace TwelveMonthCalendar
         {
             try
             {
-                Season = CalendarSettingsState.GetSeasonName(
-                    CalendarTimeMath.GetSeason(CampaignTime.Now));
+                Season = CalendarSettingsState.GetSeasonName(CalendarTimeMath.GetSeason(CampaignTime.Now));
             }
             catch (Exception exception)
             {
                 Season = string.Empty;
-                if (!_seasonRefreshFailureLogged)
-                {
-                    _seasonRefreshFailureLogged = true;
-                    Diagnostics.Error("Map-bar season refresh failed.", exception);
-                }
+                if (_seasonRefreshFailureLogged) return;
+                _seasonRefreshFailureLogged = true;
+                Diagnostics.Error("Map-bar season refresh failed.", exception);
             }
         }
 
@@ -78,7 +67,7 @@ namespace TwelveMonthCalendar
         {
             try
             {
-                Date = CampaignTime.Now.ToString();
+                Date = CalendarFormatter.Format(CampaignTime.Now);
                 RefreshSeason();
             }
             catch (Exception exception)
@@ -87,77 +76,50 @@ namespace TwelveMonthCalendar
             }
         }
 
-        private void OnCalendarSettingsChanged()
-        {
-            RefreshCalendarDisplay();
-        }
+        private void OnCalendarSettingsChanged() { RefreshCalendarDisplay(); }
     }
 
     /// <summary>
-    /// Replaces the native time-control VM after its normal initialization.
-    /// The three native callbacks are copied intact, and the temporary VM is
-    /// finalized before replacement so it cannot retain input/save listeners.
+    /// Replaces the temporary native VM only after construction succeeds, so a
+    /// changed Bannerlord field leaves the original UI intact rather than
+    /// interrupting startup.
     /// </summary>
     [HarmonyPatch(typeof(MapBarVM), nameof(MapBarVM.Initialize))]
     internal static class MapBarSeasonDataSourcePatch
     {
-        private static readonly FieldInfo GetMapBarShortcutsField = AccessTools.Field(
-            typeof(MapTimeControlVM),
-            "_getMapBarShortcuts");
-        private static readonly FieldInfo OnTimeFlowStateChangeField = AccessTools.Field(
-            typeof(MapTimeControlVM),
-            "_onTimeFlowStateChange");
-        private static readonly FieldInfo OnCameraResetField = AccessTools.Field(
-            typeof(MapTimeControlVM),
-            "_onCameraReset");
+        private static readonly FieldInfo GetMapBarShortcutsField = AccessTools.Field(typeof(MapTimeControlVM), "_getMapBarShortcuts");
+        private static readonly FieldInfo OnTimeFlowStateChangeField = AccessTools.Field(typeof(MapTimeControlVM), "_onTimeFlowStateChange");
+        private static readonly FieldInfo OnCameraResetField = AccessTools.Field(typeof(MapTimeControlVM), "_onCameraReset");
         private static bool _installationLogged;
 
         [HarmonyPostfix]
         private static void Postfix(MapBarVM __instance)
         {
-            if (__instance == null)
-            {
-                return;
-            }
-
+            if (__instance == null) return;
             try
             {
                 MapTimeControlVM original = __instance.MapTimeControl;
-                if (original == null || original is CalendarMapTimeControlVM)
-                {
-                    return;
-                }
-
-                if (GetMapBarShortcutsField == null
-                    || OnTimeFlowStateChangeField == null
-                    || OnCameraResetField == null)
+                if (original == null || original is CalendarMapTimeControlVM) return;
+                if (GetMapBarShortcutsField == null || OnTimeFlowStateChangeField == null || OnCameraResetField == null)
                 {
                     Diagnostics.Info("Map-bar season label was not installed because a required native callback field was not found.");
                     return;
                 }
 
-                Func<MapBarShortcuts> getMapBarShortcuts = GetMapBarShortcutsField.GetValue(original)
-                    as Func<MapBarShortcuts>;
+                Func<MapBarShortcuts> getMapBarShortcuts = GetMapBarShortcutsField.GetValue(original) as Func<MapBarShortcuts>;
                 Action onTimeFlowStateChange = OnTimeFlowStateChangeField.GetValue(original) as Action;
                 Action onCameraReset = OnCameraResetField.GetValue(original) as Action;
-                if (getMapBarShortcuts == null
-                    || onTimeFlowStateChange == null
-                    || onCameraReset == null)
+                if (getMapBarShortcuts == null || onTimeFlowStateChange == null || onCameraReset == null)
                 {
                     Diagnostics.Info("Map-bar season label was not installed because a required native callback was unavailable.");
                     return;
                 }
 
-                // Construct first so a failed replacement leaves the native VM intact.
-                CalendarMapTimeControlVM replacement = new CalendarMapTimeControlVM(
-                    getMapBarShortcuts,
-                    onTimeFlowStateChange,
-                    onCameraReset);
+                CalendarMapTimeControlVM replacement = new CalendarMapTimeControlVM(getMapBarShortcuts, onTimeFlowStateChange, onCameraReset);
                 original.OnFinalize();
                 __instance.MapTimeControl = replacement;
                 replacement.Refresh();
                 replacement.RefreshCalendarDisplay();
-
                 if (!_installationLogged)
                 {
                     _installationLogged = true;
@@ -178,10 +140,7 @@ namespace TwelveMonthCalendar
         private static void Postfix(MapTimeControlVM __instance)
         {
             CalendarMapTimeControlVM calendarTimeControl = __instance as CalendarMapTimeControlVM;
-            if (calendarTimeControl != null)
-            {
-                calendarTimeControl.RefreshSeason();
-            }
+            if (calendarTimeControl != null) calendarTimeControl.RefreshSeason();
         }
     }
 }

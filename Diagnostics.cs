@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -8,6 +9,8 @@ namespace TwelveMonthCalendar
     internal static class Diagnostics
     {
         private static readonly object SyncRoot = new object();
+        private const long MaximumLogBytes = 5L * 1024L * 1024L;
+        private const int MaximumCrashReports = 20;
         private static string _logPath;
 
         internal static string LogPath => _logPath;
@@ -74,8 +77,10 @@ namespace TwelveMonthCalendar
             {
                 Directory.CreateDirectory(directory);
                 string candidate = Path.Combine(directory, "TwelveMonthCalendar.log");
+                RotateLogIfNeeded(candidate);
                 File.AppendAllText(candidate, string.Empty, Encoding.UTF8);
                 _logPath = candidate;
+                PruneCrashReports(directory);
                 return true;
             }
             catch
@@ -109,6 +114,7 @@ namespace TwelveMonthCalendar
                     directory,
                     "TwelveMonthCalendar-crash-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + ".log");
                 File.WriteAllText(path, contents, Encoding.UTF8);
+                PruneCrashReports(Path.GetDirectoryName(_logPath));
             }
             catch
             {
@@ -136,6 +142,61 @@ namespace TwelveMonthCalendar
             catch
             {
                 // Diagnostics must never interfere with gameplay.
+            }
+        }
+
+        private static void RotateLogIfNeeded(string path)
+        {
+            try
+            {
+                FileInfo file = new FileInfo(path);
+                if (!file.Exists || file.Length < MaximumLogBytes)
+                {
+                    return;
+                }
+
+                string previous = path + ".previous";
+                if (File.Exists(previous))
+                {
+                    File.Delete(previous);
+                }
+
+                File.Move(path, previous);
+            }
+            catch
+            {
+                // A failed rotation must not stop diagnostics from starting.
+            }
+        }
+
+        private static void PruneCrashReports(string logDirectory)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(logDirectory))
+                {
+                    return;
+                }
+
+                string crashDirectory = Path.Combine(logDirectory, "CrashReports");
+                if (!Directory.Exists(crashDirectory))
+                {
+                    return;
+                }
+
+                FileInfo[] staleReports = new DirectoryInfo(crashDirectory)
+                    .GetFiles("TwelveMonthCalendar-crash-*.log")
+                    .OrderByDescending(file => file.CreationTimeUtc)
+                    .Skip(MaximumCrashReports)
+                    .ToArray();
+                foreach (FileInfo report in staleReports)
+                {
+                    report.Delete();
+                }
+            }
+            catch
+            {
+                // Retention is best-effort only.
             }
         }
     }

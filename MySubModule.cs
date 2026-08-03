@@ -23,6 +23,8 @@ namespace TwelveMonthCalendar
         };
         private Harmony _harmony;
         private bool _runtimePatchesApplied;
+        private bool _betterTimeUiAdapterInitialized;
+        private readonly List<string> _disabledOptionalPatchGroups = new List<string>();
 
         protected override void OnSubModuleLoad()
         {
@@ -140,6 +142,7 @@ namespace TwelveMonthCalendar
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
             OptionalMcmIntegration.TryInitialize();
+            TryInitializeBetterTimeUiAdapter();
         }
 
         protected override void OnSubModuleUnloaded()
@@ -161,6 +164,47 @@ namespace TwelveMonthCalendar
                 "SettingsChanged; TimeScale=" + CalendarSettingsState.CampaignTimeScale.ToString("F6")
                 + "; LeapYears=" + CalendarSettingsState.UseLeapYears
                 + "; DateFormat=" + CalendarSettingsState.DateFormat);
+        }
+
+        private void TryInitializeBetterTimeUiAdapter()
+        {
+            if (_betterTimeUiAdapterInitialized)
+            {
+                return;
+            }
+
+            try
+            {
+                bool betterTimeLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(
+                    assembly => string.Equals(assembly.GetName().Name, "BetterTime", StringComparison.Ordinal));
+                bool uiExtenderLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(
+                    assembly => string.Equals(assembly.GetName().Name, "Bannerlord.UIExtenderEx", StringComparison.Ordinal));
+                if (!betterTimeLoaded || !uiExtenderLoaded)
+                {
+                    Diagnostics.Info("Better Time UI adapter not loaded; Better Time/UIExtenderEx is not active.");
+                    return;
+                }
+
+                string adapterPath = System.IO.Path.Combine(
+                    System.IO.Path.GetDirectoryName(typeof(MySubModule).Assembly.Location),
+                    "TwelveMonthCalendar.BetterTime.dll");
+                if (!System.IO.File.Exists(adapterPath))
+                {
+                    Diagnostics.Info("Better Time is active but the optional calendar UI adapter DLL is unavailable.");
+                    return;
+                }
+
+                Assembly adapter = Assembly.LoadFrom(adapterPath);
+                Type adapterType = adapter.GetType("TwelveMonthCalendar.BetterTimeUi.BetterTimeUiAdapter", true);
+                MethodInfo initialize = adapterType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static);
+                initialize.Invoke(null, null);
+                _betterTimeUiAdapterInitialized = true;
+                Diagnostics.Info("Better Time UI adapter enabled; calendar font size set to 15, moved left, and lowered by 4 pixels.");
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Better Time UI adapter failed safely; Better Time's native layout was left unchanged.", exception);
+            }
         }
 
         /// <summary>
@@ -197,12 +241,20 @@ namespace TwelveMonthCalendar
                 }
                 catch (Exception exception)
                 {
+                    _disabledOptionalPatchGroups.Add(patchType.Name);
                     Diagnostics.Error(
                         "Optional Harmony patch was disabled because its Bannerlord target is incompatible: "
                         + patchType.FullName,
                         exception);
                 }
             }
+
+            Diagnostics.Info(
+                "Feature health: CoreCalendar=ready; OptionalPatchesDisabled="
+                + _disabledOptionalPatchGroups.Count
+                + (_disabledOptionalPatchGroups.Count == 0
+                    ? "; Disabled=<none>."
+                    : "; Disabled=" + string.Join(",", _disabledOptionalPatchGroups) + "."));
         }
 
         private static Type[] GetPatchTypes()
@@ -230,6 +282,51 @@ namespace TwelveMonthCalendar
 
         private static void InstallAnnualBalanceModels(CampaignGameStarter campaignStarter)
         {
+            PregnancyModel nativePregnancy = campaignStarter.GetModel<PregnancyModel>();
+            if (nativePregnancy == null)
+            {
+                Diagnostics.Info("Calendar pregnancy duration was not installed because Bannerlord did not provide a PregnancyModel.");
+            }
+            else if (nativePregnancy is CalendarPregnancyModel)
+            {
+                Diagnostics.Info("Calendar pregnancy model was already installed.");
+            }
+            else
+            {
+                campaignStarter.AddModel(new CalendarPregnancyModel(nativePregnancy));
+                Diagnostics.Info("Calendar pregnancy wrapper installed; due dates use the configured calendar-month duration without private save-data edits.");
+            }
+
+            TournamentModel nativeTournament = campaignStarter.GetModel<TournamentModel>();
+            if (nativeTournament == null)
+            {
+                Diagnostics.Info("Annual tournament balance was not installed because Bannerlord did not provide a TournamentModel.");
+            }
+            else if (nativeTournament is CalendarTournamentModel)
+            {
+                Diagnostics.Info("Calendar tournament model was already installed.");
+            }
+            else
+            {
+                campaignStarter.AddModel(new CalendarTournamentModel(nativeTournament));
+                Diagnostics.Info("Calendar tournament wrapper installed; daily start/end chances are annualized for all towns.");
+            }
+
+            SettlementPatrolModel nativePatrol = campaignStarter.GetModel<SettlementPatrolModel>();
+            if (nativePatrol == null)
+            {
+                Diagnostics.Info("Annual patrol balance was not installed because Bannerlord did not provide a SettlementPatrolModel.");
+            }
+            else if (nativePatrol is CalendarSettlementPatrolModel)
+            {
+                Diagnostics.Info("Calendar settlement-patrol model was already installed.");
+            }
+            else
+            {
+                campaignStarter.AddModel(new CalendarSettlementPatrolModel(nativePatrol));
+                Diagnostics.Info("Calendar settlement-patrol wrapper installed; daily patrol spawn durations preserve native annual cadence.");
+            }
+
             PartyImpairmentModel nativeImpairment = campaignStarter.GetModel<PartyImpairmentModel>();
             if (nativeImpairment == null)
             {

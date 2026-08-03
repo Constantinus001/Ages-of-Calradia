@@ -66,6 +66,12 @@ namespace TwelveMonthCalendar
                 return;
             }
 
+            if (!CalendarOptionsVM.IsNativeLayoutSupported())
+            {
+                Diagnostics.Info("Native Calendar Settings tab was skipped because this Bannerlord OptionsVM layout is incompatible; MCM/XML settings remain available.");
+                return;
+            }
+
             try
             {
                 Diagnostics.Info("Native Settings OptionsVM detected; creating the Calendar category.");
@@ -140,6 +146,12 @@ namespace TwelveMonthCalendar
 
     internal sealed class CalendarOptionsVM : OptionsVM
     {
+        private static readonly string[] RequiredNativeListFields =
+        {
+            "_categories",
+            "_groupedCategories"
+        };
+        private static bool? _nativeLayoutSupported;
         private readonly OptionsVM _nativeOptions;
         private readonly GroupedOptionCategoryVM _calendarOptions;
 
@@ -319,6 +331,40 @@ namespace TwelveMonthCalendar
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// The native settings tab is an optional compatibility feature. Check
+        /// its private layout before creating a proxy so a game update retains
+        /// the unmodified Options screen instead of risking partial UI state.
+        /// </summary>
+        internal static bool IsNativeLayoutSupported()
+        {
+            if (_nativeLayoutSupported.HasValue)
+            {
+                return _nativeLayoutSupported.Value;
+            }
+
+            try
+            {
+                foreach (string fieldName in RequiredNativeListFields)
+                {
+                    FieldInfo field = AccessTools.Field(typeof(OptionsVM), fieldName);
+                    if (field == null || !typeof(IList).IsAssignableFrom(field.FieldType))
+                    {
+                        _nativeLayoutSupported = false;
+                        return false;
+                    }
+                }
+
+                _nativeLayoutSupported = true;
+                return true;
+            }
+            catch
+            {
+                _nativeLayoutSupported = false;
+                return false;
+            }
         }
 
         internal static void ShowTopResetConfirmation(GroupedOptionCategoryVM category)

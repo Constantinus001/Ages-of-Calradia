@@ -69,6 +69,8 @@ namespace TwelveMonthCalendar
                             Hero.MainHero.BirthDay,
                             Hero.MainHero.BirthDay.ToDays));
                 }
+
+                CalendarBalanceTelemetry.TryRecordMonthlySnapshot();
             }
             catch (Exception exception)
             {
@@ -84,7 +86,9 @@ namespace TwelveMonthCalendar
         private void OnDailyTick()
         {
             CrashFlightRecorder.RecordCampaignCheckpoint("DailyTick");
+            CalendarBalanceTelemetry.TryRecordMonthlySnapshot();
         }
+
 
         private void OnWeeklyTick()
         {

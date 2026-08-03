@@ -6,6 +6,20 @@ namespace TwelveMonthCalendar
 {
     internal static class CalendarFormatter
     {
+        internal static string FormatMapBar(CampaignTime time)
+        {
+            string date = Format(time);
+            if (string.IsNullOrWhiteSpace(date))
+            {
+                return date;
+            }
+
+            string season = CalendarSettingsState.GetSeasonName(CalendarTimeMath.GetSeason(time));
+            return string.IsNullOrWhiteSpace(season)
+                ? date
+                : season + " " + date;
+        }
+
         internal static string Format(CampaignTime time)
         {
             try
