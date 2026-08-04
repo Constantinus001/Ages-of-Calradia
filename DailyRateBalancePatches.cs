@@ -5,6 +5,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
 
 namespace TwelveMonthCalendar
 {
@@ -119,6 +120,65 @@ namespace TwelveMonthCalendar
             }
         }
 
+        internal static float ScaleDailySmoothingFactor(float nativeFactor)
+        {
+            if (!IsExtendedCalendar || nativeFactor <= 0f || nativeFactor >= 1f)
+            {
+                return nativeFactor;
+            }
+
+            // Preserve the same annual convergence: (1 - scaled)^365 =
+            // (1 - native)^84.
+            return 1f - (float)Math.Pow(1f - nativeFactor, Factor);
+        }
+
+        /// <summary>
+        /// Treats a Gregorian-calendar duration as the equivalent duration on
+        /// Bannerlord's native 84-day campaign calendar. This is used for
+        /// diplomatic cooldowns and score curves, which are not daily gains
+        /// and therefore cannot be balanced by simply scaling their result.
+        /// </summary>
+        internal static float ToNativeCalendarDays(float calendarDays)
+        {
+            return IsExtendedCalendar ? calendarDays * Factor : calendarDays;
+        }
+
+        /// <summary>
+        /// Converts a native-day contract length into a Gregorian-calendar
+        /// duration while preserving the same number of native campaign days.
+        /// </summary>
+        internal static int ToGregorianCalendarDays(int nativeDays)
+        {
+            if (!IsExtendedCalendar || nativeDays <= 0)
+            {
+                return nativeDays;
+            }
+
+            return Math.Max(1, (int)Math.Ceiling(nativeDays / (double)Factor));
+        }
+
+        /// <summary>
+        /// Some native one-time values are calculated by multiplying a daily
+        /// value by a duration. When that duration is expanded to a Gregorian
+        /// year, reduce the finished value back to its native-year equivalent.
+        /// </summary>
+        internal static int ScaleDurationBasedLumpSum(int value)
+        {
+            if (!IsExtendedCalendar
+                || value == 0
+                || value == int.MinValue
+                || value == int.MaxValue)
+            {
+                return value;
+            }
+
+            int sign = value < 0 ? -1 : 1;
+            int scaled = (int)Math.Round(
+                Math.Abs((double)value) * Factor,
+                MidpointRounding.AwayFromZero);
+            return sign * Math.Max(1, scaled);
+        }
+
         /// <summary>
         /// Converts a per-day probability so that repeating it over 365 days
         /// has the same annual probability as repeating the native value over
@@ -165,7 +225,10 @@ namespace TwelveMonthCalendar
         [HarmonyPostfix]
         private static void Postfix(ref ExplainedNumber __result)
         {
-            DailyRateBalance.Scale(ref __result);
+            // Rations are discrete daily inventory consumption.  Keeping this
+            // at the game's daily cadence matches the unscaled village-food
+            // production and prevents food from accumulating or vanishing
+            // solely because a year has more named calendar days.
         }
     }
 
@@ -393,8 +456,10 @@ namespace TwelveMonthCalendar
     internal static class SettlementDemandBalancePatch
     {
         [HarmonyPostfix]
-        private static void Postfix(ref float __result)
+        private static void Postfix(ItemCategory category, ref float __result)
         {
+            // Food goods are produced on the Gregorian cadence too, so
+            // civilian demand must use the matching rate.
             DailyRateBalance.Scale(ref __result);
         }
     }
@@ -403,9 +468,35 @@ namespace TwelveMonthCalendar
     internal static class SettlementBudgetBalancePatch
     {
         [HarmonyPostfix]
-        private static void Postfix(ref float __result)
+        private static void Postfix(ItemCategory category, ref float __result)
         {
+            // Keep the market budget aligned with the scaled food demand and
+            // food production paths.
             DailyRateBalance.Scale(ref __result);
+        }
+    }
+
+    [HarmonyPatch(typeof(DefaultSettlementEconomyModel), "GetSupplyDemandForCategory")]
+    internal static class SettlementMarketSmoothingBalancePatch
+    {
+        [HarmonyPostfix]
+        private static void Postfix(
+            float dailySupply,
+            float dailyDemand,
+            float oldSupply,
+            float oldDemand,
+            ref ValueTuple<float, float> __result)
+        {
+            if (!CalendarSettingsState.ExtendedCalendarEnabled)
+            {
+                return;
+            }
+
+            const float nativeDailySmoothing = 0.15f;
+            float smoothing = DailyRateBalance.ScaleDailySmoothingFactor(nativeDailySmoothing);
+            float supply = Math.Max(0.1f, oldSupply * (1f - smoothing) + dailySupply * smoothing);
+            float demand = oldDemand * (1f - smoothing) + dailyDemand * smoothing;
+            __result = new ValueTuple<float, float>(supply, demand);
         }
     }
 
@@ -458,6 +549,15 @@ namespace TwelveMonthCalendar
         }
     }
 
+    // IMPORTANT: Do not add a Harmony target for DefaultClanFinanceModel here.
+    // Its static constructor reads Game.Current and GameTextManager.  During the
+    // initial map-bar construction (including character creation), Bannerlord
+    // can invoke that constructor before its native Game.Current is assigned.
+    // Harmony documents that discovering/patching a type can run its static
+    // constructor early; an exception then permanently poisons the type for the
+    // process.  These finance-model patches are deliberately excluded until a
+    // Bannerlord-supported post-initialization extension point is available.
+#if false
     internal sealed class FinanceTaxStockState
     {
         internal int Original;
@@ -753,4 +853,5 @@ namespace TwelveMonthCalendar
             return __exception;
         }
     }
+#endif
 }

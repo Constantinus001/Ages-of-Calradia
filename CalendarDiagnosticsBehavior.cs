@@ -10,6 +10,9 @@ namespace TwelveMonthCalendar
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(
                 this,
                 OnSessionLaunched);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, OnHourlyTick);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDailyTick);
+            CampaignEvents.WeeklyTickEvent.AddNonSerializedListener(this, OnWeeklyTick);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -43,6 +46,19 @@ namespace TwelveMonthCalendar
                         CalendarTimeMath.GetSeasonLength(year, 3),
                         CalendarSettingsState.AutoCampaignTimeScale,
                         CalendarSettingsState.CampaignTimeScale));
+                Diagnostics.Info(
+                    string.Format(
+                        "Movement balance. Common base speed={0:F2}; Bannerlord's native troop, prisoner, herd, terrain, skill, army, and encumbrance modifiers determine final speed.",
+                        4f));
+                Diagnostics.Info(
+                    string.Format(
+                        "Annual balance settings. Impairment={0}; Prisoners={1}; NPCMarriage={2}; MapTracks={3}; QuestDeadlines={4}; Diagnostics={5}.",
+                        CalendarSettingsState.BalancePartyImpairment,
+                        CalendarSettingsState.BalancePrisonerRecruitment,
+                        CalendarSettingsState.BalanceNpcMarriage,
+                        CalendarSettingsState.BalanceMapTracks,
+                        CalendarSettingsState.BalanceQuestDeadlines,
+                        CalendarSettingsState.AnnualBalanceDiagnosticsEnabled));
 
                 if (Hero.MainHero != null)
                 {
@@ -53,11 +69,30 @@ namespace TwelveMonthCalendar
                             Hero.MainHero.BirthDay,
                             Hero.MainHero.BirthDay.ToDays));
                 }
+
+                CalendarBalanceTelemetry.TryRecordMonthlySnapshot();
             }
             catch (Exception exception)
             {
                 Diagnostics.Error("Session diagnostics failed.", exception);
             }
+        }
+
+        private void OnHourlyTick()
+        {
+            CrashFlightRecorder.RecordCampaignCheckpoint("HourlyTick");
+        }
+
+        private void OnDailyTick()
+        {
+            CrashFlightRecorder.RecordCampaignCheckpoint("DailyTick");
+            CalendarBalanceTelemetry.TryRecordMonthlySnapshot();
+        }
+
+
+        private void OnWeeklyTick()
+        {
+            CrashFlightRecorder.RecordCampaignCheckpoint("WeeklyTick");
         }
     }
 }

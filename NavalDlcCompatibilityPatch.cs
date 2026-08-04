@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -38,7 +39,7 @@ namespace TwelveMonthCalendar
             }
         }
 
-        private static MethodBase TargetMethod()
+        private static IEnumerable<MethodBase> TargetMethods()
         {
             Type type = AppDomain.CurrentDomain.GetAssemblies()
                 .Select(assembly => assembly.GetType("NavalDLC.ViewModelCollection.Map.MapBar.NavalMapInfoVM"))
@@ -57,13 +58,23 @@ namespace TwelveMonthCalendar
                 }
             }
 
-            Diagnostics.Info(type == null
-                ? "NavalDLC map-finance compatibility target was not found; compatibility patch not needed."
-                : "NavalDLC map-finance compatibility target found.");
+            if (type == null)
+            {
+                Diagnostics.Info(
+                    "NavalDLC map-finance compatibility target was not found; compatibility patch not needed.");
+                return Enumerable.Empty<MethodBase>();
+            }
 
-            return type == null
-                ? null
-                : AccessTools.Method(type, "UpdatePlayerInfo", new[] { typeof(bool) });
+            MethodBase target = AccessTools.Method(type, "UpdatePlayerInfo", new[] { typeof(bool) });
+            if (target == null)
+            {
+                Diagnostics.Info(
+                    "NavalDLC map-finance compatibility target did not expose UpdatePlayerInfo(bool); compatibility patch skipped.");
+                return Enumerable.Empty<MethodBase>();
+            }
+
+            Diagnostics.Info("NavalDLC map-finance compatibility target found.");
+            return new[] { target };
         }
 
         [HarmonyPrefix]
@@ -72,6 +83,12 @@ namespace TwelveMonthCalendar
         {
             try
             {
+                if (!DefaultClanFinanceInitialization.EnsureCampaignGameCurrent("NavalDLC map-bar refresh"))
+                {
+                    Diagnostics.Info("Skipped a NavalDLC map-finance refresh because the campaign game context was unavailable.");
+                    return false;
+                }
+
                 long untilTicks = Interlocked.Read(ref _deferMapInfoRefreshUntilUtcTicks);
                 if (untilTicks > DateTime.UtcNow.Ticks)
                 {
@@ -153,7 +170,8 @@ namespace TwelveMonthCalendar
         [HarmonyPriority(Priority.First)]
         private static bool Prefix(bool includeDescriptions, ref ExplainedNumber __result)
         {
-            if (DefaultClanFinanceInitialization.NativeFinanceAvailable)
+            if (DefaultClanFinanceInitialization.NativeFinanceAvailable
+                && DefaultClanFinanceInitialization.EnsureCampaignGameCurrent("NavalDLC clan-finance call"))
             {
                 return true;
             }
@@ -162,7 +180,7 @@ namespace TwelveMonthCalendar
             if (Interlocked.Exchange(ref _suppressionLogged, 1) == 0)
             {
                 Diagnostics.Info(
-                    "Temporarily suppressed NavalDLC's native clan-finance call because its initializer did not complete."
+                    "Temporarily suppressed NavalDLC's native clan-finance call because the campaign game context was unavailable."
                     + " Native finance will resume automatically when initialization succeeds.");
             }
 

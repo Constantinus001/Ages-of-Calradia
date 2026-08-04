@@ -107,12 +107,14 @@
         </DimensionSyncWidget>
 
         <!--_____Center Panel_______-->
-        <MapCurrentTimeVisualWidget DataSource="{MapTimeControl}" Id="CenterPanel" VisualDefinition="CenterPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="500" SuggestedHeight="59" HorizontalAlignment="Center" VerticalAlignment="Bottom" Sprite="MapBar\mapbar_center_frame" CurrentTimeState="@TimeFlowState" FastForwardButton="FastForwardButton" IsEnabled="@IsCenterPanelEnabled" PauseButton="PauseButton" PlayButton="PlayButton">
+        <MapCurrentTimeVisualWidget DataSource="{MapTimeControl}" Id="CenterPanel" VisualDefinition="CenterPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="540" SuggestedHeight="59" HorizontalAlignment="Center" VerticalAlignment="Bottom" Sprite="MapBar\mapbar_center_frame" CurrentTimeState="@TimeFlowState" FastForwardButton="FastForwardButton" IsEnabled="@IsCenterPanelEnabled" PauseButton="PauseButton" PlayButton="PlayButton">
           <Children>
             <NavigationScopeTargeter ScopeID="MapBarCenterPanelScope" ScopeParent="..\." ScopeMovements="Horizontal" NavigateFromScopeEdges="true" LeftNavigationScope="MapNavigationScope" RightNavigationScope="MapBarRightPanelTopInfoBarScope" IsScopeEnabled="@IsCenterPanelEnabled" />
 
-            <!-- Keep the date left of the circular time-control button so it remains readable and vertically centered in the map bar. -->
-            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="240" SuggestedHeight="24" HorizontalAlignment="Left" PositionXOffset="40" VerticalAlignment="Center" PositionYOffset="-8" Brush="MapTextBrushGal" Brush.FontSize="16" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Left" Text="@Date" />
+            <!-- Date moves left ten pixels; the season is independently placed
+                 at the marked lower-left point of the centre bar. -->
+            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="40" HorizontalAlignment="Left" PositionXOffset="-50" VerticalAlignment="Center" PositionYOffset="-2" Brush="MapTextBrushGal" Brush.FontSize="17" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Right" Text="@Date" />
+            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="105" SuggestedHeight="22" HorizontalAlignment="Left" PositionXOffset="95" VerticalAlignment="Bottom" PositionYOffset="-4" Brush="MapTextBrushGal" Brush.FontSize="16" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@Season" />
 
             <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="78" SuggestedHeight="79" HorizontalAlignment="Center" PositionYOffset="-8" VerticalAlignment="Center" Command.Click="ExecuteResetCamera" UpdateChildrenStates="true" >
               <Children>

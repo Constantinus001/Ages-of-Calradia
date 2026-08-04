@@ -62,7 +62,7 @@ namespace TwelveMonthCalendar
                 _settingsRegistered = result is bool && (bool)result;
                 if (_settingsRegistered)
                 {
-                    Diagnostics.Info("Optional MCM settings registered; the native Calendar Options tab will be hidden.");
+                    Diagnostics.Info("Optional MCM settings registered; the native Calendar Options tab remains visible but is disabled.");
                 }
                 else
                 {

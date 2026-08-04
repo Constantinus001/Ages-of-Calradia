@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Reflection;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Party;
 
 namespace TwelveMonthCalendar
@@ -38,60 +35,4 @@ namespace TwelveMonthCalendar
         }
     }
 
-    [HarmonyPatch(typeof(PregnancyCampaignBehavior), "ChildConceived")]
-    internal static class PregnancyDueDatePatch
-    {
-        private static readonly FieldInfo PregnancyListField = AccessTools.Field(
-            typeof(PregnancyCampaignBehavior),
-            "_heroPregnancies");
-
-        [HarmonyPostfix]
-        private static void Postfix(
-            PregnancyCampaignBehavior __instance,
-            Hero mother)
-        {
-            if (!CalendarSettingsState.ExtendedCalendarEnabled || PregnancyListField == null)
-            {
-                return;
-            }
-
-            try
-            {
-                IEnumerable pregnancies = PregnancyListField.GetValue(__instance) as IEnumerable;
-                if (pregnancies == null)
-                {
-                    return;
-                }
-
-                foreach (object pregnancy in pregnancies)
-                {
-                    if (pregnancy == null)
-                    {
-                        continue;
-                    }
-
-                    FieldInfo motherField = AccessTools.Field(pregnancy.GetType(), "Mother");
-                    FieldInfo dueDateField = AccessTools.Field(pregnancy.GetType(), "DueDate");
-                    if (motherField == null || dueDateField == null || motherField.GetValue(pregnancy) != mother)
-                    {
-                        continue;
-                    }
-
-                    dueDateField.SetValue(
-                        pregnancy,
-                        CalendarTimeMath.GetPregnancyDueDate(CampaignTime.Now));
-                    Diagnostics.Info(
-                        string.Format(
-                            "Pregnancy due date adjusted using {0} calendar months ({1:F2} fixed days fallback).",
-                            CalendarSettingsState.PregnancyDurationMonths,
-                            CalendarSettingsState.PregnancyDurationInDays));
-                    return;
-                }
-            }
-            catch (Exception exception)
-            {
-                Diagnostics.Error("Pregnancy due-date adjustment failed.", exception);
-            }
-        }
-    }
 }

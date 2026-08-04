@@ -17,7 +17,11 @@ namespace TwelveMonthCalendar
 
         public static event Action SettingsChanged;
 
-        private const string DefaultCalendarSystem = "Gregorian12Month";
+        // This module always owns a 365-day Gregorian-style calendar. Keep a
+        // stable value for legacy adapters/configuration, but do not expose a
+        // selectable native-calendar mode.
+        private const string FixedCalendarSystem = "Gregorian12Month";
+        private const int RequiredCommonDaysInYear = 365;
         private const string DefaultDateFormat = "{Month} {Day} {Year}";
         private const bool DefaultUseOrdinalDaySuffixes = true;
         internal const int DefaultNativeDaysInYear = 84;
@@ -43,7 +47,6 @@ namespace TwelveMonthCalendar
             31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
         };
 
-        private static bool _extendedCalendarEnabled = true;
         private static bool _useLeapYears = true;
         private static bool _showDayLabel;
         private static bool _showYearLabel;
@@ -56,6 +59,12 @@ namespace TwelveMonthCalendar
         private static int _pregnancyDurationMonths = DefaultPregnancyDurationMonths;
         private static bool _useCalendarMonthPregnancy = true;
         private static float _renownGainMultiplier = DefaultRenownGainMultiplier;
+        private static bool _balancePartyImpairment = true;
+        private static bool _balancePrisonerRecruitment = true;
+        private static bool _balanceNpcMarriage = true;
+        private static bool _balanceMapTracks = true;
+        private static bool _balanceQuestDeadlines = true;
+        private static bool _annualBalanceDiagnosticsEnabled = true;
         private static bool _campaignSessionStarted;
         private static readonly string[] _monthNames = (string[])DefaultMonthNames.Clone();
         private static readonly string[] _seasonNames = (string[])DefaultSeasonNames.Clone();
@@ -70,7 +79,7 @@ namespace TwelveMonthCalendar
 
         public static bool ExtendedCalendarEnabled
         {
-            get { lock (SyncRoot) return _extendedCalendarEnabled; }
+            get { return true; }
         }
 
         public static bool UseLeapYears
@@ -133,6 +142,36 @@ namespace TwelveMonthCalendar
             get { lock (SyncRoot) return _renownGainMultiplier; }
         }
 
+        public static bool BalancePartyImpairment
+        {
+            get { lock (SyncRoot) return _balancePartyImpairment; }
+        }
+
+        public static bool BalancePrisonerRecruitment
+        {
+            get { lock (SyncRoot) return _balancePrisonerRecruitment; }
+        }
+
+        public static bool BalanceNpcMarriage
+        {
+            get { lock (SyncRoot) return _balanceNpcMarriage; }
+        }
+
+        public static bool BalanceMapTracks
+        {
+            get { lock (SyncRoot) return _balanceMapTracks; }
+        }
+
+        public static bool BalanceQuestDeadlines
+        {
+            get { lock (SyncRoot) return _balanceQuestDeadlines; }
+        }
+
+        public static bool AnnualBalanceDiagnosticsEnabled
+        {
+            get { lock (SyncRoot) return _annualBalanceDiagnosticsEnabled; }
+        }
+
         public static string GetMonthName(int month)
         {
             lock (SyncRoot)
@@ -193,7 +232,7 @@ namespace TwelveMonthCalendar
 
         public static string CalendarSystem
         {
-            get { return ExtendedCalendarEnabled ? "Gregorian12Month" : "Native84Day"; }
+            get { return FixedCalendarSystem; }
         }
 
         public static string ConfigPath
@@ -225,23 +264,32 @@ namespace TwelveMonthCalendar
             bool? useCalendarMonthPregnancy = null,
             bool? autoCampaignTimeScale = null,
             float? renownGainMultiplier = null,
-            bool? useOrdinalDaySuffixes = null)
+            bool? useOrdinalDaySuffixes = null,
+            bool? balancePartyImpairment = null,
+            bool? balancePrisonerRecruitment = null,
+            bool? balanceNpcMarriage = null,
+            bool? balanceMapTracks = null,
+            bool? balanceQuestDeadlines = null,
+            bool? annualBalanceDiagnosticsEnabled = null)
         {
             lock (SyncRoot)
             {
-                bool requestedExtended = !string.Equals(
-                    calendarSystem,
-                    "Native84Day",
-                    StringComparison.OrdinalIgnoreCase);
                 if (_campaignSessionStarted
-                    && (requestedExtended != _extendedCalendarEnabled || useLeapYears != _useLeapYears))
+                    && useLeapYears != _useLeapYears)
                 {
-                    Diagnostics.Info("Structural calendar settings change ignored after campaign session start; restart the campaign to apply it.");
+                    Diagnostics.Info("Leap-year setting change ignored after campaign session start; restart the campaign to apply it.");
                 }
                 else
                 {
-                    _extendedCalendarEnabled = requestedExtended;
                     _useLeapYears = useLeapYears;
+                }
+
+                if (!string.IsNullOrWhiteSpace(calendarSystem)
+                    && !string.Equals(calendarSystem, FixedCalendarSystem, StringComparison.OrdinalIgnoreCase))
+                {
+                    Diagnostics.Info(
+                        "Ignoring legacy calendar-system setting '" + calendarSystem
+                        + "'; Twelve Month Calendar is always Gregorian12Month.");
                 }
                 _showDayLabel = showDayLabel;
                 _showYearLabel = showYearLabel;
@@ -251,7 +299,14 @@ namespace TwelveMonthCalendar
                 ApplyMonthNames(monthNames);
                 ApplySeasonNames(seasonNames);
                 ApplyMonthLengths(monthLengths);
-                _nativeDaysInYear = Math.Max(1, nativeDaysInYear ?? _nativeDaysInYear);
+                int requestedNativeDaysInYear = nativeDaysInYear ?? _nativeDaysInYear;
+                if (requestedNativeDaysInYear != DefaultNativeDaysInYear)
+                {
+                    Diagnostics.Info(
+                        "Ignoring NativeDaysInYear=" + requestedNativeDaysInYear
+                        + "; annual balance is calibrated to Bannerlord's native 84-day year.");
+                }
+                _nativeDaysInYear = DefaultNativeDaysInYear;
                 float requestedPregnancyDays = pregnancyDurationInDays ?? _pregnancyDurationInDays;
                 _pregnancyDurationInDays = IsFinite(requestedPregnancyDays)
                     ? Math.Max(0.1f, Math.Min(10000f, requestedPregnancyDays))
@@ -262,6 +317,12 @@ namespace TwelveMonthCalendar
                 _renownGainMultiplier = IsFinite(requestedRenownMultiplier)
                     ? Math.Max(0f, Math.Min(1f, requestedRenownMultiplier))
                     : DefaultRenownGainMultiplier;
+                ApplyCampaignStartSetting(ref _balancePartyImpairment, balancePartyImpairment, "BalancePartyImpairment");
+                ApplyCampaignStartSetting(ref _balancePrisonerRecruitment, balancePrisonerRecruitment, "BalancePrisonerRecruitment");
+                ApplyCampaignStartSetting(ref _balanceNpcMarriage, balanceNpcMarriage, "BalanceNpcMarriage");
+                ApplyCampaignStartSetting(ref _balanceMapTracks, balanceMapTracks, "BalanceMapTracks");
+                ApplyCampaignStartSetting(ref _balanceQuestDeadlines, balanceQuestDeadlines, "BalanceQuestDeadlines");
+                _annualBalanceDiagnosticsEnabled = annualBalanceDiagnosticsEnabled ?? _annualBalanceDiagnosticsEnabled;
                 _autoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
                 _campaignTimeScale = _autoCampaignTimeScale
                     ? GetAutomaticCampaignTimeScale()
@@ -272,9 +333,8 @@ namespace TwelveMonthCalendar
 
             Diagnostics.Info(
                 string.Format(
-                    "Settings applied. CalendarSystem={0}; Extended={1}; LeapYears={2}; ShowDayLabel={3}; ShowYearLabel={4}; OrdinalDays={5}; TimeScale={6:F6}; DateFormat={7}",
-                    calendarSystem,
-                    ExtendedCalendarEnabled,
+                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; TimeScale={5:F6}; DateFormat={6}",
+                    FixedCalendarSystem,
                     UseLeapYears,
                     ShowDayLabel,
                     ShowYearLabel,
@@ -299,7 +359,7 @@ namespace TwelveMonthCalendar
         public static void ResetToDefaults()
         {
             Apply(
-                DefaultCalendarSystem,
+                FixedCalendarSystem,
                 true,
                 false,
                 false,
@@ -314,7 +374,13 @@ namespace TwelveMonthCalendar
                 true,
                 true,
                 DefaultRenownGainMultiplier,
-                useOrdinalDaySuffixes: DefaultUseOrdinalDaySuffixes);
+                useOrdinalDaySuffixes: DefaultUseOrdinalDaySuffixes,
+                balancePartyImpairment: true,
+                balancePrisonerRecruitment: true,
+                balanceNpcMarriage: true,
+                balanceMapTracks: true,
+                balanceQuestDeadlines: true,
+                annualBalanceDiagnosticsEnabled: true);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
         }
@@ -347,7 +413,7 @@ namespace TwelveMonthCalendar
                 }
 
                 Apply(
-                    ReadAttribute(root, "CalendarSystem", DefaultCalendarSystem),
+                    ReadAttribute(root, "CalendarSystem", FixedCalendarSystem),
                     ReadBoolean(root, "UseLeapYears", true),
                     ReadBoolean(root, "ShowDayLabel", false),
                     ReadBoolean(root, "ShowYearLabel", false),
@@ -362,7 +428,13 @@ namespace TwelveMonthCalendar
                     ReadBoolean(root, "UseCalendarMonthPregnancy", true),
                     ReadBoolean(root, "AutoCampaignTimeScale", true),
                     ReadFloat(root, "RenownGainMultiplier", DefaultRenownGainMultiplier),
-                    useOrdinalDaySuffixes: ReadBoolean(root, "UseOrdinalDaySuffixes", DefaultUseOrdinalDaySuffixes));
+                    useOrdinalDaySuffixes: ReadBoolean(root, "UseOrdinalDaySuffixes", DefaultUseOrdinalDaySuffixes),
+                    balancePartyImpairment: ReadBoolean(root, "BalancePartyImpairment", true),
+                    balancePrisonerRecruitment: ReadBoolean(root, "BalancePrisonerRecruitment", true),
+                    balanceNpcMarriage: ReadBoolean(root, "BalanceNpcMarriage", true),
+                    balanceMapTracks: ReadBoolean(root, "BalanceMapTracks", true),
+                    balanceQuestDeadlines: ReadBoolean(root, "BalanceQuestDeadlines", true),
+                    annualBalanceDiagnosticsEnabled: ReadBoolean(root, "AnnualBalanceDiagnosticsEnabled", true));
 
                 Diagnostics.Info(string.Format("Standalone settings loaded from {0}.", ConfigPath));
                 // Rewrite the file after loading so newly added configurable
@@ -388,7 +460,6 @@ namespace TwelveMonthCalendar
                 XmlDocument document = new XmlDocument();
                 XmlElement root = document.CreateElement("TwelveMonthCalendar");
                 document.AppendChild(root);
-                root.SetAttribute("CalendarSystem", CalendarSystem);
                 root.SetAttribute("UseLeapYears", UseLeapYears.ToString());
                 root.SetAttribute("ShowDayLabel", ShowDayLabel.ToString());
                 root.SetAttribute("ShowYearLabel", ShowYearLabel.ToString());
@@ -401,6 +472,12 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("PregnancyDurationMonths", PregnancyDurationMonths.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("UseCalendarMonthPregnancy", UseCalendarMonthPregnancy.ToString());
                 root.SetAttribute("RenownGainMultiplier", RenownGainMultiplier.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("BalancePartyImpairment", BalancePartyImpairment.ToString());
+                root.SetAttribute("BalancePrisonerRecruitment", BalancePrisonerRecruitment.ToString());
+                root.SetAttribute("BalanceNpcMarriage", BalanceNpcMarriage.ToString());
+                root.SetAttribute("BalanceMapTracks", BalanceMapTracks.ToString());
+                root.SetAttribute("BalanceQuestDeadlines", BalanceQuestDeadlines.ToString());
+                root.SetAttribute("AnnualBalanceDiagnosticsEnabled", AnnualBalanceDiagnosticsEnabled.ToString());
                 string[] monthNames = MonthNamesSnapshot();
                 string[] seasonNames = SeasonNamesSnapshot();
                 int[] monthLengths = MonthLengthsSnapshot();
@@ -427,6 +504,22 @@ namespace TwelveMonthCalendar
         {
             string value = root.GetAttribute(name);
             return string.IsNullOrWhiteSpace(value) ? fallback : value;
+        }
+
+        private static void ApplyCampaignStartSetting(ref bool currentValue, bool? requestedValue, string name)
+        {
+            if (!requestedValue.HasValue || requestedValue.Value == currentValue)
+            {
+                return;
+            }
+
+            if (_campaignSessionStarted)
+            {
+                Diagnostics.Info(name + " change ignored after campaign session start; restart the campaign to apply it.");
+                return;
+            }
+
+            currentValue = requestedValue.Value;
         }
 
         private static bool ReadBoolean(XmlElement root, string name, bool fallback)
@@ -538,6 +631,35 @@ namespace TwelveMonthCalendar
             if (values == null || values.Length != _monthLengths.Length)
             {
                 return;
+            }
+
+            int totalDays = 0;
+            for (int i = 0; i < values.Length; i++)
+            {
+                totalDays += Math.Max(1, Math.Min(MaximumConfiguredMonthLength, values[i]));
+            }
+
+            if (totalDays != RequiredCommonDaysInYear)
+            {
+                Diagnostics.Info(
+                    "Ignoring custom month lengths totaling " + totalDays
+                    + " days; Twelve Month Calendar requires exactly "
+                    + RequiredCommonDaysInYear + " common-year days.");
+                return;
+            }
+
+            if (_campaignSessionStarted)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    int normalized = Math.Max(1, Math.Min(MaximumConfiguredMonthLength, values[i]));
+                    if (normalized != _monthLengths[i])
+                    {
+                        Diagnostics.Info(
+                            "Custom month-length change ignored after campaign session start; restart the campaign to apply it.");
+                        return;
+                    }
+                }
             }
 
             for (int i = 0; i < _monthLengths.Length; i++)
