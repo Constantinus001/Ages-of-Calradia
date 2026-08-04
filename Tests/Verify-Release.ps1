@@ -1,7 +1,9 @@
 param(
     [string]$ModuleRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$ReleaseArchive,
-    [switch]$AllowDirtySource
+    [switch]$AllowDirtySource,
+    [ValidateRange(1, 30)]
+    [int]$CloudVerdictHoldMinutes = 10
 )
 
 $ErrorActionPreference = 'Stop'
@@ -221,14 +223,27 @@ if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
 }
 $scanStarted = Get-Date
 Start-MpScan -ScanPath $ReleaseArchive -ScanType CustomScan
-Start-Sleep -Seconds 2
 $escapedArchive = [Regex]::Escape($ReleaseArchive)
-$detections = Get-MpThreatDetection | Where-Object {
-    $_.Resources -match $escapedArchive -and $_.InitialDetectionTime -ge $scanStarted.AddMinutes(-1)
+function Get-ReleaseArchiveDetections {
+    Get-MpThreatDetection | Where-Object {
+        $_.Resources -match $escapedArchive -and $_.InitialDetectionTime -ge $scanStarted.AddMinutes(-1)
+    }
 }
-if ($detections) {
-    $detections | Format-List | Out-String | Write-Error
-    throw 'Microsoft Defender detected a threat in the release archive. Do not upload this release.'
+
+# A custom scan can return before Defender's cloud verdict arrives.  Keep the
+# exact final archive on disk and poll it for a full hold period; a quarantined
+# archive or any detection is an unconditional release failure.
+for ($minute = 1; $minute -le $CloudVerdictHoldMinutes; $minute++) {
+    Start-Sleep -Seconds 60
+    if (-not (Test-Path -LiteralPath $ReleaseArchive -PathType Leaf)) {
+        throw 'Microsoft Defender or another security product removed the release archive during the cloud-verdict hold. Do not upload this release.'
+    }
+    $detections = @(Get-ReleaseArchiveDetections)
+    if ($detections.Count -gt 0) {
+        $detections | Format-List | Out-String | Write-Error
+        throw 'Microsoft Defender detected a threat in the release archive. Do not upload this release.'
+    }
+    Write-Output ("Defender cloud-verdict hold: {0}/{1} minutes clean." -f $minute, $CloudVerdictHoldMinutes)
 }
 
 $archiveHash = (Get-FileHash $ReleaseArchive -Algorithm SHA256).Hash
