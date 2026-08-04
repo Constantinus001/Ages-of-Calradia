@@ -305,25 +305,10 @@ namespace TwelveMonthCalendar
         }
     }
 
-    [HarmonyPatch(typeof(DefaultPartyHealingModel), "GetDailyHealingForRegulars")]
-    internal static class RegularHealingBalancePatch
-    {
-        [HarmonyPostfix]
-        private static void Postfix(ref ExplainedNumber __result)
-        {
-            DailyRateBalance.Scale(ref __result);
-        }
-    }
-
-    [HarmonyPatch(typeof(DefaultPartyHealingModel), "GetDailyHealingHpForHeroes")]
-    internal static class HeroHealingBalancePatch
-    {
-        [HarmonyPostfix]
-        private static void Postfix(ref ExplainedNumber __result)
-        {
-            DailyRateBalance.Scale(ref __result);
-        }
-    }
+    // Healing is deliberately left at Bannerlord's native daily rate. Applying
+    // the Gregorian annual-balance factor here reduced recovery to about 23%
+    // of normal, which made a party take several calendar days to return to a
+    // usable condition. Other annualized systems remain unchanged.
 
     [HarmonyPatch(typeof(DefaultPartyTrainingModel), "GetEffectiveDailyExperience")]
     internal static class PartyTrainingBalancePatch

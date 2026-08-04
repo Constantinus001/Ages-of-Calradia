@@ -13,6 +13,8 @@ namespace TwelveMonthCalendar
         private bool _seasonRefreshFailureLogged;
         private string _season = string.Empty;
         private string _timeOfDay = string.Empty;
+        private string _calendarDateLine = string.Empty;
+        private string _seasonYearLine = string.Empty;
 
         internal CalendarMapTimeControlVM(
             Func<MapBarShortcuts> getMapBarShortcuts,
@@ -50,6 +52,32 @@ namespace TwelveMonthCalendar
             }
         }
 
+        [DataSourceProperty]
+        public string CalendarDateLine
+        {
+            get { return _calendarDateLine; }
+            private set
+            {
+                string normalized = value ?? string.Empty;
+                if (string.Equals(_calendarDateLine, normalized, StringComparison.Ordinal)) return;
+                _calendarDateLine = normalized;
+                OnPropertyChangedWithValue(_calendarDateLine, "CalendarDateLine");
+            }
+        }
+
+        [DataSourceProperty]
+        public string SeasonYearLine
+        {
+            get { return _seasonYearLine; }
+            private set
+            {
+                string normalized = value ?? string.Empty;
+                if (string.Equals(_seasonYearLine, normalized, StringComparison.Ordinal)) return;
+                _seasonYearLine = normalized;
+                OnPropertyChangedWithValue(_seasonYearLine, "SeasonYearLine");
+            }
+        }
+
         public override void RefreshValues()
         {
             base.RefreshValues();
@@ -82,6 +110,8 @@ namespace TwelveMonthCalendar
             try
             {
                 Date = CalendarFormatter.Format(CampaignTime.Now);
+                CalendarDateLine = CalendarFormatter.FormatMapDateLine(CampaignTime.Now);
+                SeasonYearLine = CalendarFormatter.FormatMapSeasonYearLine(CampaignTime.Now);
                 RefreshSeason();
                 RefreshClock();
             }

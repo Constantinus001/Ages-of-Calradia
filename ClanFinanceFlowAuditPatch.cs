@@ -8,9 +8,8 @@ namespace TwelveMonthCalendar
 {
     /// <summary>
     /// Runs after Bannerlord has completed its private clan daily tick. This
-    /// gives finance telemetry a deterministic point after GiveGoldAction has
-    /// applied the scaled daily result, avoiding CampaignEvents listener-order
-    /// ambiguity.
+    /// gives finance telemetry a deterministic point after Bannerlord applies
+    /// its daily result, avoiding CampaignEvents listener-order ambiguity.
     /// </summary>
     [HarmonyPatch]
     internal static class ClanFinanceFlowAuditPatch

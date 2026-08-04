@@ -171,9 +171,9 @@ namespace RealisticCalendarTweaks.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Fast-Forward Speed Multiplier", 1f, 128f, "0", Order = 6,
+        [SettingPropertyFloatingInteger("Fast-Forward Speed Multiplier", 1f, 4f, "0", Order = 6,
             RequireRestart = false,
-            HintText = "Uses Bannerlord's built-in fast-forward speed. Normal map pace stays fixed. Native speed is 4x; values from 1x through 128x are safe to change during a campaign.")]
+            HintText = "Uses Bannerlord's built-in fast-forward speed. Normal map pace stays fixed. 4x is Bannerlord's supported maximum and avoids AI time-step skips.")]
         [SettingPropertyGroup("Pacing")]
         public float FastForwardTimeMultiplier
         {
@@ -200,7 +200,7 @@ namespace RealisticCalendarTweaks.MCM
             }
         }
 
-        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = true,
+        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = false,
             HintText = "Uses the configured number of calendar months for future pregnancies.")]
         [SettingPropertyGroup("Life Cycle")]
         public bool UseCalendarMonthPregnancy
@@ -215,7 +215,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyInteger("Pregnancy Duration (Months)", 1, 24, "0", Order = 8,
-            RequireRestart = true, HintText = "Calendar months from conception to birth.")]
+            RequireRestart = false, HintText = "Calendar months from conception to birth. Changes affect future pregnancies.")]
         [SettingPropertyGroup("Life Cycle")]
         public int PregnancyDurationMonths
         {
@@ -229,7 +229,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Lord Death Rate Multiplier", 0f, 1f, "0.00", Order = 10,
-            RequireRestart = true,
+            RequireRestart = false,
             HintText = "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged.")]
         [SettingPropertyGroup("Life Cycle")]
         public float LordDeathRateMultiplier
@@ -244,7 +244,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Renown Gain Multiplier", 0f, 1f, "0.00", Order = 10,
-            RequireRestart = true, HintText = "Scales positive renown awards. Default is 0.50.")]
+            RequireRestart = false, HintText = "Scales positive renown awards. Default is 0.50.")]
         [SettingPropertyGroup("Progression")]
         public float RenownGainMultiplier
         {
@@ -257,7 +257,7 @@ namespace RealisticCalendarTweaks.MCM
             }
         }
 
-        [SettingPropertyBool("Balance Party Impairment", Order = 20, RequireRestart = true,
+        [SettingPropertyBool("Balance Party Impairment", Order = 20, RequireRestart = false,
             HintText = "Scales post-battle disorganization and vulnerability durations to the 365-day year.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalancePartyImpairment
@@ -266,7 +266,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balancePartyImpairment = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance Prisoner Recruitment", Order = 21, RequireRestart = true,
+        [SettingPropertyBool("Balance Prisoner Recruitment", Order = 21, RequireRestart = false,
             HintText = "Scales prisoner conformity gained per campaign hour for player and AI parties.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalancePrisonerRecruitment
@@ -275,7 +275,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balancePrisonerRecruitment = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance NPC Marriage", Order = 22, RequireRestart = true,
+        [SettingPropertyBool("Balance NPC Marriage", Order = 22, RequireRestart = false,
             HintText = "Converts NPC marriage chance to preserve its annual rate across the 365-day year.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalanceNpcMarriage
@@ -284,7 +284,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balanceNpcMarriage = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance Map Tracks", Order = 23, RequireRestart = true,
+        [SettingPropertyBool("Balance Map Tracks", Order = 23, RequireRestart = false,
             HintText = "Scales track lifetime while preserving native track detection and spotting rules.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalanceMapTracks
@@ -293,7 +293,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balanceMapTracks = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance Quest Deadlines", Order = 24, RequireRestart = true,
+        [SettingPropertyBool("Balance Quest Deadlines", Order = 24, RequireRestart = false,
             HintText = "Extends deadlines only for quests started while this setting is enabled.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalanceQuestDeadlines

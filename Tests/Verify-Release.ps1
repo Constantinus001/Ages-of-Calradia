@@ -120,6 +120,7 @@ $optionsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarO
 $mcmSettingsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'McmSettings.cs')
 $calendarOptionItemSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionItem.xml')
 if ($settingsSource -notmatch 'DefaultCampaignTimeScale = 0\.23f' -or
+    $settingsSource -notmatch 'MaximumPacingMultiplier = 4f' -or
     $settingsSource -notmatch 'requestedAutoCampaignTimeScale[\s\S]{0,120}\? DefaultCampaignTimeScale' -or
     $settingsSource -match 'case "Pregnancy Duration \(Months\)"' -or
     $settingsSource -match 'case "Lord Death Rate Multiplier"' -or
@@ -134,8 +135,7 @@ if ($settingsSource -notmatch 'DefaultCampaignTimeScale = 0\.23f' -or
     $optionsSource -notmatch 'CompleteCategoryReset' -or
     $optionsSource -notmatch 'InformationManager\.DisplayMessage\(new InformationMessage' -or
     $optionsSource -notmatch 'const bool nativeCalendarSettingsEnabled = true' -or
-    $optionsSource -notmatch 'RefreshCampaignPacingControls' -or
-    $optionsSource -notmatch 'option\.Name != "Automatic Campaign Time Scale"' -or
+    $optionsSource -notmatch 'RefreshCalendarOptionControls' -or
     $optionsSource -notmatch 'new CalendarBooleanOptionData\(\s*"Annual Balance Enabled"' -or
     $optionsSource -notmatch 'Reset Pacing' -or
     $optionsSource -notmatch 'Reset Annual Balance' -or
@@ -150,7 +150,7 @@ if ($settingsSource -notmatch 'DefaultCampaignTimeScale = 0\.23f' -or
     $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteDecrease"' -or
     $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteIncrease"' -or
     $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteToggle"') {
-    throw 'Campaign pacing must reset live to the exact 0.23 automatic default; Calendar sliders and toggles must write through their view models; and fixed pregnancy days must stay out of the settings UI.'
+    throw 'Campaign pacing must reset live to the exact 0.23 automatic default and stay within Bannerlord''s 4x AI-safe limit; Calendar sliders and toggles must write through their view models; and fixed pregnancy days must stay out of the settings UI.'
 }
 $lordDeathSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarLordDeathModels.cs')
 if ($lordDeathSource -notmatch 'CalendarHeroDeathProbabilityModel' -or
@@ -185,26 +185,20 @@ foreach ($path in $runtimeFiles) {
 
 [xml]$mapBar = Get-Content -Raw -LiteralPath $mapBarXml
 $centerPanel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]'))
-if ($centerPanel.Count -ne 1 -or $centerPanel[0].HorizontalAlignment -ne 'Center' -or $centerPanel[0].VerticalAlignment -ne 'Bottom') {
+if ($centerPanel.Count -ne 1 -or $centerPanel[0].HorizontalAlignment -ne 'Center' -or $centerPanel[0].PositionXOffset -ne '10' -or $centerPanel[0].VerticalAlignment -ne 'Bottom' -or $centerPanel[0].SuggestedWidth -ne '420' -or $centerPanel[0].SuggestedHeight -ne '60') {
     throw 'Map bar center panel must remain bottom-centered for resolution-independent placement.'
 }
-$calendarDate = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Date"]'))
-if ($calendarDate.Count -ne 1) {
-    throw 'Map bar must contain exactly one calendar date label.'
+$calendarDate = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@CalendarDateLine"]'))
+$seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@SeasonYearLine"]'))
+if ($calendarDate.Count -ne 1 -or [int]$calendarDate[0].SuggestedWidth -ne 150 -or $calendarDate[0].PositionXOffset -ne '40' -or $calendarDate[0].PositionYOffset -ne '-6' -or $calendarDate[0].'Brush.FontSize' -ne '18') {
+    throw 'Map bar calendar date must use the upper line of the widened two-line calendar block.'
 }
-if ($calendarDate[0].PositionYOffset -ne '-2' -or $calendarDate[0].'Brush.FontSize' -ne '20') {
-    throw 'Map bar calendar date must retain Y=-2 and 20-point text.'
-}
-if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXOffset -ne '-25') {
-    throw 'Map bar calendar date must retain its requested five-pixel right adjustment while preserving sundial clearance.'
-}
-$seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Season"]'))
-if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].HorizontalAlignment -ne 'Center' -or $seasonLabel[0].PositionXOffset -ne '75' -or $seasonLabel[0].VerticalAlignment -ne 'Center' -or $seasonLabel[0].PositionYOffset -ne '0' -or $seasonLabel[0].'Brush.FontSize' -ne '20') {
-    throw 'Map bar season label must be independently placed just right of the sundial before the time controls.'
+if ($seasonLabel.Count -ne 1 -or [int]$seasonLabel[0].SuggestedWidth -ne 150 -or $seasonLabel[0].PositionXOffset -ne '40' -or $seasonLabel[0].PositionYOffset -ne '12' -or $seasonLabel[0].'Brush.FontSize' -ne '18') {
+    throw 'Map bar season and year must use the lower line of the widened two-line calendar block.'
 }
 $clockLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@TimeOfDay"]'))
-if ($clockLabel.Count -ne 1 -or $clockLabel[0].PositionXOffset -ne '35' -or $clockLabel[0].PositionYOffset -ne '16' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '18') {
-    throw 'Map bar clock must remain below the calendar date.'
+if ($clockLabel.Count -ne 1 -or [int]$clockLabel[0].SuggestedWidth -ne 90 -or $clockLabel[0].PositionXOffset -ne '55' -or $clockLabel[0].PositionYOffset -ne '0' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '18') {
+    throw 'Map bar clock must occupy the former season position just right of the sundial.'
 }
 
 $binaryText = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($mainDll))

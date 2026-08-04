@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.Actions;
 
 namespace TwelveMonthCalendar
 {
@@ -67,29 +66,9 @@ namespace TwelveMonthCalendar
                 return;
             }
 
-            // A positive mismatch is money created during the daily AI-clan
-            // finance tick outside the scaled result returned to Bannerlord.
-            // Remove only that excess. Player money, losses, loot, trade and
-            // all non-daily events are outside this postfix and untouched.
-            if (difference > tolerance && clan.Leader != null)
-            {
-                int correction = Math.Min(difference, clan.Leader.Gold);
-                if (correction > 0)
-                {
-                    GiveGoldAction.ApplyBetweenCharacters(
-                        clan.Leader,
-                        null,
-                        correction,
-                        disableNotification: true);
-                    Diagnostics.Info(string.Format(
-                        "AI finance surplus corrected. Clan={0}; Removed={1}; ExpectedDaily={2}; ActualDaily={3}.",
-                        clan.Name,
-                        correction,
-                        expectedDelta,
-                        actualDelta));
-                }
-            }
-
+            // This is diagnostics only. Bannerlord legitimately applies some
+            // finance side effects after the model result is calculated, so
+            // an audit must never remove or add clan gold.
             _mismatchCount++;
             Diagnostics.Info(string.Format(
                 "Finance flow mismatch #{0}. Clan={1}; NativeDaily={2:F2}; ScaledDaily={3:F2}; ActualGoldDelta={4}; Difference={5}; GoldBefore={6}; GoldAfter={7}.",

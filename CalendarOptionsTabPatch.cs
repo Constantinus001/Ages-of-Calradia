@@ -665,7 +665,7 @@ namespace TwelveMonthCalendar
                             calendarBoolean,
                             new TextObject(boolean.Name),
                             new TextObject(boolean.Description),
-                            RefreshCampaignPacingControls);
+                            RefreshCalendarOptionControls);
                         continue;
                     }
 
@@ -683,12 +683,12 @@ namespace TwelveMonthCalendar
                         calendarNumeric,
                         new TextObject(numeric.Name),
                         new TextObject(numeric.Description),
-                        RefreshCampaignPacingControls);
+                        RefreshCalendarOptionControls);
                 }
             }
         }
 
-        private void RefreshCampaignPacingControls()
+        private void RefreshCalendarOptionControls()
         {
             if (_calendarOptions.Groups == null)
             {
@@ -700,9 +700,7 @@ namespace TwelveMonthCalendar
                 for (int index = 0; index < group.Options.Count; index++)
                 {
                     CalendarOptionDataBase option = group.Options[index].GetOptionData() as CalendarOptionDataBase;
-                    if (option == null
-                        || (option.Name != "Automatic Campaign Time Scale"
-                            && option.Name != "Campaign Time Scale"))
+                    if (option == null)
                     {
                         continue;
                     }
@@ -731,7 +729,7 @@ namespace TwelveMonthCalendar
             }
 
             _calendarOptions.RefreshValues();
-            RefreshCampaignPacingControls();
+            RefreshCalendarOptionControls();
         }
 
         private void CopyNativeState(OptionsVM source)
@@ -817,13 +815,8 @@ namespace TwelveMonthCalendar
             float requestedCampaignTimeScale = campaignTimeScale ?? CalendarSettingsState.CampaignTimeScale;
             string requestedDateFormat = dateFormat ?? CalendarSettingsState.DateFormat;
             bool requestedAutoTimeScale = autoCampaignTimeScale ?? CalendarSettingsState.AutoCampaignTimeScale;
-            // A scale of exactly 0.23 is the automatic preset. This repairs
-            // earlier saved configurations that recorded 0.23 as manual and
-            // makes the checkbox match the displayed slider value.
-            if (NearlyEqual(requestedCampaignTimeScale, CalendarSettingsState.DefaultCampaignTimeScale))
-            {
-                requestedAutoTimeScale = true;
-            }
+            // Only the checkbox enables automatic pacing. A slider edit is a
+            // manual choice even when its resulting value is exactly 0.23.
             float requestedFastForwardTimeMultiplier = fastForwardTimeMultiplier
                 ?? CalendarSettingsState.FastForwardTimeMultiplier;
             bool requestedCalendarMonthPregnancy = useCalendarMonthPregnancy
@@ -983,16 +976,8 @@ namespace TwelveMonthCalendar
 
         private void ResetAnnualBalanceCategory()
         {
-            if (CalendarSettingsState.IsCampaignProfileLocked)
-            {
-                CompleteCategoryReset(
-                    "Annual Balance",
-                    "Annual Balance was not reset: this active campaign owns annual-balance settings.");
-                return;
-            }
-
             SetAnnualBalanceEnabled(true);
-            CompleteCategoryReset("Annual Balance", "Annual Balance settings were reset.");
+            CompleteCategoryReset("Annual Balance", "Annual Balance settings were reset. Existing quest deadlines are unchanged.");
         }
 
         private void CompleteCategoryReset(string category, string message)
@@ -1049,7 +1034,7 @@ namespace TwelveMonthCalendar
                     case "Campaign Time Scale":
                         return "Controls how quickly campaign time advances when automatic pacing is disabled. Lower values are slower.";
                     case "Fast-Forward Speed Multiplier":
-                        return "Sets Bannerlord's own fast-forward speed while the map is fast-forwarding. Normal map pace remains fixed. 4 is native; 128 is the supported maximum. Safe to change during a campaign.";
+                        return "Sets Bannerlord's built-in fast-forward speed while the map is fast-forwarding. Normal map pace remains fixed. 4 is Bannerlord's supported maximum and avoids AI time-step skips.";
                     case "Date Format":
                         return "Select the order of the month, day, and year. The season is displayed separately to the right of the map clock.";
                     case "Clock Format":
@@ -1059,7 +1044,7 @@ namespace TwelveMonthCalendar
                     case "Pregnancy Duration (Months)":
                         return "Sets how many calendar months a pregnancy lasts when calendar-month pregnancy is enabled.";
                     case "Lord Death Rate Multiplier":
-                        return "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged. This campaign setting is locked after the session begins.";
+                        return "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged. Changes affect future checks.";
                     case "Renown Gain Multiplier":
                         return "Scales positive renown rewards. A value of 0.50 gives half the normal positive renown.";
                     case "Balance Party Impairment":

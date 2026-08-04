@@ -107,15 +107,15 @@
         </DimensionSyncWidget>
 
         <!--_____Center Panel_______-->
-        <MapCurrentTimeVisualWidget DataSource="{MapTimeControl}" Id="CenterPanel" VisualDefinition="CenterPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="540" SuggestedHeight="59" HorizontalAlignment="Center" VerticalAlignment="Bottom" Sprite="MapBar\mapbar_center_frame" CurrentTimeState="@TimeFlowState" FastForwardButton="FastForwardButton" IsEnabled="@IsCenterPanelEnabled" PauseButton="PauseButton" PlayButton="PlayButton">
+        <MapCurrentTimeVisualWidget DataSource="{MapTimeControl}" Id="CenterPanel" VisualDefinition="CenterPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="420" SuggestedHeight="60" HorizontalAlignment="Center" PositionXOffset="10" VerticalAlignment="Bottom" Sprite="MapBar\mapbar_center_frame" CurrentTimeState="@TimeFlowState" FastForwardButton="FastForwardButton" IsEnabled="@IsCenterPanelEnabled" PauseButton="PauseButton" PlayButton="PlayButton">
           <Children>
             <NavigationScopeTargeter ScopeID="MapBarCenterPanelScope" ScopeParent="..\." ScopeMovements="Horizontal" NavigateFromScopeEdges="true" LeftNavigationScope="MapNavigationScope" RightNavigationScope="MapBarRightPanelTopInfoBarScope" IsScopeEnabled="@IsCenterPanelEnabled" />
 
-            <!-- Keep the date clear of the sundial; the season sits just to its
-                 right, in the marked space before the time-control buttons. -->
-            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="40" HorizontalAlignment="Left" PositionXOffset="-25" VerticalAlignment="Center" PositionYOffset="-2" Brush="MapTextBrushGal" Brush.FontSize="20" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Right" Text="@Date" />
-            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="24" HorizontalAlignment="Left" PositionXOffset="35" VerticalAlignment="Center" PositionYOffset="16" Brush="MapTextBrushGal" Brush.FontSize="18" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@TimeOfDay" />
-            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="85" SuggestedHeight="22" HorizontalAlignment="Center" PositionXOffset="75" VerticalAlignment="Center" PositionYOffset="0" Brush="MapTextBrushGal" Brush.FontSize="20" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@Season" />
+            <!-- Two-line calendar block: long month and season names remain
+                 left of the sundial while the clock occupies the old season slot. -->
+            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="150" SuggestedHeight="24" HorizontalAlignment="Left" PositionXOffset="40" VerticalAlignment="Center" PositionYOffset="-6" Brush="MapTextBrushGal" Brush.FontSize="18" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@CalendarDateLine" />
+            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="150" SuggestedHeight="20" HorizontalAlignment="Left" PositionXOffset="40" VerticalAlignment="Center" PositionYOffset="12" Brush="MapTextBrushGal" Brush.FontSize="18" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@SeasonYearLine" />
+            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="90" SuggestedHeight="22" HorizontalAlignment="Center" PositionXOffset="55" VerticalAlignment="Center" PositionYOffset="0" Brush="MapTextBrushGal" Brush.FontSize="18" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@TimeOfDay" />
 
             <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="78" SuggestedHeight="79" HorizontalAlignment="Center" PositionYOffset="-8" VerticalAlignment="Center" Command.Click="ExecuteResetCamera" UpdateChildrenStates="true" >
               <Children>
@@ -125,19 +125,19 @@
               </Children>
             </ButtonWidget>
 
-            <ButtonWidget Id="FastForwardButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="27" SuggestedHeight="24" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-58" PositionYOffset="-13" Brush="MapBarFastForwardButton" Command.Click="ExecuteTimeControlChange" CommandParameter.Click="2" GamepadNavigationIndex="3">
+<ButtonWidget Id="FastForwardButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="27" SuggestedHeight="24" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-32" PositionYOffset="-13" Brush="MapBarFastForwardButton" Command.Click="ExecuteTimeControlChange" CommandParameter.Click="2" GamepadNavigationIndex="3">
               <Children>
                 <HintWidget DataSource="{FastForwardHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
               </Children>
             </ButtonWidget>
 
-            <ButtonWidget Id="PlayButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="24" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-97" PositionYOffset="-13" Brush="MapBarPlayButton" Command.Click="ExecuteTimeControlChange" CommandParameter.Click="1" GamepadNavigationIndex="2">
+<ButtonWidget Id="PlayButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="24" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-69" PositionYOffset="-13" Brush="MapBarPlayButton" Command.Click="ExecuteTimeControlChange" CommandParameter.Click="1" GamepadNavigationIndex="2">
               <Children>
                 <HintWidget DataSource="{PlayHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
               </Children>
             </ButtonWidget>
 
-            <ButtonWidget Id="PauseButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="18" SuggestedHeight="23" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-137" PositionYOffset="-13" Brush="MapBarPauseButton" Command.Click="ExecuteTimeControlChange" CommandParameter.Click="0" GamepadNavigationIndex="1">
+<ButtonWidget Id="PauseButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="18" SuggestedHeight="23" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-99" PositionYOffset="-13" Brush="MapBarPauseButton" Command.Click="ExecuteTimeControlChange" CommandParameter.Click="0" GamepadNavigationIndex="1">
               <Children>
                 <HintWidget DataSource="{PauseHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
               </Children>

@@ -70,6 +70,107 @@ namespace TwelveMonthCalendar
             }
         }
 
+        internal static string FormatMapDateLine(CampaignTime time)
+        {
+            try
+            {
+                if (time == CampaignTime.Never || time.ToDays < 0.0)
+                {
+                    return null;
+                }
+
+                int year = CalendarTimeMath.GetYear(time);
+                int dayOfYear = CalendarTimeMath.GetDayOfYear(time);
+                int month = CalendarTimeMath.GetMonth(time);
+                int dayOfMonth = dayOfYear - CalendarTimeMath.GetMonthStart(
+                    month,
+                    CalendarTimeMath.IsLeapYear(year));
+                int dayNumber = dayOfMonth + 1;
+                string dayText = CalendarSettingsState.UseOrdinalDaySuffixes
+                    ? FormatOrdinal(dayNumber)
+                    : dayNumber.ToString();
+                if (CalendarSettingsState.ShowDayLabel)
+                {
+                    dayText = "Day " + dayText;
+                }
+
+                string monthText = CalendarSettingsState.GetMonthName(month);
+                string yearText = CalendarSettingsState.ShowYearLabel
+                    ? "Year " + year
+                    : year.ToString();
+                string format = CalendarSettingsState.DateFormat;
+                if (string.Equals(format, "{Day} {Month} {Year}", StringComparison.Ordinal))
+                {
+                    return dayText + ", " + monthText;
+                }
+
+                if (string.Equals(format, "{Year} {Month} {Day}", StringComparison.Ordinal))
+                {
+                    return yearText + ", " + monthText;
+                }
+
+                // Month-Day-Year is the default compact map layout. For a
+                // custom MCM format, preserve the configured order in full.
+                if (string.Equals(format, "{Month} {Day} {Year}", StringComparison.Ordinal))
+                {
+                    return monthText + ", " + dayText;
+                }
+
+                return Format(time);
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Map-bar calendar date-line formatting failed.", exception);
+                return null;
+            }
+        }
+
+        internal static string FormatMapSeasonYearLine(CampaignTime time)
+        {
+            try
+            {
+                if (time == CampaignTime.Never || time.ToDays < 0.0)
+                {
+                    return null;
+                }
+
+                string season = CalendarSettingsState.GetSeasonName(CalendarTimeMath.GetSeason(time));
+                int year = CalendarTimeMath.GetYear(time);
+                string yearText = CalendarSettingsState.ShowYearLabel
+                    ? "Year " + year
+                    : year.ToString();
+                bool yearIsOnDateLine = string.Equals(
+                    CalendarSettingsState.DateFormat,
+                    "{Year} {Month} {Day}",
+                    StringComparison.Ordinal);
+                if (yearIsOnDateLine)
+                {
+                    int dayOfYear = CalendarTimeMath.GetDayOfYear(time);
+                    int month = CalendarTimeMath.GetMonth(time);
+                    int dayOfMonth = dayOfYear - CalendarTimeMath.GetMonthStart(
+                        month,
+                        CalendarTimeMath.IsLeapYear(year));
+                    int dayNumber = dayOfMonth + 1;
+                    string dayText = CalendarSettingsState.UseOrdinalDaySuffixes
+                        ? FormatOrdinal(dayNumber)
+                        : dayNumber.ToString();
+                    if (CalendarSettingsState.ShowDayLabel)
+                    {
+                        dayText = "Day " + dayText;
+                    }
+
+                    return string.IsNullOrWhiteSpace(season) ? dayText : dayText + ", " + season;
+                }
+
+                return string.IsNullOrWhiteSpace(season) ? yearText : yearText + ", " + season;
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Map-bar season-year formatting failed.", exception);
+                return null;
+            }
+        }
+
         private static string FormatOrdinal(int value)
         {
             int lastTwoDigits = value % 100;

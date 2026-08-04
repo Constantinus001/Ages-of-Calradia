@@ -34,11 +34,12 @@ namespace TwelveMonthCalendar
         internal const float DefaultLordDeathRateMultiplier = 0.20f;
         internal const float DefaultNormalPlayTimeMultiplier = 1f;
         // Bannerlord initializes Campaign.SpeedUpMultiplier to 4. The engine
-        // accepts values through 128, so the calendar uses that direct range
+        // is calibrated for its native 4x fast-forward. Higher injected
+        // values can skip AI and pathing simulation work.
         // rather than stacking a second TickMapTime multiplier.
         internal const float DefaultFastForwardTimeMultiplier = 4f;
         internal const float MinimumPacingMultiplier = 1f;
-        internal const float MaximumPacingMultiplier = 128f;
+        internal const float MaximumPacingMultiplier = 4f;
         private const int MaximumConfiguredMonthLength = 1000;
         private const int MaximumConfiguredMonthNameLength = 24;
 
@@ -142,8 +143,8 @@ namespace TwelveMonthCalendar
 
         /// <summary>
         /// The direct Bannerlord Campaign.SpeedUpMultiplier used while map time
-        /// fast-forwards. It is configurable from 1 through 128; normal pace
-        /// remains fixed at Bannerlord's default cadence.
+        /// fast-forwards. It is limited to Bannerlord's supported 1 through
+        /// 4 range; normal pace remains fixed at native cadence.
         /// </summary>
         public static float FastForwardTimeMultiplier
         {
@@ -573,11 +574,14 @@ namespace TwelveMonthCalendar
                     ? Math.Max(0f, Math.Min(1f, requestedLordDeathRateMultiplier))
                     : DefaultLordDeathRateMultiplier;
                 _lordDeathRateMultiplier = normalizedLordDeathRateMultiplier;
-                ApplyCampaignStartSetting(ref _balancePartyImpairment, balancePartyImpairment, "BalancePartyImpairment");
-                ApplyCampaignStartSetting(ref _balancePrisonerRecruitment, balancePrisonerRecruitment, "BalancePrisonerRecruitment");
-                ApplyCampaignStartSetting(ref _balanceNpcMarriage, balanceNpcMarriage, "BalanceNpcMarriage");
-                ApplyCampaignStartSetting(ref _balanceMapTracks, balanceMapTracks, "BalanceMapTracks");
-                ApplyCampaignStartSetting(ref _balanceQuestDeadlines, balanceQuestDeadlines, "BalanceQuestDeadlines");
+                // These switches govern future model evaluations, so they are
+                // safe to change in an existing campaign. Existing quest
+                // deadlines are intentionally never rewritten.
+                _balancePartyImpairment = balancePartyImpairment ?? _balancePartyImpairment;
+                _balancePrisonerRecruitment = balancePrisonerRecruitment ?? _balancePrisonerRecruitment;
+                _balanceNpcMarriage = balanceNpcMarriage ?? _balanceNpcMarriage;
+                _balanceMapTracks = balanceMapTracks ?? _balanceMapTracks;
+                _balanceQuestDeadlines = balanceQuestDeadlines ?? _balanceQuestDeadlines;
                 _annualBalanceDiagnosticsEnabled = annualBalanceDiagnosticsEnabled ?? _annualBalanceDiagnosticsEnabled;
                 bool requestedAutoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
                 // Campaign pacing changes only affect future map-time ticks, so
@@ -749,12 +753,6 @@ namespace TwelveMonthCalendar
             switch (settingName)
             {
                 case "Use Leap Years":
-                case "Balance Party Impairment":
-                case "Balance Prisoner Recruitment":
-                case "Balance NPC Marriage":
-                case "Balance Map Tracks":
-                case "Balance Quest Deadlines":
-                    return true;
                 default:
                     return false;
             }

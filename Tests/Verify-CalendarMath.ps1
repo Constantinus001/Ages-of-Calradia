@@ -92,21 +92,21 @@ $legacyProfile.FastForwardTimeMultiplier = 2.5
 Assert-True ($legacyProfile.TryUpgradeLegacyProfile()) 'Legacy profile upgrade'
 Assert-Equal 3 $legacyProfile.SchemaVersion 'Legacy profile schema migration'
 Assert-Equal 1.0 $legacyProfile.NormalPlayTimeMultiplier 'Legacy profile fixed normal pace migration'
-Assert-Equal 10.0 $legacyProfile.FastForwardTimeMultiplier 'Legacy profile fast-forward speed migration'
+Assert-Equal 4.0 $legacyProfile.FastForwardTimeMultiplier 'Legacy profile fast-forward speed migration clamps to AI-safe maximum'
 
 $profile.NormalPlayTimeMultiplier = 1.0
-$profile.FastForwardTimeMultiplier = 128.0
+$profile.FastForwardTimeMultiplier = 4.0
 $profile.RefreshFingerprint()
 $settingsType.GetMethod('ApplyPersistedCampaignProfile', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($profile)) | Out-Null
 Assert-Equal 1.0 ($settingsType.GetProperty('NormalPlayTimeMultiplier').GetValue($null)) 'Saved profile fixed normal pace restore'
-Assert-Equal 128.0 ($settingsType.GetProperty('FastForwardTimeMultiplier').GetValue($null)) 'Saved profile fast-forward speed restore'
+Assert-Equal 4.0 ($settingsType.GetProperty('FastForwardTimeMultiplier').GetValue($null)) 'Saved profile fast-forward speed restore clamps to AI-safe maximum'
 
 $serializedProfile = $profile.Serialize()
 $deserializeArguments = [object[]]@($serializedProfile, $null, $null)
 Assert-True ($profileType.GetMethod('TryDeserialize', [Reflection.BindingFlags]'Static,Public').Invoke($null, $deserializeArguments)) 'Soft profile serialization round trip'
 $roundTripProfile = $deserializeArguments[1]
 Assert-Equal 3 $roundTripProfile.SchemaVersion 'Soft profile round-trip schema'
-Assert-Equal 128.0 $roundTripProfile.FastForwardTimeMultiplier 'Soft profile round-trip fast-forward speed'
+Assert-Equal 4.0 $roundTripProfile.FastForwardTimeMultiplier 'Soft profile round-trip fast-forward speed'
 
 $lordDeathBalance = $calendarAssembly.GetType('TwelveMonthCalendar.CalendarLordDeathBalance', $true)
 $scaleDailyDeath = $lordDeathBalance.GetMethod('ScaleDailyDeathProbability', [Reflection.BindingFlags]'Static,NonPublic')
