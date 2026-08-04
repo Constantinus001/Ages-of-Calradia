@@ -58,7 +58,7 @@ namespace TwelveMonthCalendar
                     Write("INFO  Module log directory was not writable; using the Documents fallback.");
                 }
 
-                Write("=== Twelve Month Calendar diagnostics started " + DateTime.Now.ToString("O") + " ===");
+                Write("=== Realistic Calendar Tweaks diagnostics started " + DateTime.Now.ToString("O") + " ===");
             }
             catch
             {
@@ -76,7 +76,7 @@ namespace TwelveMonthCalendar
             try
             {
                 Directory.CreateDirectory(directory);
-                string candidate = Path.Combine(directory, "TwelveMonthCalendar.log");
+                string candidate = Path.Combine(directory, "RealisticCalendarTweaks.log");
                 RotateLogIfNeeded(candidate);
                 File.AppendAllText(candidate, string.Empty, Encoding.UTF8);
                 _logPath = candidate;
@@ -112,7 +112,7 @@ namespace TwelveMonthCalendar
                 Directory.CreateDirectory(directory);
                 string path = Path.Combine(
                     directory,
-                    "TwelveMonthCalendar-crash-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + ".log");
+                    "RealisticCalendarTweaks-crash-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + ".log");
                 File.WriteAllText(path, contents, Encoding.UTF8);
                 PruneCrashReports(Path.GetDirectoryName(_logPath));
             }
@@ -185,7 +185,7 @@ namespace TwelveMonthCalendar
                 }
 
                 FileInfo[] staleReports = new DirectoryInfo(crashDirectory)
-                    .GetFiles("TwelveMonthCalendar-crash-*.log")
+                    .GetFiles("RealisticCalendarTweaks-crash-*.log")
                     .OrderByDescending(file => file.CreationTimeUtc)
                     .Skip(MaximumCrashReports)
                     .ToArray();

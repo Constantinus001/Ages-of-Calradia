@@ -5,8 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6D9B6A1E-1D8D-4E36-BD42-3BEA3E4B42F7}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>TwelveMonthCalendar.MCM</RootNamespace>
-    <AssemblyName>TwelveMonthCalendar.MCM</AssemblyName>
+    <RootNamespace>RealisticCalendarTweaks.MCM</RootNamespace>
+    <AssemblyName>RealisticCalendarTweaks.MCM</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -42,8 +42,8 @@
       <HintPath>$(NetStandardPath)</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="TwelveMonthCalendar">
-      <HintPath>bin\Win64_Shipping_Client\TwelveMonthCalendar.dll</HintPath>
+    <Reference Include="RealisticCalendarTweaks">
+      <HintPath>bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="MCMv5">

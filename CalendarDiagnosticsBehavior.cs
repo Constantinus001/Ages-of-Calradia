@@ -38,14 +38,17 @@ namespace TwelveMonthCalendar
                 int year = now.GetYear;
                 Diagnostics.Info(
                     string.Format(
-                        "Calendar structure. YearLength={0}; SeasonLengths={1},{2},{3},{4}; AutoTimeScale={5}; TimeScale={6:F6}",
+                        "Calendar structure. YearLength={0}; SeasonLengths={1},{2},{3},{4}; AutoTimeScale={5}; TimeScale={6:F6}; NormalPace=fixed; FastForwardSpeed={7:F0}; LordDeathRate={8:F2}; ProfileLocked={9}",
                         CalendarTimeMath.GetYearLength(year),
                         CalendarTimeMath.GetSeasonLength(year, 0),
                         CalendarTimeMath.GetSeasonLength(year, 1),
                         CalendarTimeMath.GetSeasonLength(year, 2),
                         CalendarTimeMath.GetSeasonLength(year, 3),
                         CalendarSettingsState.AutoCampaignTimeScale,
-                        CalendarSettingsState.CampaignTimeScale));
+                        CalendarSettingsState.CampaignTimeScale,
+                        CalendarSettingsState.FastForwardTimeMultiplier,
+                        CalendarSettingsState.LordDeathRateMultiplier,
+                        CalendarSettingsState.IsCampaignProfileLocked));
                 Diagnostics.Info(
                     string.Format(
                         "Movement balance. Common base speed={0:F2}; Bannerlord's native troop, prisoner, herd, terrain, skill, army, and encumbrance modifiers determine final speed.",

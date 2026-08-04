@@ -11,9 +11,9 @@ using TaleWorlds.MountAndBlade;
 
 namespace TwelveMonthCalendar
 {
-    public sealed class MySubModule : MBSubModuleBase
+    public class MySubModule : MBSubModuleBase
     {
-        private const string HarmonyId = "com.codex.twelvemonthcalendar";
+        private const string HarmonyId = "com.realisticcalendartweaks";
         private static readonly HashSet<string> CorePatchTypeNames = new HashSet<string>(
             StringComparer.Ordinal)
         {
@@ -23,7 +23,6 @@ namespace TwelveMonthCalendar
         };
         private Harmony _harmony;
         private bool _runtimePatchesApplied;
-        private bool _betterTimeUiAdapterInitialized;
         private readonly List<string> _disabledOptionalPatchGroups = new List<string>();
 
         protected override void OnSubModuleLoad()
@@ -40,14 +39,17 @@ namespace TwelveMonthCalendar
             try
             {
                 _harmony = new Harmony(HarmonyId);
+                CalendarPatchSafetyAudit.BeginStartupAudit();
                 ApplyPatchGroups();
+                CalendarPatchSafetyAudit.WriteHarmonyPatchAudit(HarmonyId);
                 _runtimePatchesApplied = true;
                 CrashFlightRecorder.Record("Harmony", "All runtime patches registered successfully.");
                 Diagnostics.Info("Harmony patches applied successfully.");
                 Diagnostics.Info(
                     string.Format(
-                        "Campaign time multiplier: {0:F6}; configured common year={1} days; average year={2:F4} days.",
+                        "Campaign time multiplier: {0:F6}; NormalPace=fixed; FastForwardSpeed={1:F0}; configured common year={2} days; average year={3:F4} days.",
                         CalendarTimeMath.CampaignTimeMultiplier,
+                        CalendarSettingsState.FastForwardTimeMultiplier,
                         CalendarTimeMath.DaysInYear,
                         CalendarTimeMath.AverageDaysInYear));
                 Diagnostics.Info(
@@ -69,7 +71,7 @@ namespace TwelveMonthCalendar
                 // this mod's runtime behavior disabled, rather than rethrowing
                 // into Bannerlord's startup sequence.
                 Diagnostics.Error(
-                    "Harmony patch registration failed. Twelve Month Calendar runtime patches were disabled to protect the game session.",
+                    "Harmony patch registration failed. Realistic Calendar Tweaks runtime patches were disabled to protect the game session.",
                     exception);
                 try
                 {
@@ -177,10 +179,10 @@ namespace TwelveMonthCalendar
                 InstallAnnualBalanceModels(campaignStarter);
 
                 campaignStarter.AddBehavior(new CalendarDiagnosticsBehavior());
-                campaignStarter.AddBehavior(new CalendarSaveCompatibilityBehavior());
+                campaignStarter.AddBehavior(new CalendarCampaignProfileBehavior());
                 campaignStarter.AddBehavior(new CalendarTreatyMigrationBehavior());
                 Diagnostics.Info("Calendar diagnostics behavior registered for campaign.");
-                Diagnostics.Info("Calendar save-compatibility marker registered; saves written by v1.3 require Twelve Month Calendar to load.");
+                Diagnostics.Info("Calendar soft profile behavior registered; new saves write no calendar module-lock marker.");
                 Diagnostics.Info("Calendar treaty migration behavior registered for existing tribute agreements.");
             }
         }
@@ -189,7 +191,6 @@ namespace TwelveMonthCalendar
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
             OptionalMcmIntegration.TryInitialize();
-            TryInitializeBetterTimeUiAdapter();
         }
 
         protected override void OnSubModuleUnloaded()
@@ -209,49 +210,10 @@ namespace TwelveMonthCalendar
             CrashFlightRecorder.Record(
                 "Settings",
                 "SettingsChanged; TimeScale=" + CalendarSettingsState.CampaignTimeScale.ToString("F6")
+                + "; NormalPace=fixed"
+                + "; FastForwardSpeed=" + CalendarSettingsState.FastForwardTimeMultiplier.ToString("F0")
                 + "; LeapYears=" + CalendarSettingsState.UseLeapYears
                 + "; DateFormat=" + CalendarSettingsState.DateFormat);
-        }
-
-        private void TryInitializeBetterTimeUiAdapter()
-        {
-            if (_betterTimeUiAdapterInitialized)
-            {
-                return;
-            }
-
-            try
-            {
-                bool betterTimeLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(
-                    assembly => string.Equals(assembly.GetName().Name, "BetterTime", StringComparison.Ordinal));
-                bool uiExtenderLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(
-                    assembly => string.Equals(assembly.GetName().Name, "Bannerlord.UIExtenderEx", StringComparison.Ordinal));
-                if (!betterTimeLoaded || !uiExtenderLoaded)
-                {
-                    Diagnostics.Info("Better Time UI adapter not loaded; Better Time/UIExtenderEx is not active.");
-                    return;
-                }
-
-                string adapterPath = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(typeof(MySubModule).Assembly.Location),
-                    "TwelveMonthCalendar.BetterTime.dll");
-                if (!System.IO.File.Exists(adapterPath))
-                {
-                    Diagnostics.Info("Better Time is active but the optional calendar UI adapter DLL is unavailable.");
-                    return;
-                }
-
-                Assembly adapter = Assembly.LoadFrom(adapterPath);
-                Type adapterType = adapter.GetType("TwelveMonthCalendar.BetterTimeUi.BetterTimeUiAdapter", true);
-                MethodInfo initialize = adapterType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static);
-                initialize.Invoke(null, null);
-                _betterTimeUiAdapterInitialized = true;
-                Diagnostics.Info("Better Time UI adapter enabled; calendar font size set to 15, moved left, and lowered by 4 pixels.");
-            }
-            catch (Exception exception)
-            {
-                Diagnostics.Error("Better Time UI adapter failed safely; Better Time's native layout was left unchanged.", exception);
-            }
         }
 
         /// <summary>
@@ -277,6 +239,11 @@ namespace TwelveMonthCalendar
                         exception);
                 }
             }
+
+            // The three core calendar groups must all resolve against the
+            // vetted Bannerlord methods. Do not continue with a partially
+            // converted calendar if a game update changed one of them.
+            CalendarPatchSafetyAudit.EnsureCoreTargetsValidated();
 
             foreach (Type patchType in patchTypes.Where(
                 type => !CorePatchTypeNames.Contains(type.Name)))
@@ -342,6 +309,42 @@ namespace TwelveMonthCalendar
             {
                 campaignStarter.AddModel(new CalendarPregnancyModel(nativePregnancy));
                 Diagnostics.Info("Calendar pregnancy wrapper installed; due dates use the configured calendar-month duration without private save-data edits.");
+            }
+
+            HeroDeathProbabilityCalculationModel nativeHeroDeath = campaignStarter.GetModel<HeroDeathProbabilityCalculationModel>();
+            if (nativeHeroDeath == null)
+            {
+                Diagnostics.Info("Lord old-age mortality scaling was not installed because Bannerlord did not provide a HeroDeathProbabilityCalculationModel.");
+            }
+            else if (nativeHeroDeath is CalendarHeroDeathProbabilityModel)
+            {
+                Diagnostics.Info("Calendar lord old-age mortality model was already installed.");
+            }
+            else
+            {
+                campaignStarter.AddModel(new CalendarHeroDeathProbabilityModel(nativeHeroDeath));
+                Diagnostics.Info(
+                    "Calendar lord old-age mortality wrapper installed; eligible noble lords retain "
+                    + CalendarSettingsState.LordDeathRateMultiplier.ToString("F2")
+                    + " of their native annual death chance.");
+            }
+
+            PartyHealingModel nativePartyHealing = campaignStarter.GetModel<PartyHealingModel>();
+            if (nativePartyHealing == null)
+            {
+                Diagnostics.Info("Lord battle-mortality scaling was not installed because Bannerlord did not provide a PartyHealingModel.");
+            }
+            else if (nativePartyHealing is CalendarLordBattleSurvivalModel)
+            {
+                Diagnostics.Info("Calendar lord battle-survival model was already installed.");
+            }
+            else
+            {
+                campaignStarter.AddModel(new CalendarLordBattleSurvivalModel(nativePartyHealing));
+                Diagnostics.Info(
+                    "Calendar lord battle-survival wrapper installed; eligible noble lord death chance retains "
+                    + CalendarSettingsState.LordDeathRateMultiplier.ToString("F2")
+                    + " of native after Bannerlord medicine, armor, age, and damage rules.");
             }
 
             TournamentModel nativeTournament = campaignStarter.GetModel<TournamentModel>();

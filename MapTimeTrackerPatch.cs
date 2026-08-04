@@ -24,6 +24,13 @@ namespace TwelveMonthCalendar
                 return new MethodBase[0];
             }
 
+            if (!CalendarPatchSafetyAudit.ValidateMapTimeTrackerTarget(target))
+            {
+                Diagnostics.Info(
+                    "MapTimeTracker.Tick(float) did not match the supported Bannerlord target; campaign-time scaling is disabled safely.");
+                return new MethodBase[0];
+            }
+
             return new[] { target };
         }
 

@@ -7,6 +7,12 @@ namespace TwelveMonthCalendar
     [HarmonyPatch(typeof(CampaignTime))]
     internal static class CampaignTimeCalendarPatches
     {
+        [HarmonyPrepare]
+        private static bool Prepare()
+        {
+            return CalendarPatchSafetyAudit.ValidateCampaignTimeCalendarTargets();
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(DefaultCampaignTimeModel), "get_CampaignStartTime")]
         private static bool CampaignStartTime(ref CampaignTime __result)

@@ -1,4 +1,4 @@
-# Building Twelve Month Calendar
+# Building Realistic Calendar Tweaks
 
 Build against Bannerlord v1.4.7 with either MSBuild properties or environment variables:
 
@@ -8,4 +8,4 @@ dotnet msbuild TwelveMonthCalendar.csproj /t:Rebuild /p:Configuration=Release /p
 
 `BANNERLORD_DIR` can supply the same location when `/p:BannerlordDir` is omitted. `NETSTANDARD_PATH` can override the legacy .NET Standard facade path when required by a different development machine.
 
-Run `Tests\Verify-Release.ps1` only from a clean committed source tree before publishing. It builds both optional configurations, runs calendar checks, validates the exact package contents, and scans the final archive with Microsoft Defender.
+Run `Tests\Verify-Release.ps1` only from a clean committed source tree before publishing. It builds the main and optional MCM configuration, runs calendar checks, validates the renamed module plus legacy save bridge, and scans the final archive with Microsoft Defender.

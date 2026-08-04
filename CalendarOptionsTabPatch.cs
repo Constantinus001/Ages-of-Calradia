@@ -181,6 +181,18 @@ namespace TwelveMonthCalendar
                     "Use Leap Years",
                     delegate { return CalendarSettingsState.UseLeapYears; },
                     delegate(bool value) { Apply(useLeapYears: value); }),
+                new CalendarActionOptionData(
+                    "Edit Month Names",
+                    "Edit all twelve month names in one pipe-separated text field. Example: January|February|...|December.",
+                    ShowMonthNamesEditor),
+                new CalendarActionOptionData(
+                    "Edit Season Names",
+                    "Edit all four season names in one pipe-separated text field. Example: Spring|Summer|Autumn|Winter.",
+                    ShowSeasonNamesEditor),
+                new CalendarActionOptionData(
+                    "Edit Month Lengths",
+                    "Edit twelve pipe-separated month lengths that total exactly 365. This is locked after a campaign session starts.",
+                    ShowMonthLengthsEditor),
                 new CalendarBooleanOptionData(
                     "Show Day Label",
                     delegate { return CalendarSettingsState.ShowDayLabel; },
@@ -205,6 +217,14 @@ namespace TwelveMonthCalendar
                     0,
                     delegate { return CalendarSettingsState.CampaignTimeScale; },
                     delegate(float value) { Apply(campaignTimeScale: value, autoCampaignTimeScale: false); }),
+                new CalendarNumericOptionData(
+                    "Fast-Forward Speed Multiplier",
+                    CalendarSettingsState.MinimumPacingMultiplier,
+                    CalendarSettingsState.MaximumPacingMultiplier,
+                    true,
+                    1,
+                    delegate { return CalendarSettingsState.FastForwardTimeMultiplier; },
+                    delegate(float value) { Apply(fastForwardTimeMultiplier: value); }),
                 new CalendarSelectionOptionData(
                     "Date Format",
                     new[] { "Day-Month-Year", "Month-Day-Year", "Year-Month-Day" },
@@ -230,6 +250,14 @@ namespace TwelveMonthCalendar
                     0,
                     delegate { return CalendarSettingsState.PregnancyDurationInDays; },
                     delegate(float value) { Apply(pregnancyDurationInDays: value); }),
+                new CalendarNumericOptionData(
+                    "Lord Death Rate Multiplier",
+                    0f,
+                    1f,
+                    false,
+                    0,
+                    delegate { return CalendarSettingsState.LordDeathRateMultiplier; },
+                    delegate(float value) { Apply(lordDeathRateMultiplier: value); }),
                 new CalendarNumericOptionData(
                     "Renown Gain Multiplier",
                     0f,
@@ -324,7 +352,8 @@ namespace TwelveMonthCalendar
 
             foreach (GenericOptionDataVM option in category.AllOptions)
             {
-                if (option.GetOptionData() is CalendarOptionDataBase)
+                if (option.GetOptionData() is CalendarOptionDataBase
+                    || option.GetOptionData() is CalendarActionOptionData)
                 {
                     return true;
                 }
@@ -372,7 +401,7 @@ namespace TwelveMonthCalendar
             InformationManager.ShowInquiry(
                 new InquiryData(
                     "Reset Calendar Settings",
-                    "This will restore every Twelve Month Calendar setting to its default value. You will not be able to undo this action. Are you sure?",
+                    "This will restore every Realistic Calendar Tweaks setting to its default value. You will not be able to undo this action. Are you sure?",
                     true,
                     true,
                     "Yes",
@@ -385,6 +414,135 @@ namespace TwelveMonthCalendar
                     },
                     null));
         }
+
+        private static void ShowMonthNamesEditor()
+        {
+            ShowDelimitedTextEditor(
+                "Edit Month Names",
+                "Enter twelve month names separated by |. Names appear immediately in the date UI. Example: January|February|March|April|May|June|July|August|September|October|November|December",
+                CalendarSettingsState.MonthNamesDelimited,
+                CalendarSettingsState.TryParseMonthNamesDelimited,
+                CalendarSettingsState.TryApplyMonthNamesDelimited);
+        }
+
+        private static void ShowSeasonNamesEditor()
+        {
+            ShowDelimitedTextEditor(
+                "Edit Season Names",
+                "Enter four season names separated by |. Example: Spring|Summer|Autumn|Winter",
+                CalendarSettingsState.SeasonNamesDelimited,
+                CalendarSettingsState.TryParseSeasonNamesDelimited,
+                CalendarSettingsState.TryApplySeasonNamesDelimited);
+        }
+
+        private static void ShowMonthLengthsEditor()
+        {
+            if (CalendarSettingsState.IsCampaignProfileLocked)
+            {
+                InformationManager.ShowInquiry(
+                    new InquiryData(
+                        "Month Lengths Locked",
+                        "Month lengths are saved with this campaign and cannot be changed after the campaign session starts.",
+                        true,
+                        false,
+                        "OK",
+                        string.Empty,
+                        null,
+                        null));
+                return;
+            }
+
+            ShowDelimitedTextEditor(
+                "Edit Month Lengths",
+                "Enter twelve whole-number lengths separated by | or comma. They must total exactly 365. This is available only before the campaign session starts.",
+                CalendarSettingsState.MonthLengthsDelimited,
+                CalendarSettingsState.TryParseMonthLengthsDelimited,
+                CalendarSettingsState.TryApplyMonthLengthsDelimited);
+        }
+
+        private static void ShowDelimitedTextEditor(
+            string title,
+            string description,
+            string defaultValue,
+            TryParseDelimitedString parse,
+            TryApplyDelimitedString apply)
+        {
+            ShowCalendarTextInquiry(
+                title,
+                description,
+                defaultValue,
+                delegate(string input, out string failure)
+                {
+                    string[] ignored;
+                    return parse(input, out ignored, out failure);
+                },
+                apply);
+        }
+
+        private static void ShowDelimitedTextEditor(
+            string title,
+            string description,
+            string defaultValue,
+            TryParseDelimitedIntegers parse,
+            TryApplyDelimitedString apply)
+        {
+            ShowCalendarTextInquiry(
+                title,
+                description,
+                defaultValue,
+                delegate(string input, out string failure)
+                {
+                    int[] ignored;
+                    return parse(input, out ignored, out failure);
+                },
+                apply);
+        }
+
+        private static void ShowCalendarTextInquiry(
+            string title,
+            string description,
+            string defaultValue,
+            TryValidateDelimitedInput validate,
+            TryApplyDelimitedString apply)
+        {
+            InformationManager.ShowTextInquiry(
+                new TextInquiryData(
+                    title,
+                    description,
+                    true,
+                    true,
+                    "Save",
+                    "Cancel",
+                    delegate(string input)
+                    {
+                        string failure;
+                        if (apply(input, out failure))
+                        {
+                            Diagnostics.Info(title + " saved from the native Calendar Options tab.");
+                        }
+                        else
+                        {
+                            Diagnostics.Info(title + " was rejected from the native Calendar Options tab: " + failure);
+                        }
+                    },
+                    null,
+                    false,
+                    delegate(string input)
+                    {
+                        string failure;
+                        bool valid = validate(input, out failure);
+                        return Tuple.Create(valid, valid ? string.Empty : failure);
+                    },
+                    string.Empty,
+                    defaultValue),
+                false,
+                false);
+        }
+
+        private delegate bool TryParseDelimitedString(string input, out string[] values, out string failure);
+        private delegate bool TryParseDelimitedIntegers(string input, out int[] values, out string failure);
+        private delegate bool TryValidateDelimitedInput(string input, out string failure);
+        private delegate bool TryApplyDelimitedString(string input, out string failure);
 
         private void DetachProxyGamepadHandler()
         {
@@ -492,12 +650,14 @@ namespace TwelveMonthCalendar
             int? pregnancyDurationMonths = null,
             float? pregnancyDurationInDays = null,
             float? renownGainMultiplier = null,
+            float? lordDeathRateMultiplier = null,
             bool? balancePartyImpairment = null,
             bool? balancePrisonerRecruitment = null,
             bool? balanceNpcMarriage = null,
             bool? balanceMapTracks = null,
             bool? balanceQuestDeadlines = null,
-            bool? annualBalanceDiagnosticsEnabled = null)
+            bool? annualBalanceDiagnosticsEnabled = null,
+            float? fastForwardTimeMultiplier = null)
         {
             bool requestedLeapYears = useLeapYears ?? CalendarSettingsState.UseLeapYears;
             bool requestedShowDayLabel = showDayLabel ?? CalendarSettingsState.ShowDayLabel;
@@ -506,6 +666,8 @@ namespace TwelveMonthCalendar
             float requestedCampaignTimeScale = campaignTimeScale ?? CalendarSettingsState.CampaignTimeScale;
             string requestedDateFormat = dateFormat ?? CalendarSettingsState.DateFormat;
             bool requestedAutoTimeScale = autoCampaignTimeScale ?? CalendarSettingsState.AutoCampaignTimeScale;
+            float requestedFastForwardTimeMultiplier = fastForwardTimeMultiplier
+                ?? CalendarSettingsState.FastForwardTimeMultiplier;
             bool requestedCalendarMonthPregnancy = useCalendarMonthPregnancy
                 ?? CalendarSettingsState.UseCalendarMonthPregnancy;
             int requestedPregnancyMonths = pregnancyDurationMonths
@@ -514,6 +676,8 @@ namespace TwelveMonthCalendar
                 ?? CalendarSettingsState.PregnancyDurationInDays;
             float requestedRenownMultiplier = renownGainMultiplier
                 ?? CalendarSettingsState.RenownGainMultiplier;
+            float requestedLordDeathRateMultiplier = lordDeathRateMultiplier
+                ?? CalendarSettingsState.LordDeathRateMultiplier;
             bool requestedBalancePartyImpairment = balancePartyImpairment
                 ?? CalendarSettingsState.BalancePartyImpairment;
             bool requestedBalancePrisonerRecruitment = balancePrisonerRecruitment
@@ -537,10 +701,12 @@ namespace TwelveMonthCalendar
                 && NearlyEqual(requestedCampaignTimeScale, CalendarSettingsState.CampaignTimeScale)
                 && string.Equals(requestedDateFormat, CalendarSettingsState.DateFormat, StringComparison.Ordinal)
                 && requestedAutoTimeScale == CalendarSettingsState.AutoCampaignTimeScale
+                && NearlyEqual(requestedFastForwardTimeMultiplier, CalendarSettingsState.FastForwardTimeMultiplier)
                 && requestedCalendarMonthPregnancy == CalendarSettingsState.UseCalendarMonthPregnancy
                 && requestedPregnancyMonths == CalendarSettingsState.PregnancyDurationMonths
                 && NearlyEqual(requestedPregnancyDays, CalendarSettingsState.PregnancyDurationInDays)
                 && NearlyEqual(requestedRenownMultiplier, CalendarSettingsState.RenownGainMultiplier)
+                && NearlyEqual(requestedLordDeathRateMultiplier, CalendarSettingsState.LordDeathRateMultiplier)
                 && requestedBalancePartyImpairment == CalendarSettingsState.BalancePartyImpairment
                 && requestedBalancePrisonerRecruitment == CalendarSettingsState.BalancePrisonerRecruitment
                 && requestedBalanceNpcMarriage == CalendarSettingsState.BalanceNpcMarriage
@@ -559,10 +725,12 @@ namespace TwelveMonthCalendar
                 requestedCampaignTimeScale,
                 requestedDateFormat,
                 autoCampaignTimeScale: requestedAutoTimeScale,
+                fastForwardTimeMultiplier: requestedFastForwardTimeMultiplier,
                 useCalendarMonthPregnancy: requestedCalendarMonthPregnancy,
                 pregnancyDurationMonths: requestedPregnancyMonths,
                 pregnancyDurationInDays: requestedPregnancyDays,
                 renownGainMultiplier: requestedRenownMultiplier,
+                lordDeathRateMultiplier: requestedLordDeathRateMultiplier,
                 useOrdinalDaySuffixes: requestedOrdinalDaySuffixes,
                 balancePartyImpairment: requestedBalancePartyImpairment,
                 balancePrisonerRecruitment: requestedBalancePrisonerRecruitment,
@@ -632,6 +800,8 @@ namespace TwelveMonthCalendar
                         return "Automatically calculates campaign pacing from the configured calendar year length.";
                     case "Campaign Time Scale":
                         return "Controls how quickly campaign time advances when automatic pacing is disabled. Lower values are slower.";
+                    case "Fast-Forward Speed Multiplier":
+                        return "Sets Bannerlord's own fast-forward speed while the map is fast-forwarding. Normal map pace remains fixed. 4 is native; 128 is the supported maximum. Safe to change during a campaign.";
                     case "Date Format":
                         return "Select the order of the month, day, and year. The season is displayed separately to the right of the map clock.";
                     case "Use Calendar-Month Pregnancy":
@@ -640,6 +810,8 @@ namespace TwelveMonthCalendar
                         return "Sets how many calendar months a pregnancy lasts when calendar-month pregnancy is enabled.";
                     case "Fixed Pregnancy Duration (Days)":
                         return "Sets pregnancy length in days when calendar-month pregnancy is disabled. The default is 273.75 days.";
+                    case "Lord Death Rate Multiplier":
+                        return "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged. This campaign setting is locked after the session begins.";
                     case "Renown Gain Multiplier":
                         return "Scales positive renown rewards. A value of 0.50 gives half the normal positive renown.";
                     case "Balance Party Impairment":
@@ -685,6 +857,11 @@ namespace TwelveMonthCalendar
 
         public (string, bool) GetIsDisabledAndReasonID()
         {
+            if (CalendarSettingsState.IsGameplaySettingLocked(_name))
+            {
+                return ("CampaignProfileLocked", true);
+            }
+
             return (string.Empty, false);
         }
     }
@@ -849,6 +1026,29 @@ namespace TwelveMonthCalendar
                 yield return new SelectionData(false, _names[i]);
             }
         }
+    }
+
+    /// <summary>
+    /// Native options expose a supported action-row type. It lets the Calendar
+    /// tab open a text inquiry for values that cannot fit safely into sliders
+    /// or checkbox controls, such as custom month names.
+    /// </summary>
+    internal sealed class CalendarActionOptionData : ActionOptionData
+    {
+        internal CalendarActionOptionData(
+            string name,
+            string description,
+            Action action)
+            : base(name, action)
+        {
+            // ActionOptionData uses the supplied name in its native action-row
+            // view model. Keep the description parameter here for API clarity
+            // and future native UI descriptions without relying on private VM
+            // fields in the current game version.
+            Description = description;
+        }
+
+        internal string Description { get; private set; }
     }
 
 }

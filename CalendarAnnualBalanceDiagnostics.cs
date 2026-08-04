@@ -17,6 +17,8 @@ namespace TwelveMonthCalendar
         private static int _questDeadlineAdjustments;
         private static int _hideoutDayNightChecks;
         private static int _romanceDailyTicks;
+        private static int _lordOldAgeDeathEvaluations;
+        private static int _lordBattleSurvivalEvaluations;
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> LoggedExceptions =
             new System.Collections.Concurrent.ConcurrentDictionary<string, byte>();
 
@@ -78,6 +80,26 @@ namespace TwelveMonthCalendar
                 ref _romanceDailyTicks,
                 "PlayerRomance",
                 "NativePlayerRomanceCooldownPreserved");
+        }
+
+        internal static void RecordLordOldAgeDeath(float nativeDailyProbability, float adjustedDailyProbability)
+        {
+            RecordSample(
+                ref _lordOldAgeDeathEvaluations,
+                "LordOldAgeDeath",
+                "NativeDailyProbability=" + nativeDailyProbability.ToString("F8")
+                + "; AdjustedDailyProbability=" + adjustedDailyProbability.ToString("F8")
+                + "; AnnualMultiplier=" + CalendarSettingsState.LordDeathRateMultiplier.ToString("F2"));
+        }
+
+        internal static void RecordLordBattleSurvival(float nativeSurvivalChance, float adjustedSurvivalChance)
+        {
+            RecordSample(
+                ref _lordBattleSurvivalEvaluations,
+                "LordBattleSurvival",
+                "NativeSurvival=" + nativeSurvivalChance.ToString("F6")
+                + "; AdjustedSurvival=" + adjustedSurvivalChance.ToString("F6")
+                + "; DeathMultiplier=" + CalendarSettingsState.LordDeathRateMultiplier.ToString("F2"));
         }
 
         internal static void RecordException(string channel, Exception exception)

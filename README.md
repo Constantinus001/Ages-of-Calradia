@@ -1,6 +1,6 @@
-# Twelve Month Calendar
+# Realistic Calendar Tweaks
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete v1.0-to-v1.3 patch notes.
+See [CHANGELOG.md](CHANGELOG.md) for the complete v1.0-to-v1.4.5 patch notes.
 
 This Bannerlord v1.4.7 module changes the campaign calendar to a 365-day year
 with Gregorian-style month lengths:
@@ -52,8 +52,9 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 
 ## Build and release verification
 
-Release archives contain the complete runtime module: module XML, README,
-Harmony dependency, compiled module DLLs, and UI prefab XML files.
+Release archives contain the complete runtime module, its legacy save bridge,
+module XML, README, Harmony dependency, compiled module DLLs, and UI prefab
+XML files. The retired Better Time adapter is intentionally excluded.
 Development and verification scripts, logs, debug symbols, and backups are
 intentionally excluded.
 
@@ -69,23 +70,28 @@ Defender scan. It also refuses uncommitted sources and rejects an invalid
 Bannerlord module-version format. Only upload an archive after it reports
 `PASS`.
 
-The build output is written to `bin\Win64_Shipping_Client`. Copy the module
-folder into the game's `Modules` directory, then enable **Twelve Month Calendar** in the
-Bannerlord launcher.
+The build output is written to `bin\Win64_Shipping_Client`. Install the
+`RealisticCalendarTweaks` module folder in the game's `Modules` directory, then
+enable **Realistic Calendar Tweaks** in the Bannerlord launcher.
 
 This changes the underlying campaign-time interpretation so hero aging, native
 four-season calculations, and campaign events created with
 `CampaignTime.Years()` follow the 365-day year. Day-based timers remain
-day-based. Start a new campaign with the module enabled. Existing saves use
-Bannerlord's original 84-day year and are not compatible with this calendar
-without a save migration layer.
+day-based. Start a new campaign with the module enabled.
 
-## Save compatibility lock
+## Existing-save migration
 
-After a v1.3 campaign is saved, it requires Twelve Month Calendar to be enabled
-when loading. This prevents the save from loading without the module and
-silently reverting to Bannerlord's native calendar. A pre-v1.3 calendar save
-can load once with v1.3; save it again to apply the lock.
+v1.4.5 removes the calendar's explicit hard save-lock marker. New saves store
+only a primitive profile, not a module-owned marker. Existing v1.3/v1.4 saves
+can be migrated safely: remove the old `_TwelveMonthCalendar` folder, install
+both folders from the v1.4.5 archive, enable **Realistic Calendar Tweaks** and
+the **Twelve Month Calendar - Legacy Save Bridge**, load the old save, then
+save to a new slot. The bridge may be disabled after that migration save.
+
+Bannerlord itself can still show its normal missing-module warning if a save is
+loaded with any campaign mod disabled; this update removes the additional
+calendar-specific marker that previously made the save require the mod's custom
+data type.
 
 Leap years use the Gregorian rule: divisible by 4, except century years unless
 they are also divisible by 400. The campaign's starting year, 1084, is treated
@@ -98,19 +104,17 @@ approximate annual rates. Party map speed remains at native values, and
 pregnancy defaults to nine calendar months from the moment conception starts.
 
 Native diplomacy is scaled by the same ratio. This preserves the usual annual
-frequency of AI peace, war, alliance, trade, policy, and annexation proposals;
-the 20-day post-peace cooldown and war-duration score curves use their native
-day equivalents; and a 100-day native tribute agreement becomes about 435
-calendar days while its effective daily payment is balanced by the finance
-layer. Alliance contracts last one calendar year, with call-to-war commitments
-lasting half a calendar year.
+frequency of AI peace, war, alliance, trade, policy, and annexation proposals.
+Truces use the configured 100-calendar-day term and tribute agreements use the
+configured 235-calendar-day term, while the finance layer balances their daily
+payments for the longer year.
 
 ## Diagnostics
 
 The module writes diagnostics to:
 
 ```text
-<Bannerlord>\Modules\_TwelveMonthCalendar\Logs\TwelveMonthCalendar.log
+<Bannerlord>\Modules\RealisticCalendarTweaks\Logs\RealisticCalendarTweaks.log
 ```
 
 The log records module loading, Harmony patch registration, campaign startup,
@@ -123,8 +127,8 @@ the module automatically falls back to
 ## Optional MCM settings
 
 MCM is optional. If MCM is installed, the calendar exposes an in-game settings
-page with leap-year, display-label, campaign-time, and date
-format settings. The date format supports `{Month}`, `{Season}`, `{Day}`,
+page with calendar, display, balance, lord-mortality, and fast-forward-speed
+controls. The date format supports `{Month}`, `{Season}`, `{Day}`,
 `{Year}`, `{MonthNumber}`, and `{DayOfYear}`. Without MCM, the native
 **Calendar** Options tab provides the same core controls. On the map bar, the
 date appears left of the clock and the current season appears separately to its
@@ -151,7 +155,7 @@ remains fully functional.
 Standalone settings are saved to:
 
 ```text
-Documents\Mount and Blade II Bannerlord\Configs\TwelveMonthCalendar\settings.xml
+Documents\Mount and Blade II Bannerlord\Configs\RealisticCalendarTweaks\settings.xml
 ```
 
 The file is created automatically on first launch. Every calendar setting is
@@ -159,12 +163,14 @@ kept there, including the twelve month names, month lengths, and annual-balance
 toggles. For example:
 
 ```xml
-<TwelveMonthCalendar UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
+<RealisticCalendarTweaks UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
   UseOrdinalDaySuffixes="true"
   AutoCampaignTimeScale="true" CampaignTimeScale="0.2299842"
+  FastForwardSpeedMultiplier="4"
   DateFormat="{Month} {Day} {Year}"
   NativeDaysInYear="84" UseCalendarMonthPregnancy="true"
   PregnancyDurationMonths="9" PregnancyDurationDays="273.75" RenownGainMultiplier="0.5"
+  LordDeathRateMultiplier="0.2"
   BalancePartyImpairment="true" BalancePrisonerRecruitment="true"
   BalanceNpcMarriage="true" BalanceMapTracks="true" BalanceQuestDeadlines="true"
   AnnualBalanceDiagnosticsEnabled="true"
@@ -184,9 +190,9 @@ toggles. For example:
 ```
 
 Edit the file while the game is closed and restart the campaign module for
-changes to take effect. Month names are limited to 24 characters and month lengths must be between 1 and 1000; leap years
-add one day to the configured second month. Changing month lengths changes the
-calendar year length and therefore the pacing/balance factor. Set
+changes to take effect. Month names are limited to 24 characters and month
+lengths must be between 1 and 1000 and total exactly 365; leap years add one
+day to the configured second month. Set
 `UseCalendarMonthPregnancy="false"` to use `PregnancyDurationDays` instead.
 
 The settings are not added to campaign, town, castle, or village menus. They are
@@ -201,10 +207,13 @@ subsequent campaign-time advancement.
 Positive renown rewards are multiplied by `RenownGainMultiplier`, which defaults
 to `0.5` and can be changed from the Calendar settings tab, MCM, or XML.
 
-The five annual-balance toggles are available in XML, optional MCM, and the
-native Calendar Options tab. They are campaign-start settings: changing one
-after a campaign session has started is ignored and logged, so the module does
-not attempt unsupported hot-swapping or rewrite existing quest deadlines.
+The five annual-balance toggles and Lord Death Rate Multiplier are available in
+XML, optional MCM, and the native Calendar Options tab. They are campaign-start
+settings: changing one after a campaign session has started is ignored and
+logged, so the module does not attempt unsupported hot-swapping or rewrite
+existing quest deadlines. Fast-Forward Speed Multiplier is the exception: it
+uses Bannerlord's built-in speed property and may be changed live from 1x to
+128x; normal map pace remains fixed.
 
 For the 365-day calendar, the balance layer scales identified native daily
 economy, settlement, progression, and probability systems by the native-84-day

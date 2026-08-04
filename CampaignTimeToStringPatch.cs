@@ -6,6 +6,12 @@ namespace TwelveMonthCalendar
     [HarmonyPatch(typeof(CampaignTime), nameof(CampaignTime.ToString))]
     internal static class CampaignTimeToStringPatch
     {
+        [HarmonyPrepare]
+        private static bool Prepare()
+        {
+            return CalendarPatchSafetyAudit.ValidateCampaignTimeStringTarget();
+        }
+
         private static bool Prefix(CampaignTime __instance, ref string __result)
         {
             if (!CalendarSettingsState.ExtendedCalendarEnabled)

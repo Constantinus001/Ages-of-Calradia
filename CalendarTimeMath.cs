@@ -56,6 +56,24 @@ namespace TwelveMonthCalendar
             get { return CalendarSettingsState.CampaignTimeScale; }
         }
 
+        /// <summary>
+        /// Identifies every built-in fast-forward mode. Normal map time remains
+        /// fixed at the Gregorian base cadence; CampaignPacingPatch changes only
+        /// Bannerlord's built-in fast-forward speed property for these modes.
+        /// </summary>
+        internal static bool IsFastForwardMode(CampaignTimeControlMode mode)
+        {
+            switch (mode)
+            {
+                case CampaignTimeControlMode.UnstoppableFastForward:
+                case CampaignTimeControlMode.UnstoppableFastForwardForPartyWaitTime:
+                case CampaignTimeControlMode.StoppableFastForward:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         internal static bool IsLeapYear(int year)
         {
             return CalendarSettingsState.UseLeapYears

@@ -1,10 +1,12 @@
+using System;
 using MCM.Abstractions.Attributes;
 using MCM.Abstractions.Attributes.v2;
 using MCM.Abstractions.Base.Global;
+using TwelveMonthCalendar;
 
-namespace TwelveMonthCalendar.MCM
+namespace RealisticCalendarTweaks.MCM
 {
-    internal sealed class CalendarMcmSettings : AttributeGlobalSettings<CalendarMcmSettings>
+    public sealed class CalendarMcmSettings : AttributeGlobalSettings<CalendarMcmSettings>
     {
         private bool _useLeapYears = CalendarSettingsState.UseLeapYears;
         private bool _showDayLabel = CalendarSettingsState.ShowDayLabel;
@@ -12,11 +14,16 @@ namespace TwelveMonthCalendar.MCM
         private bool _useOrdinalDaySuffixes = CalendarSettingsState.UseOrdinalDaySuffixes;
         private float _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
         private bool _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
+        private float _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
+        private string _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
+        private string _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
+        private string _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
         private string _dateFormat = CalendarSettingsState.DateFormat;
         private bool _useCalendarMonthPregnancy = CalendarSettingsState.UseCalendarMonthPregnancy;
         private int _pregnancyDurationMonths = CalendarSettingsState.PregnancyDurationMonths;
         private float _pregnancyDurationInDays = CalendarSettingsState.PregnancyDurationInDays;
         private float _renownGainMultiplier = CalendarSettingsState.RenownGainMultiplier;
+        private float _lordDeathRateMultiplier = CalendarSettingsState.LordDeathRateMultiplier;
         private bool _balancePartyImpairment = CalendarSettingsState.BalancePartyImpairment;
         private bool _balancePrisonerRecruitment = CalendarSettingsState.BalancePrisonerRecruitment;
         private bool _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
@@ -25,9 +32,9 @@ namespace TwelveMonthCalendar.MCM
         private bool _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
         private bool _synchronizing;
 
-        public override string Id => "TwelveMonthCalendar_MCM";
-        public override string DisplayName => "Twelve Month Calendar";
-        public override string FolderName => "TwelveMonthCalendar";
+        public override string Id => "RealisticCalendarTweaks_MCM";
+        public override string DisplayName => "Realistic Calendar Tweaks";
+        public override string FolderName => "RealisticCalendarTweaks";
         public override string FormatType => "json";
 
         [SettingPropertyBool("Use Leap Years", Order = 0, RequireRestart = true,
@@ -39,6 +46,48 @@ namespace TwelveMonthCalendar.MCM
             set
             {
                 _useLeapYears = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyText("Month Names", Order = 1, RequireRestart = false,
+            HintText = "Twelve names separated by |. Example: January|February|...|December. Each name is limited to 24 characters.")]
+        [SettingPropertyGroup("Calendar")]
+        public string MonthNamesDelimited
+        {
+            get { return _monthNamesDelimited; }
+            set
+            {
+                _monthNamesDelimited = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyText("Season Names", Order = 2, RequireRestart = false,
+            HintText = "Four names separated by |. Example: Spring|Summer|Autumn|Winter.")]
+        [SettingPropertyGroup("Calendar")]
+        public string SeasonNamesDelimited
+        {
+            get { return _seasonNamesDelimited; }
+            set
+            {
+                _seasonNamesDelimited = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyText("Month Lengths", Order = 3, RequireRestart = true,
+            HintText = "Twelve whole-number lengths separated by | or comma. They must total exactly 365 and are locked by an active campaign profile.")]
+        [SettingPropertyGroup("Calendar")]
+        public string MonthLengthsDelimited
+        {
+            get { return _monthLengthsDelimited; }
+            set
+            {
+                _monthLengthsDelimited = value;
                 Apply();
                 OnPropertyChanged();
             }
@@ -114,7 +163,22 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyText("Date Format", Order = 6, RequireRestart = false,
+        [SettingPropertyFloatingInteger("Fast-Forward Speed Multiplier", 1f, 128f, "0", Order = 6,
+            RequireRestart = false,
+            HintText = "Uses Bannerlord's built-in fast-forward speed. Normal map pace stays fixed. Native speed is 4x; values from 1x through 128x are safe to change during a campaign.")]
+        [SettingPropertyGroup("Pacing")]
+        public float FastForwardTimeMultiplier
+        {
+            get { return _fastForwardTimeMultiplier; }
+            set
+            {
+                _fastForwardTimeMultiplier = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyText("Date Format", Order = 8, RequireRestart = false,
             HintText = "Tokens: {Month}, {Season}, {Day}, {Year}, {MonthNumber}, {DayOfYear}. Example: {Month} {Day} {Year}. The map bar shows the season separately to the right of the clock.")]
         [SettingPropertyGroup("Display")]
         public string DateFormat
@@ -128,7 +192,7 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
-        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = false,
+        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = true,
             HintText = "Uses the configured number of calendar months for future pregnancies.")]
         [SettingPropertyGroup("Life Cycle")]
         public bool UseCalendarMonthPregnancy
@@ -143,7 +207,7 @@ namespace TwelveMonthCalendar.MCM
         }
 
         [SettingPropertyInteger("Pregnancy Duration (Months)", 1, 24, "0", Order = 8,
-            RequireRestart = false, HintText = "Calendar months from conception to birth.")]
+            RequireRestart = true, HintText = "Calendar months from conception to birth.")]
         [SettingPropertyGroup("Life Cycle")]
         public int PregnancyDurationMonths
         {
@@ -157,7 +221,7 @@ namespace TwelveMonthCalendar.MCM
         }
 
         [SettingPropertyFloatingInteger("Fixed Pregnancy Duration (Days)", 0.1f, 10000f, "0.00", Order = 9,
-            RequireRestart = false, HintText = "Fallback duration when calendar-month pregnancy is disabled.")]
+            RequireRestart = true, HintText = "Fallback duration when calendar-month pregnancy is disabled.")]
         [SettingPropertyGroup("Life Cycle")]
         public float PregnancyDurationInDays
         {
@@ -170,8 +234,23 @@ namespace TwelveMonthCalendar.MCM
             }
         }
 
+        [SettingPropertyFloatingInteger("Lord Death Rate Multiplier", 0f, 1f, "0.00", Order = 10,
+            RequireRestart = true,
+            HintText = "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged.")]
+        [SettingPropertyGroup("Life Cycle")]
+        public float LordDeathRateMultiplier
+        {
+            get { return _lordDeathRateMultiplier; }
+            set
+            {
+                _lordDeathRateMultiplier = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
         [SettingPropertyFloatingInteger("Renown Gain Multiplier", 0f, 1f, "0.00", Order = 10,
-            RequireRestart = false, HintText = "Scales positive renown awards. Default is 0.50.")]
+            RequireRestart = true, HintText = "Scales positive renown awards. Default is 0.50.")]
         [SettingPropertyGroup("Progression")]
         public float RenownGainMultiplier
         {
@@ -258,6 +337,37 @@ namespace TwelveMonthCalendar.MCM
                 return;
             }
 
+            string failure;
+            string[] requestedMonthNames;
+            if (!CalendarSettingsState.TryParseMonthNamesDelimited(
+                    _monthNamesDelimited,
+                    out requestedMonthNames,
+                    out failure))
+            {
+                requestedMonthNames = CalendarSettingsState.MonthNamesSnapshot();
+                _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
+            }
+
+            string[] requestedSeasonNames;
+            if (!CalendarSettingsState.TryParseSeasonNamesDelimited(
+                    _seasonNamesDelimited,
+                    out requestedSeasonNames,
+                    out failure))
+            {
+                requestedSeasonNames = CalendarSettingsState.SeasonNamesSnapshot();
+                _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
+            }
+
+            int[] requestedMonthLengths;
+            if (!CalendarSettingsState.TryParseMonthLengthsDelimited(
+                    _monthLengthsDelimited,
+                    out requestedMonthLengths,
+                    out failure))
+            {
+                requestedMonthLengths = CalendarSettingsState.MonthLengthsSnapshot();
+                _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
+            }
+
             CalendarSettingsState.Apply(
                 CalendarSettingsState.CalendarSystem,
                 _useLeapYears,
@@ -265,11 +375,16 @@ namespace TwelveMonthCalendar.MCM
                 _showYearLabel,
                 _campaignTimeScale,
                 _dateFormat,
+                monthNames: requestedMonthNames,
+                monthLengths: requestedMonthLengths,
+                seasonNames: requestedSeasonNames,
                 autoCampaignTimeScale: _autoCampaignTimeScale,
+                fastForwardTimeMultiplier: _fastForwardTimeMultiplier,
                 pregnancyDurationMonths: _pregnancyDurationMonths,
                 pregnancyDurationInDays: _pregnancyDurationInDays,
                 useCalendarMonthPregnancy: _useCalendarMonthPregnancy,
                 renownGainMultiplier: _renownGainMultiplier,
+                lordDeathRateMultiplier: _lordDeathRateMultiplier,
                 useOrdinalDaySuffixes: _useOrdinalDaySuffixes,
                 balancePartyImpairment: _balancePartyImpairment,
                 balancePrisonerRecruitment: _balancePrisonerRecruitment,
@@ -297,11 +412,16 @@ namespace TwelveMonthCalendar.MCM
                 _useOrdinalDaySuffixes = CalendarSettingsState.UseOrdinalDaySuffixes;
                 _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
                 _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
+                _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
+                _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
+                _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
+                _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
                 _dateFormat = CalendarSettingsState.DateFormat;
                 _useCalendarMonthPregnancy = CalendarSettingsState.UseCalendarMonthPregnancy;
                 _pregnancyDurationMonths = CalendarSettingsState.PregnancyDurationMonths;
                 _pregnancyDurationInDays = CalendarSettingsState.PregnancyDurationInDays;
                 _renownGainMultiplier = CalendarSettingsState.RenownGainMultiplier;
+                _lordDeathRateMultiplier = CalendarSettingsState.LordDeathRateMultiplier;
                 _balancePartyImpairment = CalendarSettingsState.BalancePartyImpairment;
                 _balancePrisonerRecruitment = CalendarSettingsState.BalancePrisonerRecruitment;
                 _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
@@ -324,16 +444,21 @@ namespace TwelveMonthCalendar.MCM
 
             SyncFromCoreState();
             OnPropertyChanged(nameof(UseLeapYears));
+            OnPropertyChanged(nameof(MonthNamesDelimited));
+            OnPropertyChanged(nameof(SeasonNamesDelimited));
+            OnPropertyChanged(nameof(MonthLengthsDelimited));
             OnPropertyChanged(nameof(ShowDayLabel));
             OnPropertyChanged(nameof(ShowYearLabel));
             OnPropertyChanged(nameof(UseOrdinalDaySuffixes));
             OnPropertyChanged(nameof(CampaignTimeScale));
             OnPropertyChanged(nameof(AutoCampaignTimeScale));
+            OnPropertyChanged(nameof(FastForwardTimeMultiplier));
             OnPropertyChanged(nameof(DateFormat));
             OnPropertyChanged(nameof(UseCalendarMonthPregnancy));
             OnPropertyChanged(nameof(PregnancyDurationMonths));
             OnPropertyChanged(nameof(PregnancyDurationInDays));
             OnPropertyChanged(nameof(RenownGainMultiplier));
+            OnPropertyChanged(nameof(LordDeathRateMultiplier));
             OnPropertyChanged(nameof(BalancePartyImpairment));
             OnPropertyChanged(nameof(BalancePrisonerRecruitment));
             OnPropertyChanged(nameof(BalanceNpcMarriage));

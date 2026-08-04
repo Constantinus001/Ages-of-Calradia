@@ -17,10 +17,8 @@ if (-not $AllowDirtySource) {
 
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
-$betterTimeProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.BetterTime.csproj'
 dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /v:minimal
 dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /v:minimal
-dotnet msbuild $betterTimeProject /t:Rebuild /p:Configuration=Release /v:minimal
 & (Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1') -ModuleRoot $ModuleRoot
 
 $settlementBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'SettlementBalancePatches.cs')
@@ -112,15 +110,33 @@ if ($diplomacySource -notmatch 'GregorianTruceDays = 100f' -or
     throw 'War declarations must enforce the configured 100-calendar-day truce.'
 }
 
-$mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.dll'
-$mcmDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.MCM.dll'
-$betterTimeDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.BetterTime.dll'
+$pacingSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CampaignPacingPatch.cs')
+if ($pacingSource -notmatch 'SpeedUpMultiplier' -or
+    $pacingSource -match 'realDt \*=') {
+    throw 'Fast-forward speed must use Bannerlord''s direct SpeedUpMultiplier without stacking a TickMapTime multiplier.'
+}
+$lordDeathSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarLordDeathModels.cs')
+if ($lordDeathSource -notmatch 'CalendarHeroDeathProbabilityModel' -or
+    $lordDeathSource -notmatch 'CalendarLordBattleSurvivalModel' -or
+    $lordDeathSource -notmatch 'ScaleDailyDeathProbability') {
+    throw 'Lord mortality must use the public old-age and battle-survival model wrappers.'
+}
+$saveProfileSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarSaveCompatibility.cs')
+if ($saveProfileSource -notmatch 'CalendarCampaignProfileBehavior' -or
+    $saveProfileSource -notmatch 'primitive payload only; no module-load marker written' -or
+    $saveProfileSource -notmatch 'RealisticCalendarTweaks\.CampaignProfileV3') {
+    throw 'New saves must use the primitive soft campaign profile rather than a hard module-lock marker.'
+}
+
+$mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll'
+$mcmDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.MCM.dll'
 $harmonyDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\0Harmony.dll'
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
+$legacyModuleXml = Join-Path $ModuleRoot 'LegacyModule\SubModule.xml'
 $readme = Join-Path $ModuleRoot 'README.md'
 $optionsXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\Options.xml'
 $mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
-$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $betterTimeDll, $optionsXml, $mapBarXml)
+$runtimeFiles = @($moduleXml, $legacyModuleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $mapBarXml)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
@@ -164,9 +180,18 @@ $version = $manifest.Module.Version.value
 if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^v\d+\.\d+\.\d+$') {
     throw 'SubModule.xml must define a valid Bannerlord version in vMajor.Minor.Patch format.'
 }
+if ($manifest.Module.Id.value -ne 'RealisticCalendarTweaks' -or
+    $manifest.Module.Name.value -ne 'Realistic Calendar Tweaks') {
+    throw 'The primary module manifest must use the RealisticCalendarTweaks ID and display name.'
+}
+[xml]$legacyManifest = Get-Content -Raw -LiteralPath $legacyModuleXml
+if ($legacyManifest.Module.Id.value -ne '_TwelveMonthCalendar' -or
+    $legacyManifest.Module.DependedModules.DependedModule.Id -notcontains 'RealisticCalendarTweaks') {
+    throw 'The legacy save bridge must retain the old ID and depend on the renamed primary module.'
+}
 
 if ([string]::IsNullOrWhiteSpace($ReleaseArchive)) {
-    $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\TwelveMonthCalendar-{0}.zip" -f $version)
+    $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\RealisticCalendarTweaks-{0}.zip" -f $version)
 }
 
 $archiveDirectory = Split-Path -Parent $ReleaseArchive
@@ -175,18 +200,21 @@ if (Test-Path -LiteralPath $ReleaseArchive) {
     Remove-Item -LiteralPath $ReleaseArchive -Force
 }
 
-$stagingRoot = Join-Path ([IO.Path]::GetTempPath()) ("TwelveMonthCalendar-release-{0}" -f [Guid]::NewGuid())
-$moduleStage = Join-Path $stagingRoot '_TwelveMonthCalendar'
+$stagingRoot = Join-Path ([IO.Path]::GetTempPath()) ("RealisticCalendarTweaks-release-{0}" -f [Guid]::NewGuid())
+$moduleStage = Join-Path $stagingRoot 'RealisticCalendarTweaks'
+$legacyModuleStage = Join-Path $stagingRoot '_TwelveMonthCalendar'
 try {
     New-Item -ItemType Directory -Force -Path `
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
         (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Map') | Out-Null
+        (Join-Path $moduleStage 'GUI\Prefabs\Map'), `
+        $legacyModuleStage | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
-    Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll, $betterTimeDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
+    Copy-Item -LiteralPath $legacyModuleXml -Destination (Join-Path $legacyModuleStage 'SubModule.xml')
+    Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
     Copy-Item -LiteralPath $optionsXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
     Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
-    Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
+    Compress-Archive -LiteralPath @($moduleStage, $legacyModuleStage) -DestinationPath $ReleaseArchive -CompressionLevel Optimal
 }
 finally {
     if (Test-Path -LiteralPath $stagingRoot) {
@@ -196,14 +224,14 @@ finally {
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $expectedEntries = @(
-    '_TwelveMonthCalendar/README.md',
-    '_TwelveMonthCalendar/SubModule.xml',
-    '_TwelveMonthCalendar/bin/Win64_Shipping_Client/0Harmony.dll',
-    '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.dll',
-    '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.MCM.dll',
-    '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.BetterTime.dll',
-    '_TwelveMonthCalendar/GUI/Prefabs/Options/SPOptions/Options.xml',
-    '_TwelveMonthCalendar/GUI/Prefabs/Map/MapBar.xml'
+    'RealisticCalendarTweaks/README.md',
+    'RealisticCalendarTweaks/SubModule.xml',
+    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/0Harmony.dll',
+    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.dll',
+    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll',
+    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/Options.xml',
+    'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml',
+    '_TwelveMonthCalendar/SubModule.xml'
 )
 $archive = [IO.Compression.ZipFile]::OpenRead($ReleaseArchive)
 try {
@@ -216,6 +244,9 @@ finally {
 }
 if (Compare-Object -ReferenceObject $expectedEntries -DifferenceObject $actualEntries) {
     throw 'Release archive contents do not exactly match the approved runtime file list.'
+}
+if ($actualEntries | Where-Object { $_ -match '(?i)BetterTime|TwelveMonthCalendar\.BetterTime' }) {
+    throw 'The retired Better Time adapter must not be present in a release archive.'
 }
 
 if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {

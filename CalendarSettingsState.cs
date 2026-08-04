@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 
@@ -28,6 +29,14 @@ namespace TwelveMonthCalendar
         internal const float DefaultPregnancyDurationInDays = 273.75f;
         internal const int DefaultPregnancyDurationMonths = 9;
         internal const float DefaultRenownGainMultiplier = 0.5f;
+        internal const float DefaultLordDeathRateMultiplier = 0.20f;
+        internal const float DefaultNormalPlayTimeMultiplier = 1f;
+        // Bannerlord initializes Campaign.SpeedUpMultiplier to 4. The engine
+        // accepts values through 128, so the calendar uses that direct range
+        // rather than stacking a second TickMapTime multiplier.
+        internal const float DefaultFastForwardTimeMultiplier = 4f;
+        internal const float MinimumPacingMultiplier = 1f;
+        internal const float MaximumPacingMultiplier = 128f;
         private const int MaximumConfiguredMonthLength = 1000;
         private const int MaximumConfiguredMonthNameLength = 24;
 
@@ -53,12 +62,14 @@ namespace TwelveMonthCalendar
         private static bool _useOrdinalDaySuffixes = DefaultUseOrdinalDaySuffixes;
         private static float _campaignTimeScale = 84f / 365.2425f;
         private static bool _autoCampaignTimeScale = true;
+        private static float _fastForwardTimeMultiplier = DefaultFastForwardTimeMultiplier;
         private static string _dateFormat = DefaultDateFormat;
         private static int _nativeDaysInYear = DefaultNativeDaysInYear;
         private static float _pregnancyDurationInDays = DefaultPregnancyDurationInDays;
         private static int _pregnancyDurationMonths = DefaultPregnancyDurationMonths;
         private static bool _useCalendarMonthPregnancy = true;
         private static float _renownGainMultiplier = DefaultRenownGainMultiplier;
+        private static float _lordDeathRateMultiplier = DefaultLordDeathRateMultiplier;
         private static bool _balancePartyImpairment = true;
         private static bool _balancePrisonerRecruitment = true;
         private static bool _balanceNpcMarriage = true;
@@ -112,6 +123,30 @@ namespace TwelveMonthCalendar
             get { lock (SyncRoot) return _autoCampaignTimeScale; }
         }
 
+        /// <summary>
+        /// Retained as a read-only legacy API surface for existing adapters.
+        /// Normal campaign pace is intentionally fixed at 1.00.
+        /// </summary>
+        public static float NormalPlayTimeMultiplier
+        {
+            get { return DefaultNormalPlayTimeMultiplier; }
+        }
+
+        /// <summary>
+        /// The direct Bannerlord Campaign.SpeedUpMultiplier used while map time
+        /// fast-forwards. It is configurable from 1 through 128; normal pace
+        /// remains fixed at Bannerlord's default cadence.
+        /// </summary>
+        public static float FastForwardTimeMultiplier
+        {
+            get { lock (SyncRoot) return _fastForwardTimeMultiplier; }
+        }
+
+        internal static bool IsCampaignProfileLocked
+        {
+            get { lock (SyncRoot) return _campaignSessionStarted; }
+        }
+
         public static string DateFormat
         {
             get { lock (SyncRoot) return _dateFormat; }
@@ -140,6 +175,16 @@ namespace TwelveMonthCalendar
         public static float RenownGainMultiplier
         {
             get { lock (SyncRoot) return _renownGainMultiplier; }
+        }
+
+        /// <summary>
+        /// Multiplies eligible noble heroes' native old-age and battle death
+        /// probabilities. 0.20 retains twenty percent of the native chance;
+        /// 1.00 leaves Bannerlord's chance unchanged.
+        /// </summary>
+        public static float LordDeathRateMultiplier
+        {
+            get { lock (SyncRoot) return _lordDeathRateMultiplier; }
         }
 
         public static bool BalancePartyImpairment
@@ -230,12 +275,197 @@ namespace TwelveMonthCalendar
             lock (SyncRoot) return (int[])_monthLengths.Clone();
         }
 
+        /// <summary>
+        /// Compact editor representation used by the native Options tab and
+        /// optional MCM. A pipe is used rather than a comma so name punctuation
+        /// remains unambiguous.
+        /// </summary>
+        public static string MonthNamesDelimited
+        {
+            get { lock (SyncRoot) return string.Join("|", _monthNames); }
+        }
+
+        public static string SeasonNamesDelimited
+        {
+            get { lock (SyncRoot) return string.Join("|", _seasonNames); }
+        }
+
+        public static string MonthLengthsDelimited
+        {
+            get
+            {
+                lock (SyncRoot)
+                {
+                    return string.Join(
+                        "|",
+                        _monthLengths.Select(value => value.ToString(CultureInfo.InvariantCulture)));
+                }
+            }
+        }
+
+        public static bool TryParseMonthNamesDelimited(
+            string input,
+            out string[] values,
+            out string failure)
+        {
+            if (!TryParseDelimitedNames(input, 12, "month", out values, out failure))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool TryParseSeasonNamesDelimited(
+            string input,
+            out string[] values,
+            out string failure)
+        {
+            if (!TryParseDelimitedNames(input, 4, "season", out values, out failure))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool TryParseMonthLengthsDelimited(
+            string input,
+            out int[] values,
+            out string failure)
+        {
+            values = null;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                failure = "Enter twelve positive month lengths separated by |.";
+                return false;
+            }
+
+            string[] parts = input.Replace(',', '|').Split('|');
+            if (parts.Length != 12)
+            {
+                failure = "Enter exactly twelve month lengths separated by |.";
+                return false;
+            }
+
+            int[] parsed = new int[parts.Length];
+            int total = 0;
+            for (int index = 0; index < parts.Length; index++)
+            {
+                int value;
+                if (!int.TryParse(
+                        parts[index].Trim(),
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out value)
+                    || value < 1
+                    || value > MaximumConfiguredMonthLength)
+                {
+                    failure = "Each month length must be a whole number from 1 to "
+                        + MaximumConfiguredMonthLength + ".";
+                    return false;
+                }
+
+                parsed[index] = value;
+                total += value;
+            }
+
+            if (total != RequiredCommonDaysInYear)
+            {
+                failure = "Month lengths must total exactly " + RequiredCommonDaysInYear + " days.";
+                return false;
+            }
+
+            values = parsed;
+            failure = null;
+            return true;
+        }
+
+        public static bool TryApplyMonthNamesDelimited(string input, out string failure)
+        {
+            string[] values;
+            if (!TryParseMonthNamesDelimited(input, out values, out failure))
+            {
+                return false;
+            }
+
+            Apply(
+                CalendarSystem,
+                UseLeapYears,
+                ShowDayLabel,
+                ShowYearLabel,
+                CampaignTimeScale,
+                DateFormat,
+                monthNames: values);
+            Save();
+            return true;
+        }
+
+        public static bool TryApplySeasonNamesDelimited(string input, out string failure)
+        {
+            string[] values;
+            if (!TryParseSeasonNamesDelimited(input, out values, out failure))
+            {
+                return false;
+            }
+
+            Apply(
+                CalendarSystem,
+                UseLeapYears,
+                ShowDayLabel,
+                ShowYearLabel,
+                CampaignTimeScale,
+                DateFormat,
+                seasonNames: values);
+            Save();
+            return true;
+        }
+
+        public static bool TryApplyMonthLengthsDelimited(string input, out string failure)
+        {
+            if (IsCampaignProfileLocked)
+            {
+                failure = "Month lengths are locked by the active campaign profile.";
+                return false;
+            }
+
+            int[] values;
+            if (!TryParseMonthLengthsDelimited(input, out values, out failure))
+            {
+                return false;
+            }
+
+            Apply(
+                CalendarSystem,
+                UseLeapYears,
+                ShowDayLabel,
+                ShowYearLabel,
+                CampaignTimeScale,
+                DateFormat,
+                monthLengths: values);
+            Save();
+            return true;
+        }
+
         public static string CalendarSystem
         {
             get { return FixedCalendarSystem; }
         }
 
         public static string ConfigPath
+        {
+            get
+            {
+                return Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    "Mount and Blade II Bannerlord",
+                    "Configs",
+                    "RealisticCalendarTweaks",
+                    "settings.xml");
+            }
+        }
+
+        private static string LegacyConfigPath
         {
             get
             {
@@ -264,13 +494,16 @@ namespace TwelveMonthCalendar
             bool? useCalendarMonthPregnancy = null,
             bool? autoCampaignTimeScale = null,
             float? renownGainMultiplier = null,
+            float? lordDeathRateMultiplier = null,
             bool? useOrdinalDaySuffixes = null,
             bool? balancePartyImpairment = null,
             bool? balancePrisonerRecruitment = null,
             bool? balanceNpcMarriage = null,
             bool? balanceMapTracks = null,
             bool? balanceQuestDeadlines = null,
-            bool? annualBalanceDiagnosticsEnabled = null)
+            bool? annualBalanceDiagnosticsEnabled = null,
+            float? normalPlayTimeMultiplier = null,
+            float? fastForwardTimeMultiplier = null)
         {
             lock (SyncRoot)
             {
@@ -289,7 +522,7 @@ namespace TwelveMonthCalendar
                 {
                     Diagnostics.Info(
                         "Ignoring legacy calendar-system setting '" + calendarSystem
-                        + "'; Twelve Month Calendar is always Gregorian12Month.");
+                        + "'; Realistic Calendar Tweaks is always Gregorian12Month.");
                 }
                 _showDayLabel = showDayLabel;
                 _showYearLabel = showYearLabel;
@@ -308,52 +541,79 @@ namespace TwelveMonthCalendar
                 }
                 _nativeDaysInYear = DefaultNativeDaysInYear;
                 float requestedPregnancyDays = pregnancyDurationInDays ?? _pregnancyDurationInDays;
-                _pregnancyDurationInDays = IsFinite(requestedPregnancyDays)
+                float normalizedPregnancyDays = IsFinite(requestedPregnancyDays)
                     ? Math.Max(0.1f, Math.Min(10000f, requestedPregnancyDays))
                     : DefaultPregnancyDurationInDays;
-                _pregnancyDurationMonths = Math.Max(1, pregnancyDurationMonths ?? _pregnancyDurationMonths);
-                _useCalendarMonthPregnancy = useCalendarMonthPregnancy ?? _useCalendarMonthPregnancy;
+                ApplyCampaignStartSetting(
+                    ref _pregnancyDurationInDays,
+                    normalizedPregnancyDays,
+                    "PregnancyDurationDays");
+                ApplyCampaignStartSetting(
+                    ref _pregnancyDurationMonths,
+                    Math.Max(1, pregnancyDurationMonths ?? _pregnancyDurationMonths),
+                    "PregnancyDurationMonths");
+                ApplyCampaignStartSetting(
+                    ref _useCalendarMonthPregnancy,
+                    useCalendarMonthPregnancy,
+                    "UseCalendarMonthPregnancy");
                 float requestedRenownMultiplier = renownGainMultiplier ?? _renownGainMultiplier;
-                _renownGainMultiplier = IsFinite(requestedRenownMultiplier)
+                float normalizedRenownMultiplier = IsFinite(requestedRenownMultiplier)
                     ? Math.Max(0f, Math.Min(1f, requestedRenownMultiplier))
                     : DefaultRenownGainMultiplier;
+                ApplyCampaignStartSetting(
+                    ref _renownGainMultiplier,
+                    normalizedRenownMultiplier,
+                    "RenownGainMultiplier");
+                float requestedLordDeathRateMultiplier = lordDeathRateMultiplier ?? _lordDeathRateMultiplier;
+                float normalizedLordDeathRateMultiplier = IsFinite(requestedLordDeathRateMultiplier)
+                    ? Math.Max(0f, Math.Min(1f, requestedLordDeathRateMultiplier))
+                    : DefaultLordDeathRateMultiplier;
+                ApplyCampaignStartSetting(
+                    ref _lordDeathRateMultiplier,
+                    normalizedLordDeathRateMultiplier,
+                    "LordDeathRateMultiplier");
                 ApplyCampaignStartSetting(ref _balancePartyImpairment, balancePartyImpairment, "BalancePartyImpairment");
                 ApplyCampaignStartSetting(ref _balancePrisonerRecruitment, balancePrisonerRecruitment, "BalancePrisonerRecruitment");
                 ApplyCampaignStartSetting(ref _balanceNpcMarriage, balanceNpcMarriage, "BalanceNpcMarriage");
                 ApplyCampaignStartSetting(ref _balanceMapTracks, balanceMapTracks, "BalanceMapTracks");
                 ApplyCampaignStartSetting(ref _balanceQuestDeadlines, balanceQuestDeadlines, "BalanceQuestDeadlines");
                 _annualBalanceDiagnosticsEnabled = annualBalanceDiagnosticsEnabled ?? _annualBalanceDiagnosticsEnabled;
-                _autoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
-                _campaignTimeScale = _autoCampaignTimeScale
+                bool requestedAutoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
+                ApplyCampaignStartSetting(
+                    ref _autoCampaignTimeScale,
+                    requestedAutoCampaignTimeScale,
+                    "AutoCampaignTimeScale");
+                float normalizedCampaignTimeScale = requestedAutoCampaignTimeScale
                     ? GetAutomaticCampaignTimeScale()
                     : IsFinite(campaignTimeScale)
                         ? Math.Max(0.01f, Math.Min(1.0f, campaignTimeScale))
                         : GetAutomaticCampaignTimeScale();
+                ApplyCampaignStartSetting(
+                    ref _campaignTimeScale,
+                    normalizedCampaignTimeScale,
+                    "CampaignTimeScale");
+                // Fast-forward is intentionally runtime-safe. Campaign.TickMapTime
+                // applies it on its next fast-forward tick through Bannerlord's
+                // own SpeedUpMultiplier; it does not reinterpret saved time.
+                _fastForwardTimeMultiplier = NormalizePacingMultiplier(
+                    fastForwardTimeMultiplier ?? _fastForwardTimeMultiplier,
+                    DefaultFastForwardTimeMultiplier);
             }
 
             Diagnostics.Info(
                 string.Format(
-                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; TimeScale={5:F6}; DateFormat={6}",
+                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; TimeScale={5:F6}; NormalPace=fixed; FastForwardSpeed={6:F0}; LordDeathRate={7:F3}; DateFormat={8}",
                     FixedCalendarSystem,
                     UseLeapYears,
                     ShowDayLabel,
                     ShowYearLabel,
                     UseOrdinalDaySuffixes,
                     CampaignTimeScale,
+                    FastForwardTimeMultiplier,
+                    LordDeathRateMultiplier,
                     DateFormat));
 
-            Action changed = SettingsChanged;
-            if (changed != null)
-            {
-                try
-                {
-                    changed();
-                }
-                catch (Exception exception)
-                {
-                    Diagnostics.Error("A settings synchronization listener failed.", exception);
-                }
-            }
+            NotifySettingsChanged();
         }
 
         public static void ResetToDefaults()
@@ -374,13 +634,16 @@ namespace TwelveMonthCalendar
                 true,
                 true,
                 DefaultRenownGainMultiplier,
+                lordDeathRateMultiplier: DefaultLordDeathRateMultiplier,
                 useOrdinalDaySuffixes: DefaultUseOrdinalDaySuffixes,
                 balancePartyImpairment: true,
                 balancePrisonerRecruitment: true,
                 balanceNpcMarriage: true,
                 balanceMapTracks: true,
                 balanceQuestDeadlines: true,
-                annualBalanceDiagnosticsEnabled: true);
+                annualBalanceDiagnosticsEnabled: true,
+                normalPlayTimeMultiplier: DefaultNormalPlayTimeMultiplier,
+                fastForwardTimeMultiplier: DefaultFastForwardTimeMultiplier);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
         }
@@ -393,11 +656,108 @@ namespace TwelveMonthCalendar
             }
         }
 
+        /// <summary>
+        /// Restores the simulation profile stored inside a campaign save. This
+        /// intentionally bypasses normal session-start locks because the save,
+        /// rather than the user's current global XML/MCM values, owns these
+        /// values for the active campaign.
+        /// </summary>
+        internal static void ApplyPersistedCampaignProfile(CalendarCampaignProfile profile)
+        {
+            if (profile == null)
+            {
+                return;
+            }
+
+            string failure;
+            int[] profileMonthLengths;
+            if (!profile.TryValidate(out failure)
+                || !profile.TryGetMonthLengths(out profileMonthLengths))
+            {
+                Diagnostics.Info(
+                    "Saved campaign profile restore was skipped because "
+                    + (failure ?? "its month lengths are invalid.")
+                    + ".");
+                return;
+            }
+
+            lock (SyncRoot)
+            {
+                _useLeapYears = profile.UseLeapYears;
+                for (int index = 0; index < _monthLengths.Length; index++)
+                {
+                    _monthLengths[index] = profileMonthLengths[index];
+                }
+
+                RebuildMonthCache();
+                _autoCampaignTimeScale = profile.AutoCampaignTimeScale;
+                _campaignTimeScale = Math.Max(0.01f, Math.Min(1f, profile.CampaignTimeScale));
+                _fastForwardTimeMultiplier = NormalizePacingMultiplier(
+                    profile.FastForwardTimeMultiplier,
+                    DefaultFastForwardTimeMultiplier);
+                _useCalendarMonthPregnancy = profile.UseCalendarMonthPregnancy;
+                _pregnancyDurationMonths = Math.Max(1, profile.PregnancyDurationMonths);
+                _pregnancyDurationInDays = Math.Max(0.1f, Math.Min(10000f, profile.PregnancyDurationInDays));
+                _renownGainMultiplier = Math.Max(0f, Math.Min(1f, profile.RenownGainMultiplier));
+                _lordDeathRateMultiplier = Math.Max(0f, Math.Min(1f, profile.LordDeathRateMultiplier));
+                _balancePartyImpairment = profile.BalancePartyImpairment;
+                _balancePrisonerRecruitment = profile.BalancePrisonerRecruitment;
+                _balanceNpcMarriage = profile.BalanceNpcMarriage;
+                _balanceMapTracks = profile.BalanceMapTracks;
+                _balanceQuestDeadlines = profile.BalanceQuestDeadlines;
+            }
+
+            Diagnostics.Info(
+                "Persisted campaign profile applied. Fingerprint=" + profile.Fingerprint
+                + "; TimeScale=" + CampaignTimeScale.ToString("F6", CultureInfo.InvariantCulture)
+                + "; NormalPace=fixed"
+                + "; FastForwardSpeed=" + FastForwardTimeMultiplier.ToString("F0", CultureInfo.InvariantCulture)
+                + "; LordDeathRate=" + LordDeathRateMultiplier.ToString("F3", CultureInfo.InvariantCulture)
+                + ".");
+            NotifySettingsChanged();
+        }
+
+        internal static bool IsGameplaySettingLocked(string settingName)
+        {
+            if (!IsCampaignProfileLocked || string.IsNullOrWhiteSpace(settingName))
+            {
+                return false;
+            }
+
+            switch (settingName)
+            {
+                case "Use Leap Years":
+                case "Automatic Campaign Time Scale":
+                case "Campaign Time Scale":
+                case "Use Calendar-Month Pregnancy":
+                case "Pregnancy Duration (Months)":
+                case "Fixed Pregnancy Duration (Days)":
+                case "Renown Gain Multiplier":
+                case "Lord Death Rate Multiplier":
+                case "Balance Party Impairment":
+                case "Balance Prisoner Recruitment":
+                case "Balance NPC Marriage":
+                case "Balance Map Tracks":
+                case "Balance Quest Deadlines":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static void Load()
         {
             try
             {
-                if (!File.Exists(ConfigPath))
+                string settingsPath = ConfigPath;
+                bool migratedLegacyPath = false;
+                if (!File.Exists(settingsPath) && File.Exists(LegacyConfigPath))
+                {
+                    settingsPath = LegacyConfigPath;
+                    migratedLegacyPath = true;
+                }
+
+                if (!File.Exists(settingsPath))
                 {
                     Diagnostics.Info("No standalone settings file found; using defaults.");
                     Save();
@@ -405,9 +765,11 @@ namespace TwelveMonthCalendar
                 }
 
                 XmlDocument document = new XmlDocument();
-                document.Load(ConfigPath);
+                document.Load(settingsPath);
                 XmlElement root = document.DocumentElement;
-                if (root == null || root.Name != "TwelveMonthCalendar")
+                if (root == null
+                    || (root.Name != "RealisticCalendarTweaks"
+                        && root.Name != "TwelveMonthCalendar"))
                 {
                     throw new InvalidDataException("The standalone settings file has an invalid root element.");
                 }
@@ -428,17 +790,28 @@ namespace TwelveMonthCalendar
                     ReadBoolean(root, "UseCalendarMonthPregnancy", true),
                     ReadBoolean(root, "AutoCampaignTimeScale", true),
                     ReadFloat(root, "RenownGainMultiplier", DefaultRenownGainMultiplier),
+                    lordDeathRateMultiplier: ReadFloat(
+                        root,
+                        "LordDeathRateMultiplier",
+                        DefaultLordDeathRateMultiplier),
                     useOrdinalDaySuffixes: ReadBoolean(root, "UseOrdinalDaySuffixes", DefaultUseOrdinalDaySuffixes),
                     balancePartyImpairment: ReadBoolean(root, "BalancePartyImpairment", true),
                     balancePrisonerRecruitment: ReadBoolean(root, "BalancePrisonerRecruitment", true),
                     balanceNpcMarriage: ReadBoolean(root, "BalanceNpcMarriage", true),
                     balanceMapTracks: ReadBoolean(root, "BalanceMapTracks", true),
                     balanceQuestDeadlines: ReadBoolean(root, "BalanceQuestDeadlines", true),
-                    annualBalanceDiagnosticsEnabled: ReadBoolean(root, "AnnualBalanceDiagnosticsEnabled", true));
+                    annualBalanceDiagnosticsEnabled: ReadBoolean(root, "AnnualBalanceDiagnosticsEnabled", true),
+                    fastForwardTimeMultiplier: ReadFastForwardSpeed(root));
 
-                Diagnostics.Info(string.Format("Standalone settings loaded from {0}.", ConfigPath));
+                Diagnostics.Info(
+                    string.Format(
+                        "Standalone settings loaded from {0}.{1}",
+                        settingsPath,
+                        migratedLegacyPath
+                            ? " Values will be copied to the RealisticCalendarTweaks settings path"
+                            : string.Empty));
                 // Rewrite the file after loading so newly added configurable
-                // fields (such as custom month names) are added automatically.
+                // fields and the renamed settings path are added automatically.
                 Save();
             }
             catch (Exception exception)
@@ -458,7 +831,7 @@ namespace TwelveMonthCalendar
                 }
 
                 XmlDocument document = new XmlDocument();
-                XmlElement root = document.CreateElement("TwelveMonthCalendar");
+                XmlElement root = document.CreateElement("RealisticCalendarTweaks");
                 document.AppendChild(root);
                 root.SetAttribute("UseLeapYears", UseLeapYears.ToString());
                 root.SetAttribute("ShowDayLabel", ShowDayLabel.ToString());
@@ -466,12 +839,18 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("UseOrdinalDaySuffixes", UseOrdinalDaySuffixes.ToString());
                 root.SetAttribute("CampaignTimeScale", CampaignTimeScale.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("AutoCampaignTimeScale", AutoCampaignTimeScale.ToString());
+                root.SetAttribute(
+                    "FastForwardSpeedMultiplier",
+                    FastForwardTimeMultiplier.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("DateFormat", DateFormat);
                 root.SetAttribute("NativeDaysInYear", NativeDaysInYear.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("PregnancyDurationDays", PregnancyDurationInDays.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("PregnancyDurationMonths", PregnancyDurationMonths.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("UseCalendarMonthPregnancy", UseCalendarMonthPregnancy.ToString());
                 root.SetAttribute("RenownGainMultiplier", RenownGainMultiplier.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute(
+                    "LordDeathRateMultiplier",
+                    LordDeathRateMultiplier.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("BalancePartyImpairment", BalancePartyImpairment.ToString());
                 root.SetAttribute("BalancePrisonerRecruitment", BalancePrisonerRecruitment.ToString());
                 root.SetAttribute("BalanceNpcMarriage", BalanceNpcMarriage.ToString());
@@ -506,6 +885,24 @@ namespace TwelveMonthCalendar
             return string.IsNullOrWhiteSpace(value) ? fallback : value;
         }
 
+        private static void NotifySettingsChanged()
+        {
+            Action changed = SettingsChanged;
+            if (changed == null)
+            {
+                return;
+            }
+
+            try
+            {
+                changed();
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("A settings synchronization listener failed.", exception);
+            }
+        }
+
         private static void ApplyCampaignStartSetting(ref bool currentValue, bool? requestedValue, string name)
         {
             if (!requestedValue.HasValue || requestedValue.Value == currentValue)
@@ -520,6 +917,38 @@ namespace TwelveMonthCalendar
             }
 
             currentValue = requestedValue.Value;
+        }
+
+        private static void ApplyCampaignStartSetting(ref float currentValue, float requestedValue, string name)
+        {
+            if (Math.Abs(requestedValue - currentValue) < 0.0001f)
+            {
+                return;
+            }
+
+            if (_campaignSessionStarted)
+            {
+                Diagnostics.Info(name + " change ignored after campaign session start; this save's campaign profile owns it.");
+                return;
+            }
+
+            currentValue = requestedValue;
+        }
+
+        private static void ApplyCampaignStartSetting(ref int currentValue, int requestedValue, string name)
+        {
+            if (requestedValue == currentValue)
+            {
+                return;
+            }
+
+            if (_campaignSessionStarted)
+            {
+                Diagnostics.Info(name + " change ignored after campaign session start; this save's campaign profile owns it.");
+                return;
+            }
+
+            currentValue = requestedValue;
         }
 
         private static bool ReadBoolean(XmlElement root, string name, bool fallback)
@@ -543,6 +972,25 @@ namespace TwelveMonthCalendar
             return IsFinite(value) ? value : fallback;
         }
 
+        private static float ReadFastForwardSpeed(XmlElement root)
+        {
+            if (root.HasAttribute("FastForwardSpeedMultiplier"))
+            {
+                return ReadFloat(
+                    root,
+                    "FastForwardSpeedMultiplier",
+                    DefaultFastForwardTimeMultiplier);
+            }
+
+            if (root.HasAttribute("FastForwardTimeMultiplier"))
+            {
+                return ConvertLegacyFastForwardPacingToSpeed(
+                    ReadFloat(root, "FastForwardTimeMultiplier", 1f));
+            }
+
+            return DefaultFastForwardTimeMultiplier;
+        }
+
         private static int ReadInt(XmlElement root, string name, int fallback)
         {
             int value;
@@ -560,6 +1008,51 @@ namespace TwelveMonthCalendar
             }
 
             return values;
+        }
+
+        private static bool TryParseDelimitedNames(
+            string input,
+            int expectedCount,
+            string label,
+            out string[] values,
+            out string failure)
+        {
+            values = null;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                failure = "Enter " + expectedCount + " " + label + " names separated by |.";
+                return false;
+            }
+
+            string[] parts = input.Split('|');
+            if (parts.Length != expectedCount)
+            {
+                failure = "Enter exactly " + expectedCount + " " + label + " names separated by |.";
+                return false;
+            }
+
+            string[] parsed = new string[parts.Length];
+            for (int index = 0; index < parts.Length; index++)
+            {
+                string value = parts[index] == null ? string.Empty : parts[index].Trim();
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    failure = "Every " + label + " name must contain text.";
+                    return false;
+                }
+
+                if (value.Length > MaximumConfiguredMonthNameLength)
+                {
+                    failure = label + " names are limited to " + MaximumConfiguredMonthNameLength + " characters.";
+                    return false;
+                }
+
+                parsed[index] = value;
+            }
+
+            values = parsed;
+            failure = null;
+            return true;
         }
 
         private static string[] ReadSeasonNames(XmlElement root)
@@ -643,7 +1136,7 @@ namespace TwelveMonthCalendar
             {
                 Diagnostics.Info(
                     "Ignoring custom month lengths totaling " + totalDays
-                    + " days; Twelve Month Calendar requires exactly "
+                    + " days; Realistic Calendar Tweaks requires exactly "
                     + RequiredCommonDaysInYear + " common-year days.");
                 return;
             }
@@ -714,6 +1207,26 @@ namespace TwelveMonthCalendar
                 ? _commonDaysInYear + 0.2425
                 : _commonDaysInYear;
             return (float)Math.Max(0.01, Math.Min(1.0, _nativeDaysInYear / averageDays));
+        }
+
+        private static float NormalizePacingMultiplier(float value, float fallback)
+        {
+            return IsFinite(value)
+                ? Math.Max(MinimumPacingMultiplier, Math.Min(MaximumPacingMultiplier, value))
+                : fallback;
+        }
+
+        internal static float ConvertLegacyFastForwardPacingToSpeed(float legacyPacing)
+        {
+            if (!IsFinite(legacyPacing))
+            {
+                return DefaultFastForwardTimeMultiplier;
+            }
+
+            float normalizedLegacyPacing = Math.Max(0.1f, Math.Min(10f, legacyPacing));
+            return NormalizePacingMultiplier(
+                normalizedLegacyPacing * DefaultFastForwardTimeMultiplier,
+                DefaultFastForwardTimeMultiplier);
         }
     }
 }

@@ -2,6 +2,36 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## v1.4.5 - Realistic Calendar Tweaks
+
+### Module, saves, and settings
+
+- Renamed the module and its internal ID to **Realistic Calendar Tweaks**.
+- Added a lightweight `_TwelveMonthCalendar` legacy bridge so existing calendar
+  saves can be migrated without keeping the old runtime DLL active.
+- Replaced the explicit save-compatibility marker with a primitive soft campaign
+  profile. New saves no longer receive the calendar's hard module-lock marker.
+- Migrates standalone XML settings and MCM values into the new
+  `RealisticCalendarTweaks` settings identity.
+
+### Campaign controls and life cycle
+
+- Normal map pace is fixed at the Gregorian base cadence.
+- Added one live-safe **Fast-Forward Speed Multiplier** setting, using
+  Bannerlord's native `Campaign.SpeedUpMultiplier`: 1x-128x, default 4x.
+- Added a configurable **Lord Death Rate Multiplier**, defaulting to 0.20.
+  It scales ordinary noble-lord old-age and battle mortality while leaving
+  executions and scripted deaths unchanged.
+- Added the mortality and fast-forward controls to the native Calendar tab,
+  optional MCM page, and standalone XML settings file.
+
+### Packaging and diagnostics
+
+- Removed the retired Better Time adapter DLL and its UI dependency.
+- Renamed diagnostics and crash-report files to `RealisticCalendarTweaks`.
+- Release verification now asserts the renamed module, legacy bridge, direct
+  fast-forward implementation, mortality wrappers, and an adapter-free ZIP.
+
 ## v1.3 — Production and balance update
 
 ### Calendar and interface

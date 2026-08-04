@@ -5,8 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{5F0A8CB8-2D17-4E0C-9C84-2A0B1E0F5E7D}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>TwelveMonthCalendar</RootNamespace>
-    <AssemblyName>TwelveMonthCalendar</AssemblyName>
+    <RootNamespace>RealisticCalendarTweaks</RootNamespace>
+    <AssemblyName>RealisticCalendarTweaks</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -116,11 +116,13 @@
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.2.2" />
     <Compile Include="MySubModule.cs" />
+    <Compile Include="RealisticCalendarTweaksSubModule.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="CrashFlightRecorder.cs" />
     <Compile Include="CalendarDiagnosticsBehavior.cs" />
     <Compile Include="CalendarTreatyMigrationBehavior.cs" />
     <Compile Include="CalendarSaveCompatibility.cs" />
+    <Compile Include="CalendarPatchSafetyAudit.cs" />
     <Compile Include="CalendarOptionsTabPatch.cs" />
     <Compile Include="CalendarSettingsState.cs" />
     <Compile Include="OptionalMcmIntegration.cs" />
@@ -129,6 +131,7 @@
     <Compile Include="CampaignTimeCalendarPatches.cs" />
     <Compile Include="CampaignTimeToStringPatch.cs" />
     <Compile Include="MapTimeTrackerPatch.cs" />
+    <Compile Include="CampaignPacingPatch.cs" />
     <Compile Include="MapBarSeasonDataSourcePatch.cs" />
     <Compile Include="EconomyAndLifeCyclePatches.cs" />
     <Compile Include="SettlementBalancePatches.cs" />
@@ -145,6 +148,7 @@
     <Compile Include="CalendarPartyImpairmentModel.cs" />
     <Compile Include="CalendarPrisonerRecruitmentModel.cs" />
     <Compile Include="CalendarMarriageModel.cs" />
+    <Compile Include="CalendarLordDeathModels.cs" />
     <Compile Include="CalendarMapTrackModel.cs" />
     <Compile Include="CalendarPregnancyModel.cs" />
     <Compile Include="CalendarTournamentModel.cs" />
@@ -162,7 +166,6 @@
     <None Include="SubModule.xml" />
     <None Include="README.md" />
     <None Include="BUILDING.md" />
-    <None Include="TwelveMonthCalendar.BetterTime.csproj" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -11,6 +11,8 @@ namespace TwelveMonthCalendar
     internal sealed class CalendarTreatyMigrationBehavior : CampaignBehaviorBase
     {
         private const int GregorianTributeTreatyDays = 235;
+        private const string MigrationKey = "RealisticCalendarTweaks.TributeTreatyMigrationV1";
+        private const string LegacyMigrationKey = "TwelveMonthCalendar.TributeTreatyMigrationV1";
         private bool _hasMigratedExistingTributes;
 
         public override void RegisterEvents()
@@ -20,7 +22,20 @@ namespace TwelveMonthCalendar
 
         public override void SyncData(IDataStore dataStore)
         {
-            dataStore.SyncData("TwelveMonthCalendar.TributeTreatyMigrationV1", ref _hasMigratedExistingTributes);
+            if (dataStore.IsLoading)
+            {
+                bool currentValuePresent = dataStore.SyncData(
+                    MigrationKey,
+                    ref _hasMigratedExistingTributes);
+                if (!currentValuePresent)
+                {
+                    dataStore.SyncData(LegacyMigrationKey, ref _hasMigratedExistingTributes);
+                }
+
+                return;
+            }
+
+            dataStore.SyncData(MigrationKey, ref _hasMigratedExistingTributes);
         }
 
         private void OnSessionLaunched(CampaignGameStarter campaignStarter)
