@@ -115,6 +115,40 @@ if ($pacingSource -notmatch 'SpeedUpMultiplier' -or
     $pacingSource -match 'realDt \*=') {
     throw 'Fast-forward speed must use Bannerlord''s direct SpeedUpMultiplier without stacking a TickMapTime multiplier.'
 }
+$settingsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarSettingsState.cs')
+$optionsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarOptionsTabPatch.cs')
+$mcmSettingsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'McmSettings.cs')
+$calendarOptionItemSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionItem.xml')
+if ($settingsSource -notmatch 'DefaultCampaignTimeScale = 0\.23f' -or
+    $settingsSource -notmatch 'requestedAutoCampaignTimeScale[\s\S]{0,120}\? DefaultCampaignTimeScale' -or
+    $settingsSource -match 'ApplyCampaignStartSetting\([\s\S]{0,160}AutoCampaignTimeScale' -or
+    $optionsSource -notmatch 'new OptionGroup\(new TextObject\("Pacing"\)' -or
+    $optionsSource -notmatch 'CalendarNumericOptionDataVM' -or
+    $optionsSource -notmatch 'CalendarBooleanOptionDataVM' -or
+    $optionsSource -notmatch 'base\("Benchmark", action\)' -or
+    $optionsSource -notmatch 'ActionName = calendarAction\.DisplayActionName' -or
+    $optionsSource -notmatch 'HarmonyPatch\(typeof\(ActionOptionDataVM\), nameof\(ActionOptionDataVM\.RefreshValues\)\)' -or
+    $optionsSource -notmatch 'HarmonyPatch\(typeof\(ActionOptionDataVM\), "ExecuteAction"\)' -or
+    $optionsSource -notmatch 'calendarAction\.Execute\(\)' -or
+    $optionsSource -notmatch 'const bool nativeCalendarSettingsEnabled = true' -or
+    $optionsSource -notmatch 'RefreshCampaignPacingControls' -or
+    $optionsSource -notmatch 'option\.Name != "Automatic Campaign Time Scale"' -or
+    $optionsSource -notmatch 'new CalendarBooleanOptionData\(\s*"Annual Balance Enabled"' -or
+    $optionsSource -notmatch 'Reset Pacing' -or
+    $optionsSource -notmatch 'Reset Annual Balance' -or
+    $optionsSource -notmatch 'RefreshCalendarOptions\(\)' -or
+    $optionsSource -match 'Reset Diagnostics' -or
+    $settingsSource -notmatch 'ResetCalendarCategory' -or
+    $optionsSource -match 'nativeCalendarSettingsEnabled = !OptionalMcmIntegration\.IsSettingsRegistered' -or
+    $optionsSource -match 'base\("Calendar(MonthNames|SeasonNames|MonthLengths)", action\)' -or
+    $optionsSource -notmatch 'SetValue\(Math\.Max\(Min, Math\.Min\(Max, value\)\)\)' -or
+    $optionsSource -match 'Fixed Pregnancy Duration \(Days\)' -or
+    $mcmSettingsSource -match 'Fixed Pregnancy Duration \(Days\)' -or
+    $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteDecrease"' -or
+    $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteIncrease"' -or
+    $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteToggle"') {
+    throw 'Campaign pacing must reset live to the exact 0.23 automatic default; Calendar sliders and toggles must write through their view models; and fixed pregnancy days must stay out of the settings UI.'
+}
 $lordDeathSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarLordDeathModels.cs')
 if ($lordDeathSource -notmatch 'CalendarHeroDeathProbabilityModel' -or
     $lordDeathSource -notmatch 'CalendarLordBattleSurvivalModel' -or
@@ -132,10 +166,14 @@ $mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTwe
 $mcmDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.MCM.dll'
 $harmonyDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\0Harmony.dll'
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
+$moduleStrings = Join-Path $ModuleRoot 'ModuleData\module_strings.xml'
 $readme = Join-Path $ModuleRoot 'README.md'
 $optionsXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\Options.xml'
+$optionItemXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\OptionItem.xml'
+$calendarOptionItemXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionItem.xml'
+$calendarOptionsGroupedPageXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionsGroupedPage.xml'
 $mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
-$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $mapBarXml)
+$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
@@ -151,15 +189,19 @@ $calendarDate = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterP
 if ($calendarDate.Count -ne 1) {
     throw 'Map bar must contain exactly one calendar date label.'
 }
-if ($calendarDate[0].PositionYOffset -ne '-2' -or $calendarDate[0].'Brush.FontSize' -ne '17') {
-    throw 'Map bar calendar date must retain Y=-2 and 17-point text.'
+if ($calendarDate[0].PositionYOffset -ne '-2' -or $calendarDate[0].'Brush.FontSize' -ne '20') {
+    throw 'Map bar calendar date must retain Y=-2 and 20-point text.'
 }
-if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXOffset -ne '-50') {
-    throw 'Map bar calendar date must move 20 pixels left while preserving sundial clearance.'
+if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXOffset -ne '-25') {
+    throw 'Map bar calendar date must retain its requested five-pixel right adjustment while preserving sundial clearance.'
 }
 $seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Season"]'))
-if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].PositionXOffset -ne '95' -or $seasonLabel[0].VerticalAlignment -ne 'Bottom' -or $seasonLabel[0].PositionYOffset -ne '-4') {
-    throw 'Map bar season label must be independently placed two pixels higher at the marked position.'
+if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].HorizontalAlignment -ne 'Center' -or $seasonLabel[0].PositionXOffset -ne '45' -or $seasonLabel[0].VerticalAlignment -ne 'Center' -or $seasonLabel[0].PositionYOffset -ne '0') {
+    throw 'Map bar season label must be independently placed just right of the sundial before the time controls.'
+}
+$clockLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@TimeOfDay"]'))
+if ($clockLabel.Count -ne 1 -or $clockLabel[0].PositionXOffset -ne '35' -or $clockLabel[0].PositionYOffset -ne '18' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '18') {
+    throw 'Map bar clock must remain below the calendar date.'
 }
 
 $binaryText = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($mainDll))
@@ -184,6 +226,15 @@ if ($manifest.Module.Id.value -ne 'RealisticCalendarTweaks' -or
     throw 'The primary module manifest must use the RealisticCalendarTweaks ID and display name.'
 }
 
+[xml]$moduleText = Get-Content -Raw -LiteralPath $moduleStrings
+foreach ($optionId in @('CalendarMonthNames', 'CalendarSeasonNames', 'CalendarMonthLengths')) {
+    if (@($moduleText.strings.string | Where-Object { $_.id -eq ('str_options_type.' + $optionId) }).Count -ne 1 -or
+        @($moduleText.strings.string | Where-Object { $_.id -eq ('str_options_type_action.' + $optionId) }).Count -ne 1 -or
+        @($moduleText.strings.string | Where-Object { $_.id -eq ('str_options_description.' + $optionId) }).Count -ne 1) {
+        throw "Calendar action localization is incomplete for option ID: $optionId"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ReleaseArchive)) {
     $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\RealisticCalendarTweaks-{0}.zip" -f $version)
 }
@@ -199,11 +250,16 @@ $moduleStage = Join-Path $stagingRoot 'RealisticCalendarTweaks'
 try {
     New-Item -ItemType Directory -Force -Path `
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
+        (Join-Path $moduleStage 'ModuleData'), `
         (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
         (Join-Path $moduleStage 'GUI\Prefabs\Map') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
+    Copy-Item -LiteralPath $moduleStrings -Destination (Join-Path $moduleStage 'ModuleData')
     Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
     Copy-Item -LiteralPath $optionsXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
+    Copy-Item -LiteralPath $optionItemXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
+    Copy-Item -LiteralPath $calendarOptionItemXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
+    Copy-Item -LiteralPath $calendarOptionsGroupedPageXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
     Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
     Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
 }
@@ -217,10 +273,14 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $expectedEntries = @(
     'RealisticCalendarTweaks/README.md',
     'RealisticCalendarTweaks/SubModule.xml',
+    'RealisticCalendarTweaks/ModuleData/module_strings.xml',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/0Harmony.dll',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.dll',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll',
     'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/Options.xml',
+    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/OptionItem.xml',
+    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/CalendarOptionItem.xml',
+    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/CalendarOptionsGroupedPage.xml',
     'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml'
 )
 $archive = [IO.Compression.ZipFile]::OpenRead($ReleaseArchive)

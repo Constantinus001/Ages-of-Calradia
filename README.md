@@ -1,6 +1,6 @@
 # Realistic Calendar Tweaks
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete v1.0-to-v1.4.5 patch notes.
+See [CHANGELOG.md](CHANGELOG.md) for the complete v1.0-to-v1.5.0 patch notes.
 
 This Bannerlord v1.4.7 module changes the campaign calendar to a 365-day year
 with Gregorian-style month lengths:
@@ -52,8 +52,8 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 
 ## Build and release verification
 
-Release archives contain the complete single runtime module: module XML, README,
-Harmony dependency, compiled module DLLs, and UI prefab XML files. The retired
+Release archives contain the complete single runtime module: module XML, module
+strings, README, Harmony dependency, compiled module DLLs, and UI prefab XML files. The retired
 Better Time adapter and the old-module save bridge are intentionally excluded.
 Development and verification scripts, logs, debug symbols, and backups are
 intentionally excluded.
@@ -159,7 +159,7 @@ toggles. For example:
 ```xml
 <RealisticCalendarTweaks UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
   UseOrdinalDaySuffixes="true"
-  AutoCampaignTimeScale="true" CampaignTimeScale="0.2299842"
+  AutoCampaignTimeScale="true" CampaignTimeScale="0.23"
   FastForwardSpeedMultiplier="4"
   DateFormat="{Month} {Day} {Year}"
   NativeDaysInYear="84" UseCalendarMonthPregnancy="true"

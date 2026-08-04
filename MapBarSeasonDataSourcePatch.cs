@@ -12,6 +12,7 @@ namespace TwelveMonthCalendar
     {
         private bool _seasonRefreshFailureLogged;
         private string _season = string.Empty;
+        private string _timeOfDay = string.Empty;
 
         internal CalendarMapTimeControlVM(
             Func<MapBarShortcuts> getMapBarShortcuts,
@@ -33,6 +34,19 @@ namespace TwelveMonthCalendar
                 if (string.Equals(_season, normalized, StringComparison.Ordinal)) return;
                 _season = normalized;
                 OnPropertyChangedWithValue(_season, "Season");
+            }
+        }
+
+        [DataSourceProperty]
+        public string TimeOfDay
+        {
+            get { return _timeOfDay; }
+            private set
+            {
+                string normalized = value ?? string.Empty;
+                if (string.Equals(_timeOfDay, normalized, StringComparison.Ordinal)) return;
+                _timeOfDay = normalized;
+                OnPropertyChangedWithValue(_timeOfDay, "TimeOfDay");
             }
         }
 
@@ -69,6 +83,7 @@ namespace TwelveMonthCalendar
             {
                 Date = CalendarFormatter.Format(CampaignTime.Now);
                 RefreshSeason();
+                RefreshClock();
             }
             catch (Exception exception)
             {
@@ -77,6 +92,31 @@ namespace TwelveMonthCalendar
         }
 
         private void OnCalendarSettingsChanged() { RefreshCalendarDisplay(); }
+
+        internal void RefreshClock()
+        {
+            try
+            {
+                float hourInDay = CampaignTime.Now.CurrentHourInDay;
+                int totalMinutes = Math.Max(0, Math.Min(1439, (int)Math.Floor(hourInDay * 60f)));
+                int hour = totalMinutes / 60;
+                int minute = totalMinutes % 60;
+                if (CalendarSettingsState.Use24HourClock)
+                {
+                    TimeOfDay = string.Format("{0:00}:{1:00}", hour, minute);
+                    return;
+                }
+
+                string meridiem = hour < 12 ? "AM" : "PM";
+                int twelveHour = hour % 12;
+                TimeOfDay = string.Format("{0}:{1:00} {2}", twelveHour == 0 ? 12 : twelveHour, minute, meridiem);
+            }
+            catch (Exception exception)
+            {
+                TimeOfDay = string.Empty;
+                Diagnostics.Error("Map-bar clock refresh failed.", exception);
+            }
+        }
     }
 
     /// <summary>
@@ -140,7 +180,11 @@ namespace TwelveMonthCalendar
         private static void Postfix(MapTimeControlVM __instance)
         {
             CalendarMapTimeControlVM calendarTimeControl = __instance as CalendarMapTimeControlVM;
-            if (calendarTimeControl != null) calendarTimeControl.RefreshSeason();
+            if (calendarTimeControl != null)
+            {
+                calendarTimeControl.RefreshSeason();
+                calendarTimeControl.RefreshClock();
+            }
         }
     }
 }

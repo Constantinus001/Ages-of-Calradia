@@ -25,7 +25,9 @@ namespace TwelveMonthCalendar
         private const int RequiredCommonDaysInYear = 365;
         private const string DefaultDateFormat = "{Month} {Day} {Year}";
         private const bool DefaultUseOrdinalDaySuffixes = true;
+        private const bool DefaultUse24HourClock = true;
         internal const int DefaultNativeDaysInYear = 84;
+        public const float DefaultCampaignTimeScale = 0.23f;
         internal const float DefaultPregnancyDurationInDays = 273.75f;
         internal const int DefaultPregnancyDurationMonths = 9;
         internal const float DefaultRenownGainMultiplier = 0.5f;
@@ -60,7 +62,8 @@ namespace TwelveMonthCalendar
         private static bool _showDayLabel;
         private static bool _showYearLabel;
         private static bool _useOrdinalDaySuffixes = DefaultUseOrdinalDaySuffixes;
-        private static float _campaignTimeScale = 84f / 365.2425f;
+        private static bool _use24HourClock = DefaultUse24HourClock;
+        private static float _campaignTimeScale = DefaultCampaignTimeScale;
         private static bool _autoCampaignTimeScale = true;
         private static float _fastForwardTimeMultiplier = DefaultFastForwardTimeMultiplier;
         private static string _dateFormat = DefaultDateFormat;
@@ -111,6 +114,11 @@ namespace TwelveMonthCalendar
         public static bool UseOrdinalDaySuffixes
         {
             get { lock (SyncRoot) return _useOrdinalDaySuffixes; }
+        }
+
+        public static bool Use24HourClock
+        {
+            get { lock (SyncRoot) return _use24HourClock; }
         }
 
         public static float CampaignTimeScale
@@ -496,6 +504,7 @@ namespace TwelveMonthCalendar
             float? renownGainMultiplier = null,
             float? lordDeathRateMultiplier = null,
             bool? useOrdinalDaySuffixes = null,
+            bool? use24HourClock = null,
             bool? balancePartyImpairment = null,
             bool? balancePrisonerRecruitment = null,
             bool? balanceNpcMarriage = null,
@@ -527,6 +536,7 @@ namespace TwelveMonthCalendar
                 _showDayLabel = showDayLabel;
                 _showYearLabel = showYearLabel;
                 _useOrdinalDaySuffixes = useOrdinalDaySuffixes ?? _useOrdinalDaySuffixes;
+                _use24HourClock = use24HourClock ?? _use24HourClock;
                 _dateFormat = NormalizeDateFormat(dateFormat);
 
                 ApplyMonthNames(monthNames);
@@ -579,19 +589,16 @@ namespace TwelveMonthCalendar
                 ApplyCampaignStartSetting(ref _balanceQuestDeadlines, balanceQuestDeadlines, "BalanceQuestDeadlines");
                 _annualBalanceDiagnosticsEnabled = annualBalanceDiagnosticsEnabled ?? _annualBalanceDiagnosticsEnabled;
                 bool requestedAutoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
-                ApplyCampaignStartSetting(
-                    ref _autoCampaignTimeScale,
-                    requestedAutoCampaignTimeScale,
-                    "AutoCampaignTimeScale");
+                // Campaign pacing changes only affect future map-time ticks, so
+                // unlike simulation-profile values this control is safe to use
+                // during an active campaign.
+                _autoCampaignTimeScale = requestedAutoCampaignTimeScale;
                 float normalizedCampaignTimeScale = requestedAutoCampaignTimeScale
-                    ? GetAutomaticCampaignTimeScale()
+                    ? DefaultCampaignTimeScale
                     : IsFinite(campaignTimeScale)
                         ? Math.Max(0.01f, Math.Min(1.0f, campaignTimeScale))
-                        : GetAutomaticCampaignTimeScale();
-                ApplyCampaignStartSetting(
-                    ref _campaignTimeScale,
-                    normalizedCampaignTimeScale,
-                    "CampaignTimeScale");
+                        : DefaultCampaignTimeScale;
+                _campaignTimeScale = normalizedCampaignTimeScale;
                 // Fast-forward is intentionally runtime-safe. Campaign.TickMapTime
                 // applies it on its next fast-forward tick through Bannerlord's
                 // own SpeedUpMultiplier; it does not reinterpret saved time.
@@ -602,12 +609,13 @@ namespace TwelveMonthCalendar
 
             Diagnostics.Info(
                 string.Format(
-                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; TimeScale={5:F6}; NormalPace=fixed; FastForwardSpeed={6:F0}; LordDeathRate={7:F3}; DateFormat={8}",
+                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; Clock24Hour={5}; TimeScale={6:F6}; NormalPace=fixed; FastForwardSpeed={7:F0}; LordDeathRate={8:F3}; DateFormat={9}",
                     FixedCalendarSystem,
                     UseLeapYears,
                     ShowDayLabel,
                     ShowYearLabel,
                     UseOrdinalDaySuffixes,
+                    Use24HourClock,
                     CampaignTimeScale,
                     FastForwardTimeMultiplier,
                     LordDeathRateMultiplier,
@@ -623,7 +631,7 @@ namespace TwelveMonthCalendar
                 true,
                 false,
                 false,
-                GetAutomaticCampaignTimeScale(),
+                DefaultCampaignTimeScale,
                 DefaultDateFormat,
                 (string[])DefaultMonthNames.Clone(),
                 (int[])DefaultMonthLengths.Clone(),
@@ -636,6 +644,7 @@ namespace TwelveMonthCalendar
                 DefaultRenownGainMultiplier,
                 lordDeathRateMultiplier: DefaultLordDeathRateMultiplier,
                 useOrdinalDaySuffixes: DefaultUseOrdinalDaySuffixes,
+                use24HourClock: DefaultUse24HourClock,
                 balancePartyImpairment: true,
                 balancePrisonerRecruitment: true,
                 balanceNpcMarriage: true,
@@ -646,6 +655,26 @@ namespace TwelveMonthCalendar
                 fastForwardTimeMultiplier: DefaultFastForwardTimeMultiplier);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
+        }
+
+        internal static void ResetCalendarCategory()
+        {
+            lock (SyncRoot)
+            {
+                if (!_campaignSessionStarted)
+                {
+                    _useLeapYears = true;
+                    Array.Copy(DefaultMonthLengths, _monthLengths, DefaultMonthLengths.Length);
+                    RebuildMonthCache();
+                }
+
+                Array.Copy(DefaultMonthNames, _monthNames, DefaultMonthNames.Length);
+                Array.Copy(DefaultSeasonNames, _seasonNames, DefaultSeasonNames.Length);
+            }
+
+            Save();
+            NotifySettingsChanged();
+            Diagnostics.Info("Calendar category settings reset to defaults.");
         }
 
         internal static void MarkCampaignSessionStarted()
@@ -691,7 +720,9 @@ namespace TwelveMonthCalendar
 
                 RebuildMonthCache();
                 _autoCampaignTimeScale = profile.AutoCampaignTimeScale;
-                _campaignTimeScale = Math.Max(0.01f, Math.Min(1f, profile.CampaignTimeScale));
+                _campaignTimeScale = _autoCampaignTimeScale
+                    ? DefaultCampaignTimeScale
+                    : Math.Max(0.01f, Math.Min(1f, profile.CampaignTimeScale));
                 _fastForwardTimeMultiplier = NormalizePacingMultiplier(
                     profile.FastForwardTimeMultiplier,
                     DefaultFastForwardTimeMultiplier);
@@ -727,11 +758,8 @@ namespace TwelveMonthCalendar
             switch (settingName)
             {
                 case "Use Leap Years":
-                case "Automatic Campaign Time Scale":
-                case "Campaign Time Scale":
                 case "Use Calendar-Month Pregnancy":
                 case "Pregnancy Duration (Months)":
-                case "Fixed Pregnancy Duration (Days)":
                 case "Renown Gain Multiplier":
                 case "Lord Death Rate Multiplier":
                 case "Balance Party Impairment":
@@ -779,7 +807,7 @@ namespace TwelveMonthCalendar
                     ReadBoolean(root, "UseLeapYears", true),
                     ReadBoolean(root, "ShowDayLabel", false),
                     ReadBoolean(root, "ShowYearLabel", false),
-                    ReadFloat(root, "CampaignTimeScale", 84f / 365.2425f),
+                    ReadFloat(root, "CampaignTimeScale", DefaultCampaignTimeScale),
                     ReadAttribute(root, "DateFormat", DefaultDateFormat),
                     ReadMonthNames(root),
                     ReadMonthLengths(root),
@@ -795,6 +823,7 @@ namespace TwelveMonthCalendar
                         "LordDeathRateMultiplier",
                         DefaultLordDeathRateMultiplier),
                     useOrdinalDaySuffixes: ReadBoolean(root, "UseOrdinalDaySuffixes", DefaultUseOrdinalDaySuffixes),
+                    use24HourClock: ReadBoolean(root, "Use24HourClock", DefaultUse24HourClock),
                     balancePartyImpairment: ReadBoolean(root, "BalancePartyImpairment", true),
                     balancePrisonerRecruitment: ReadBoolean(root, "BalancePrisonerRecruitment", true),
                     balanceNpcMarriage: ReadBoolean(root, "BalanceNpcMarriage", true),
@@ -837,6 +866,7 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("ShowDayLabel", ShowDayLabel.ToString());
                 root.SetAttribute("ShowYearLabel", ShowYearLabel.ToString());
                 root.SetAttribute("UseOrdinalDaySuffixes", UseOrdinalDaySuffixes.ToString());
+                root.SetAttribute("Use24HourClock", Use24HourClock.ToString());
                 root.SetAttribute("CampaignTimeScale", CampaignTimeScale.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("AutoCampaignTimeScale", AutoCampaignTimeScale.ToString());
                 root.SetAttribute(
@@ -1199,14 +1229,6 @@ namespace TwelveMonthCalendar
             }
 
             return normalized;
-        }
-
-        private static float GetAutomaticCampaignTimeScale()
-        {
-            double averageDays = _useLeapYears
-                ? _commonDaysInYear + 0.2425
-                : _commonDaysInYear;
-            return (float)Math.Max(0.01, Math.Min(1.0, _nativeDaysInYear / averageDays));
         }
 
         private static float NormalizePacingMultiplier(float value, float fallback)

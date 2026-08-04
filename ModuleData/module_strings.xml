@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<strings>
+  <string id="str_options_type.CalendarMonthNames" text="{=RCTCalendarMonthNames}Calendar Month Names" />
+  <string id="str_options_type_action.CalendarMonthNames" text="{=RCTEditCalendarMonthNames}Edit Month Names" />
+  <string id="str_options_description.CalendarMonthNames" text="{=RCTCalendarMonthNamesDescription}Edit all twelve month names in one pipe-separated text field." />
+
+  <string id="str_options_type.CalendarSeasonNames" text="{=RCTCalendarSeasonNames}Calendar Season Names" />
+  <string id="str_options_type_action.CalendarSeasonNames" text="{=RCTEditCalendarSeasonNames}Edit Season Names" />
+  <string id="str_options_description.CalendarSeasonNames" text="{=RCTCalendarSeasonNamesDescription}Edit all four season names in one pipe-separated text field." />
+
+  <string id="str_options_type.CalendarMonthLengths" text="{=RCTCalendarMonthLengths}Calendar Month Lengths" />
+  <string id="str_options_type_action.CalendarMonthLengths" text="{=RCTEditCalendarMonthLengths}Edit Month Lengths" />
+  <string id="str_options_description.CalendarMonthLengths" text="{=RCTCalendarMonthLengthsDescription}Edit twelve month lengths totaling exactly 365 days." />
+</strings>

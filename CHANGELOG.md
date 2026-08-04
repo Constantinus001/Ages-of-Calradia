@@ -2,6 +2,18 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## v1.5.0 - Calendar settings and map-bar update
+
+- Added a fully interactive native Calendar settings page with categories,
+  slider arrow controls, per-category resets, and an Annual Balance master toggle.
+- Fixed Calendar action rows so editors and reset buttons execute their own
+  callbacks after UI refreshes instead of invoking Bannerlord's Benchmark action.
+- Added configurable 12/24-hour map time, moved the season label next to the
+  time controls, and refined the calendar date and clock placement.
+- Made automatic campaign pacing default to 0.23 and restore that state when
+  the campaign scale is returned to 0.23.
+- Removed fixed pregnancy-duration-days from the settings UI.
+
 ## v1.4.6 - Single-module package
 
 - Removed the `_TwelveMonthCalendar` legacy save bridge from the release ZIP

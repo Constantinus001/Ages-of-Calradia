@@ -12,6 +12,7 @@ namespace RealisticCalendarTweaks.MCM
         private bool _showDayLabel = CalendarSettingsState.ShowDayLabel;
         private bool _showYearLabel = CalendarSettingsState.ShowYearLabel;
         private bool _useOrdinalDaySuffixes = CalendarSettingsState.UseOrdinalDaySuffixes;
+        private bool _use24HourClock = CalendarSettingsState.Use24HourClock;
         private float _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
         private bool _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
         private float _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
@@ -36,20 +37,6 @@ namespace RealisticCalendarTweaks.MCM
         public override string DisplayName => "Realistic Calendar Tweaks";
         public override string FolderName => "RealisticCalendarTweaks";
         public override string FormatType => "json";
-
-        [SettingPropertyBool("Use Leap Years", Order = 0, RequireRestart = true,
-            HintText = "Adds February 29 using the Gregorian leap-year rule.")]
-        [SettingPropertyGroup("Calendar")]
-        public bool UseLeapYears
-        {
-            get { return _useLeapYears; }
-            set
-            {
-                _useLeapYears = value;
-                Apply();
-                OnPropertyChanged();
-            }
-        }
 
         [SettingPropertyText("Month Names", Order = 1, RequireRestart = false,
             HintText = "Twelve names separated by |. Example: January|February|...|December. Each name is limited to 24 characters.")]
@@ -136,7 +123,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Campaign Time Scale", 0.01f, 1.0f, "0.000", Order = 4,
-            RequireRestart = true, HintText = "Controls how quickly campaign time advances. Default is 0.230.")]
+            RequireRestart = false, HintText = "Controls how quickly campaign time advances. Default is 0.230.")]
         [SettingPropertyGroup("Economy")]
         public float CampaignTimeScale
         {
@@ -144,13 +131,15 @@ namespace RealisticCalendarTweaks.MCM
             set
             {
                 _campaignTimeScale = value;
+                _autoCampaignTimeScale = false;
                 Apply();
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(AutoCampaignTimeScale));
             }
         }
 
-        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 5, RequireRestart = true,
-            HintText = "Derives pacing from the configured native and calendar year lengths.")]
+        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 5, RequireRestart = false,
+            HintText = "Keeps campaign pacing at the fixed default of 0.230. Turning it off enables custom pacing.")]
         [SettingPropertyGroup("Economy")]
         public bool AutoCampaignTimeScale
         {
@@ -158,6 +147,25 @@ namespace RealisticCalendarTweaks.MCM
             set
             {
                 _autoCampaignTimeScale = value;
+                if (value)
+                {
+                    _campaignTimeScale = CalendarSettingsState.DefaultCampaignTimeScale;
+                }
+                Apply();
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CampaignTimeScale));
+            }
+        }
+
+        [SettingPropertyBool("Use 24-Hour Clock", Order = 4, RequireRestart = false,
+            HintText = "Shows the campaign clock below the map-bar date as 24-hour time. Turn off for 12-hour AM/PM time.")]
+        [SettingPropertyGroup("Display")]
+        public bool Use24HourClock
+        {
+            get { return _use24HourClock; }
+            set
+            {
+                _use24HourClock = value;
                 Apply();
                 OnPropertyChanged();
             }
@@ -215,20 +223,6 @@ namespace RealisticCalendarTweaks.MCM
             set
             {
                 _pregnancyDurationMonths = value;
-                Apply();
-                OnPropertyChanged();
-            }
-        }
-
-        [SettingPropertyFloatingInteger("Fixed Pregnancy Duration (Days)", 0.1f, 10000f, "0.00", Order = 9,
-            RequireRestart = true, HintText = "Fallback duration when calendar-month pregnancy is disabled.")]
-        [SettingPropertyGroup("Life Cycle")]
-        public float PregnancyDurationInDays
-        {
-            get { return _pregnancyDurationInDays; }
-            set
-            {
-                _pregnancyDurationInDays = value;
                 Apply();
                 OnPropertyChanged();
             }
@@ -386,6 +380,7 @@ namespace RealisticCalendarTweaks.MCM
                 renownGainMultiplier: _renownGainMultiplier,
                 lordDeathRateMultiplier: _lordDeathRateMultiplier,
                 useOrdinalDaySuffixes: _useOrdinalDaySuffixes,
+                use24HourClock: _use24HourClock,
                 balancePartyImpairment: _balancePartyImpairment,
                 balancePrisonerRecruitment: _balancePrisonerRecruitment,
                 balanceNpcMarriage: _balanceNpcMarriage,
@@ -410,6 +405,7 @@ namespace RealisticCalendarTweaks.MCM
                 _showDayLabel = CalendarSettingsState.ShowDayLabel;
                 _showYearLabel = CalendarSettingsState.ShowYearLabel;
                 _useOrdinalDaySuffixes = CalendarSettingsState.UseOrdinalDaySuffixes;
+                _use24HourClock = CalendarSettingsState.Use24HourClock;
                 _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
                 _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
                 _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
@@ -443,20 +439,19 @@ namespace RealisticCalendarTweaks.MCM
             }
 
             SyncFromCoreState();
-            OnPropertyChanged(nameof(UseLeapYears));
             OnPropertyChanged(nameof(MonthNamesDelimited));
             OnPropertyChanged(nameof(SeasonNamesDelimited));
             OnPropertyChanged(nameof(MonthLengthsDelimited));
             OnPropertyChanged(nameof(ShowDayLabel));
             OnPropertyChanged(nameof(ShowYearLabel));
             OnPropertyChanged(nameof(UseOrdinalDaySuffixes));
+            OnPropertyChanged(nameof(Use24HourClock));
             OnPropertyChanged(nameof(CampaignTimeScale));
             OnPropertyChanged(nameof(AutoCampaignTimeScale));
             OnPropertyChanged(nameof(FastForwardTimeMultiplier));
             OnPropertyChanged(nameof(DateFormat));
             OnPropertyChanged(nameof(UseCalendarMonthPregnancy));
             OnPropertyChanged(nameof(PregnancyDurationMonths));
-            OnPropertyChanged(nameof(PregnancyDurationInDays));
             OnPropertyChanged(nameof(RenownGainMultiplier));
             OnPropertyChanged(nameof(LordDeathRateMultiplier));
             OnPropertyChanged(nameof(BalancePartyImpairment));
