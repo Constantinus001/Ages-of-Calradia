@@ -128,8 +128,8 @@ if ($settingsSource -notmatch 'DefaultCampaignTimeScale = 0\.23f' -or
     $optionsSource -notmatch 'base\("Benchmark", action\)' -or
     $optionsSource -notmatch 'ActionName = calendarAction\.DisplayActionName' -or
     $optionsSource -notmatch 'HarmonyPatch\(typeof\(ActionOptionDataVM\), nameof\(ActionOptionDataVM\.RefreshValues\)\)' -or
-    $optionsSource -notmatch 'HarmonyPatch\(typeof\(ActionOptionDataVM\), "ExecuteAction"\)' -or
-    $optionsSource -notmatch 'calendarAction\.Execute\(\)' -or
+    $optionsSource -notmatch 'CompleteCategoryReset' -or
+    $optionsSource -notmatch 'InformationManager\.DisplayMessage\(new InformationMessage' -or
     $optionsSource -notmatch 'const bool nativeCalendarSettingsEnabled = true' -or
     $optionsSource -notmatch 'RefreshCampaignPacingControls' -or
     $optionsSource -notmatch 'option\.Name != "Automatic Campaign Time Scale"' -or
@@ -196,11 +196,11 @@ if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXO
     throw 'Map bar calendar date must retain its requested five-pixel right adjustment while preserving sundial clearance.'
 }
 $seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Season"]'))
-if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].HorizontalAlignment -ne 'Center' -or $seasonLabel[0].PositionXOffset -ne '45' -or $seasonLabel[0].VerticalAlignment -ne 'Center' -or $seasonLabel[0].PositionYOffset -ne '0') {
+if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].HorizontalAlignment -ne 'Center' -or $seasonLabel[0].PositionXOffset -ne '65' -or $seasonLabel[0].VerticalAlignment -ne 'Center' -or $seasonLabel[0].PositionYOffset -ne '0') {
     throw 'Map bar season label must be independently placed just right of the sundial before the time controls.'
 }
 $clockLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@TimeOfDay"]'))
-if ($clockLabel.Count -ne 1 -or $clockLabel[0].PositionXOffset -ne '35' -or $clockLabel[0].PositionYOffset -ne '18' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '18') {
+if ($clockLabel.Count -ne 1 -or $clockLabel[0].PositionXOffset -ne '35' -or $clockLabel[0].PositionYOffset -ne '16' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '18') {
     throw 'Map bar clock must remain below the calendar date.'
 }
 

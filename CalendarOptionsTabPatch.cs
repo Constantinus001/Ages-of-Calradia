@@ -205,7 +205,7 @@ namespace TwelveMonthCalendar
                     "Edit Month Lengths",
                     "Edit twelve pipe-separated month lengths that total exactly 365. This is locked after a campaign session starts.",
                     ShowMonthLengthsEditor),
-                new CalendarActionOptionData("Reset Calendar", "Reset Category", "Restores the Calendar category defaults.", delegate { ResetCalendarCategory(); RefreshCalendarOptions(); })
+                new CalendarActionOptionData("Reset Calendar", "Reset Category", "Restores Calendar defaults. In an active campaign, only custom month and season names can be reset safely.", ResetCalendarCategory)
             };
             List<IOptionData> displayOptions = new List<IOptionData>
             {
@@ -231,7 +231,7 @@ namespace TwelveMonthCalendar
                     new[] { "Day-Month-Year", "Month-Day-Year", "Year-Month-Day" },
                     GetDateFormatIndex,
                     delegate(float value) { Apply(dateFormat: GetDateFormats()[ClampIndex(value, GetDateFormats().Length)]); }),
-                new CalendarActionOptionData("Reset Display", "Reset Category", "Restores the Display category defaults.", delegate { ResetDisplayCategory(); RefreshCalendarOptions(); })
+                new CalendarActionOptionData("Reset Display", "Reset Category", "Restores the Display category defaults.", ResetDisplayCategory)
             };
             List<IOptionData> pacingOptions = new List<IOptionData>
             {
@@ -255,7 +255,7 @@ namespace TwelveMonthCalendar
                     1,
                     delegate { return CalendarSettingsState.FastForwardTimeMultiplier; },
                     delegate(float value) { Apply(fastForwardTimeMultiplier: value); }),
-                new CalendarActionOptionData("Reset Pacing", "Reset Category", "Restores automatic pacing, 0.23 campaign scale, and 4x fast-forward.", delegate { ResetPacingCategory(); RefreshCalendarOptions(); })
+                new CalendarActionOptionData("Reset Pacing", "Reset Category", "Restores automatic pacing, 0.23 campaign scale, and 4x fast-forward.", ResetPacingCategory)
             };
             List<IOptionData> lifeCycleOptions = new List<IOptionData>
             {
@@ -287,7 +287,7 @@ namespace TwelveMonthCalendar
                     0,
                     delegate { return CalendarSettingsState.RenownGainMultiplier; },
                     delegate(float value) { Apply(renownGainMultiplier: value); }),
-                new CalendarActionOptionData("Reset Life Cycle", "Reset Category", "Restores Life Cycle category defaults where the active campaign permits changes.", delegate { ResetLifeCycleCategory(); RefreshCalendarOptions(); })
+                new CalendarActionOptionData("Reset Life Cycle", "Reset Category", "Restores Life Cycle defaults before a campaign starts. Active campaign profiles are kept safe and unchanged.", ResetLifeCycleCategory)
             };
             List<IOptionData> annualBalanceOptions = new List<IOptionData>
             {
@@ -315,7 +315,7 @@ namespace TwelveMonthCalendar
                     "Balance Quest Deadlines",
                     delegate { return CalendarSettingsState.BalanceQuestDeadlines; },
                     delegate(bool value) { Apply(balanceQuestDeadlines: value); }),
-                new CalendarActionOptionData("Reset Annual Balance", "Reset Category", "Enables and restores all Annual Balance category defaults.", delegate { ResetAnnualBalanceCategory(); RefreshCalendarOptions(); })
+                new CalendarActionOptionData("Reset Annual Balance", "Reset Category", "Enables and restores Annual Balance defaults before a campaign starts. Active campaign profiles are kept safe and unchanged.", ResetAnnualBalanceCategory)
             };
             List<IOptionData> diagnosticsOptions = new List<IOptionData>
             {
@@ -941,12 +941,17 @@ namespace TwelveMonthCalendar
                 balanceQuestDeadlines: enabled);
         }
 
-        private static void ResetCalendarCategory()
+        private void ResetCalendarCategory()
         {
             CalendarSettingsState.ResetCalendarCategory();
+            CompleteCategoryReset(
+                "Calendar",
+                CalendarSettingsState.IsCampaignProfileLocked
+                    ? "Calendar names were reset. Month lengths and leap-year rules are locked by this active campaign."
+                    : "Calendar settings were reset.");
         }
 
-        private static void ResetDisplayCategory()
+        private void ResetDisplayCategory()
         {
             Apply(
                 showDayLabel: false,
@@ -954,28 +959,55 @@ namespace TwelveMonthCalendar
                 useOrdinalDaySuffixes: true,
                 use24HourClock: true,
                 dateFormat: "{Month} {Day} {Year}");
+            CompleteCategoryReset("Display", "Display settings were reset.");
         }
 
-        private static void ResetPacingCategory()
+        private void ResetPacingCategory()
         {
             Apply(
                 campaignTimeScale: CalendarSettingsState.DefaultCampaignTimeScale,
                 autoCampaignTimeScale: true,
                 fastForwardTimeMultiplier: 4f);
+            CompleteCategoryReset("Pacing", "Pacing was reset to automatic 0.23 scale and 4x fast-forward.");
         }
 
-        private static void ResetLifeCycleCategory()
+        private void ResetLifeCycleCategory()
         {
+            if (CalendarSettingsState.IsCampaignProfileLocked)
+            {
+                CompleteCategoryReset(
+                    "Life Cycle",
+                    "Life Cycle was not reset: this active campaign owns pregnancy, death, and renown settings.");
+                return;
+            }
+
             Apply(
                 useCalendarMonthPregnancy: true,
                 pregnancyDurationMonths: 9,
                 lordDeathRateMultiplier: 0.20f,
                 renownGainMultiplier: 0.50f);
+            CompleteCategoryReset("Life Cycle", "Life Cycle settings were reset.");
         }
 
-        private static void ResetAnnualBalanceCategory()
+        private void ResetAnnualBalanceCategory()
         {
+            if (CalendarSettingsState.IsCampaignProfileLocked)
+            {
+                CompleteCategoryReset(
+                    "Annual Balance",
+                    "Annual Balance was not reset: this active campaign owns annual-balance settings.");
+                return;
+            }
+
             SetAnnualBalanceEnabled(true);
+            CompleteCategoryReset("Annual Balance", "Annual Balance settings were reset.");
+        }
+
+        private void CompleteCategoryReset(string category, string message)
+        {
+            RefreshCalendarOptions();
+            Diagnostics.Info(category + " category reset action: " + message);
+            InformationManager.DisplayMessage(new InformationMessage(message));
         }
 
         private static void ResetDiagnosticsCategory()
@@ -1115,28 +1147,6 @@ namespace TwelveMonthCalendar
             __instance.Name = calendarAction.DisplayName;
             __instance.Description = calendarAction.Description;
             __instance.ActionName = calendarAction.DisplayActionName;
-        }
-    }
-
-    // The stock action VM routes by its internal action token. Calendar uses
-    // the native Benchmark token only to avoid early GameText lookup failures,
-    // so route Calendar rows directly to their supplied callbacks instead.
-    [HarmonyPatch(typeof(ActionOptionDataVM), "ExecuteAction")]
-    internal static class CalendarActionOptionExecutionPatch
-    {
-        [HarmonyPrefix]
-        private static bool Prefix(ActionOptionDataVM __instance)
-        {
-            CalendarActionOptionData calendarAction = __instance != null
-                ? __instance.GetOptionData() as CalendarActionOptionData
-                : null;
-            if (calendarAction == null)
-            {
-                return true;
-            }
-
-            calendarAction.Execute();
-            return false;
         }
     }
 
@@ -1409,8 +1419,6 @@ namespace TwelveMonthCalendar
     /// </summary>
     internal sealed class CalendarActionOptionData : ActionOptionData
     {
-        private readonly Action _action;
-
         internal CalendarActionOptionData(
             string displayName,
             string displayActionName,
@@ -1425,7 +1433,6 @@ namespace TwelveMonthCalendar
             DisplayName = displayName;
             DisplayActionName = displayActionName;
             Description = description;
-            _action = action;
         }
 
         internal string DisplayName { get; private set; }
@@ -1434,10 +1441,6 @@ namespace TwelveMonthCalendar
 
         internal string Description { get; private set; }
 
-        internal void Execute()
-        {
-            _action();
-        }
     }
 
 }
