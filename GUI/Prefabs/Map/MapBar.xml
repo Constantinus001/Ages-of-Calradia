@@ -115,7 +115,7 @@
                  right, in the marked space before the time-control buttons. -->
             <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="40" HorizontalAlignment="Left" PositionXOffset="-25" VerticalAlignment="Center" PositionYOffset="-2" Brush="MapTextBrushGal" Brush.FontSize="20" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Right" Text="@Date" />
             <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="24" HorizontalAlignment="Left" PositionXOffset="35" VerticalAlignment="Center" PositionYOffset="16" Brush="MapTextBrushGal" Brush.FontSize="18" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@TimeOfDay" />
-            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="85" SuggestedHeight="22" HorizontalAlignment="Center" PositionXOffset="65" VerticalAlignment="Center" PositionYOffset="0" Brush="MapTextBrushGal" Brush.FontSize="16" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@Season" />
+            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="85" SuggestedHeight="22" HorizontalAlignment="Center" PositionXOffset="75" VerticalAlignment="Center" PositionYOffset="0" Brush="MapTextBrushGal" Brush.FontSize="20" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="@Season" />
 
             <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="78" SuggestedHeight="79" HorizontalAlignment="Center" PositionYOffset="-8" VerticalAlignment="Center" Command.Click="ExecuteResetCamera" UpdateChildrenStates="true" >
               <Children>

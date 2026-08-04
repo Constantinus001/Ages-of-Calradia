@@ -121,6 +121,9 @@ $mcmSettingsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'McmSe
 $calendarOptionItemSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionItem.xml')
 if ($settingsSource -notmatch 'DefaultCampaignTimeScale = 0\.23f' -or
     $settingsSource -notmatch 'requestedAutoCampaignTimeScale[\s\S]{0,120}\? DefaultCampaignTimeScale' -or
+    $settingsSource -match 'case "Pregnancy Duration \(Months\)"' -or
+    $settingsSource -match 'case "Lord Death Rate Multiplier"' -or
+    $settingsSource -match 'case "Renown Gain Multiplier"' -or
     $settingsSource -match 'ApplyCampaignStartSetting\([\s\S]{0,160}AutoCampaignTimeScale' -or
     $optionsSource -notmatch 'new OptionGroup\(new TextObject\("Pacing"\)' -or
     $optionsSource -notmatch 'CalendarNumericOptionDataVM' -or
@@ -196,7 +199,7 @@ if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXO
     throw 'Map bar calendar date must retain its requested five-pixel right adjustment while preserving sundial clearance.'
 }
 $seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Season"]'))
-if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].HorizontalAlignment -ne 'Center' -or $seasonLabel[0].PositionXOffset -ne '65' -or $seasonLabel[0].VerticalAlignment -ne 'Center' -or $seasonLabel[0].PositionYOffset -ne '0') {
+if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].HorizontalAlignment -ne 'Center' -or $seasonLabel[0].PositionXOffset -ne '75' -or $seasonLabel[0].VerticalAlignment -ne 'Center' -or $seasonLabel[0].PositionYOffset -ne '0' -or $seasonLabel[0].'Brush.FontSize' -ne '20') {
     throw 'Map bar season label must be independently placed just right of the sundial before the time controls.'
 }
 $clockLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@TimeOfDay"]'))

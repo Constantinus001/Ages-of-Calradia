@@ -558,30 +558,21 @@ namespace TwelveMonthCalendar
                     ref _pregnancyDurationInDays,
                     normalizedPregnancyDays,
                     "PregnancyDurationDays");
-                ApplyCampaignStartSetting(
-                    ref _pregnancyDurationMonths,
-                    Math.Max(1, pregnancyDurationMonths ?? _pregnancyDurationMonths),
-                    "PregnancyDurationMonths");
-                ApplyCampaignStartSetting(
-                    ref _useCalendarMonthPregnancy,
-                    useCalendarMonthPregnancy,
-                    "UseCalendarMonthPregnancy");
+                // These control only future life-cycle calculations. Keep
+                // them live-adjustable so the native slider arrows remain
+                // usable in an existing campaign.
+                _pregnancyDurationMonths = Math.Max(1, pregnancyDurationMonths ?? _pregnancyDurationMonths);
+                _useCalendarMonthPregnancy = useCalendarMonthPregnancy ?? _useCalendarMonthPregnancy;
                 float requestedRenownMultiplier = renownGainMultiplier ?? _renownGainMultiplier;
                 float normalizedRenownMultiplier = IsFinite(requestedRenownMultiplier)
                     ? Math.Max(0f, Math.Min(1f, requestedRenownMultiplier))
                     : DefaultRenownGainMultiplier;
-                ApplyCampaignStartSetting(
-                    ref _renownGainMultiplier,
-                    normalizedRenownMultiplier,
-                    "RenownGainMultiplier");
+                _renownGainMultiplier = normalizedRenownMultiplier;
                 float requestedLordDeathRateMultiplier = lordDeathRateMultiplier ?? _lordDeathRateMultiplier;
                 float normalizedLordDeathRateMultiplier = IsFinite(requestedLordDeathRateMultiplier)
                     ? Math.Max(0f, Math.Min(1f, requestedLordDeathRateMultiplier))
                     : DefaultLordDeathRateMultiplier;
-                ApplyCampaignStartSetting(
-                    ref _lordDeathRateMultiplier,
-                    normalizedLordDeathRateMultiplier,
-                    "LordDeathRateMultiplier");
+                _lordDeathRateMultiplier = normalizedLordDeathRateMultiplier;
                 ApplyCampaignStartSetting(ref _balancePartyImpairment, balancePartyImpairment, "BalancePartyImpairment");
                 ApplyCampaignStartSetting(ref _balancePrisonerRecruitment, balancePrisonerRecruitment, "BalancePrisonerRecruitment");
                 ApplyCampaignStartSetting(ref _balanceNpcMarriage, balanceNpcMarriage, "BalanceNpcMarriage");
@@ -758,10 +749,6 @@ namespace TwelveMonthCalendar
             switch (settingName)
             {
                 case "Use Leap Years":
-                case "Use Calendar-Month Pregnancy":
-                case "Pregnancy Duration (Months)":
-                case "Renown Gain Multiplier":
-                case "Lord Death Rate Multiplier":
                 case "Balance Party Impairment":
                 case "Balance Prisoner Recruitment":
                 case "Balance NPC Marriage":

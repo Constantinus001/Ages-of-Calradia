@@ -287,7 +287,7 @@ namespace TwelveMonthCalendar
                     0,
                     delegate { return CalendarSettingsState.RenownGainMultiplier; },
                     delegate(float value) { Apply(renownGainMultiplier: value); }),
-                new CalendarActionOptionData("Reset Life Cycle", "Reset Category", "Restores Life Cycle defaults before a campaign starts. Active campaign profiles are kept safe and unchanged.", ResetLifeCycleCategory)
+                new CalendarActionOptionData("Reset Life Cycle", "Reset Category", "Restores Life Cycle defaults. Changes apply to future pregnancies, death checks, and renown awards.", ResetLifeCycleCategory)
             };
             List<IOptionData> annualBalanceOptions = new List<IOptionData>
             {
@@ -973,20 +973,12 @@ namespace TwelveMonthCalendar
 
         private void ResetLifeCycleCategory()
         {
-            if (CalendarSettingsState.IsCampaignProfileLocked)
-            {
-                CompleteCategoryReset(
-                    "Life Cycle",
-                    "Life Cycle was not reset: this active campaign owns pregnancy, death, and renown settings.");
-                return;
-            }
-
             Apply(
                 useCalendarMonthPregnancy: true,
                 pregnancyDurationMonths: 9,
                 lordDeathRateMultiplier: 0.20f,
                 renownGainMultiplier: 0.50f);
-            CompleteCategoryReset("Life Cycle", "Life Cycle settings were reset.");
+            CompleteCategoryReset("Life Cycle", "Life Cycle settings were reset for future pregnancies, death checks, and renown awards.");
         }
 
         private void ResetAnnualBalanceCategory()
