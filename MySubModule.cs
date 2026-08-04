@@ -23,7 +23,6 @@ namespace TwelveMonthCalendar
         };
         private Harmony _harmony;
         private bool _runtimePatchesApplied;
-        private bool _betterTimeUiAdapterInitialized;
         private readonly List<string> _disabledOptionalPatchGroups = new List<string>();
 
         protected override void OnSubModuleLoad()
@@ -189,7 +188,6 @@ namespace TwelveMonthCalendar
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
             OptionalMcmIntegration.TryInitialize();
-            TryInitializeBetterTimeUiAdapter();
         }
 
         protected override void OnSubModuleUnloaded()
@@ -211,47 +209,6 @@ namespace TwelveMonthCalendar
                 "SettingsChanged; TimeScale=" + CalendarSettingsState.CampaignTimeScale.ToString("F6")
                 + "; LeapYears=" + CalendarSettingsState.UseLeapYears
                 + "; DateFormat=" + CalendarSettingsState.DateFormat);
-        }
-
-        private void TryInitializeBetterTimeUiAdapter()
-        {
-            if (_betterTimeUiAdapterInitialized)
-            {
-                return;
-            }
-
-            try
-            {
-                bool betterTimeLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(
-                    assembly => string.Equals(assembly.GetName().Name, "BetterTime", StringComparison.Ordinal));
-                bool uiExtenderLoaded = AppDomain.CurrentDomain.GetAssemblies().Any(
-                    assembly => string.Equals(assembly.GetName().Name, "Bannerlord.UIExtenderEx", StringComparison.Ordinal));
-                if (!betterTimeLoaded || !uiExtenderLoaded)
-                {
-                    Diagnostics.Info("Better Time UI adapter not loaded; Better Time/UIExtenderEx is not active.");
-                    return;
-                }
-
-                string adapterPath = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(typeof(MySubModule).Assembly.Location),
-                    "TwelveMonthCalendar.BetterTime.dll");
-                if (!System.IO.File.Exists(adapterPath))
-                {
-                    Diagnostics.Info("Better Time is active but the optional calendar UI adapter DLL is unavailable.");
-                    return;
-                }
-
-                Assembly adapter = Assembly.LoadFrom(adapterPath);
-                Type adapterType = adapter.GetType("TwelveMonthCalendar.BetterTimeUi.BetterTimeUiAdapter", true);
-                MethodInfo initialize = adapterType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static);
-                initialize.Invoke(null, null);
-                _betterTimeUiAdapterInitialized = true;
-                Diagnostics.Info("Better Time UI adapter enabled; calendar font size set to 15, moved left, and lowered by 4 pixels.");
-            }
-            catch (Exception exception)
-            {
-                Diagnostics.Error("Better Time UI adapter failed safely; Better Time's native layout was left unchanged.", exception);
-            }
         }
 
         /// <summary>

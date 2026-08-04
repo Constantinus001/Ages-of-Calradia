@@ -17,10 +17,8 @@ if (-not $AllowDirtySource) {
 
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
-$betterTimeProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.BetterTime.csproj'
 dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /v:minimal
 dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /v:minimal
-dotnet msbuild $betterTimeProject /t:Rebuild /p:Configuration=Release /v:minimal
 & (Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1') -ModuleRoot $ModuleRoot
 
 $settlementBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'SettlementBalancePatches.cs')
@@ -114,13 +112,12 @@ if ($diplomacySource -notmatch 'GregorianTruceDays = 100f' -or
 
 $mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.dll'
 $mcmDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.MCM.dll'
-$betterTimeDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\TwelveMonthCalendar.BetterTime.dll'
 $harmonyDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\0Harmony.dll'
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
 $readme = Join-Path $ModuleRoot 'README.md'
 $optionsXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\Options.xml'
 $mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
-$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $betterTimeDll, $optionsXml, $mapBarXml)
+$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $mapBarXml)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
@@ -159,6 +156,12 @@ foreach ($unsafeSymbol in @(
     }
 }
 
+$subModuleSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MySubModule.cs')
+if ($subModuleSource -match 'TwelveMonthCalendar\.BetterTime\.dll' -or
+    $subModuleSource -match 'Assembly\.LoadFrom') {
+    throw 'The public release must not contain the optional dynamically loaded Better Time adapter.'
+}
+
 [xml]$manifest = Get-Content -Raw -LiteralPath $moduleXml
 $version = $manifest.Module.Version.value
 if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^v\d+\.\d+\.\d+$') {
@@ -183,7 +186,7 @@ try {
         (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
         (Join-Path $moduleStage 'GUI\Prefabs\Map') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
-    Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll, $betterTimeDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
+    Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
     Copy-Item -LiteralPath $optionsXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
     Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
     Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
@@ -201,7 +204,6 @@ $expectedEntries = @(
     '_TwelveMonthCalendar/bin/Win64_Shipping_Client/0Harmony.dll',
     '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.dll',
     '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.MCM.dll',
-    '_TwelveMonthCalendar/bin/Win64_Shipping_Client/TwelveMonthCalendar.BetterTime.dll',
     '_TwelveMonthCalendar/GUI/Prefabs/Options/SPOptions/Options.xml',
     '_TwelveMonthCalendar/GUI/Prefabs/Map/MapBar.xml'
 )
