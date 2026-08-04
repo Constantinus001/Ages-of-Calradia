@@ -2,6 +2,16 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## v1.4.6 - Single-module package
+
+- Removed the `_TwelveMonthCalendar` legacy save bridge from the release ZIP
+  and live module layout.
+- The release now installs only `RealisticCalendarTweaks` and contains no old
+  module manifest or old-module DLL.
+- New saves continue to use the primitive soft campaign profile introduced in
+  v1.4.5. Players with older calendar saves should retain v1.4.5 for any needed
+  one-time migration before switching to this single-module release.
+
 ## v1.4.5 - Realistic Calendar Tweaks
 
 ### Module, saves, and settings

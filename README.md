@@ -52,9 +52,9 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 
 ## Build and release verification
 
-Release archives contain the complete runtime module, its legacy save bridge,
-module XML, README, Harmony dependency, compiled module DLLs, and UI prefab
-XML files. The retired Better Time adapter is intentionally excluded.
+Release archives contain the complete single runtime module: module XML, README,
+Harmony dependency, compiled module DLLs, and UI prefab XML files. The retired
+Better Time adapter and the old-module save bridge are intentionally excluded.
 Development and verification scripts, logs, debug symbols, and backups are
 intentionally excluded.
 
@@ -79,19 +79,13 @@ four-season calculations, and campaign events created with
 `CampaignTime.Years()` follow the 365-day year. Day-based timers remain
 day-based. Start a new campaign with the module enabled.
 
-## Existing-save migration
+## Save compatibility
 
-v1.4.5 removes the calendar's explicit hard save-lock marker. New saves store
-only a primitive profile, not a module-owned marker. Existing v1.3/v1.4 saves
-can be migrated safely: remove the old `_TwelveMonthCalendar` folder, install
-both folders from the v1.4.5 archive, enable **Realistic Calendar Tweaks** and
-the **Twelve Month Calendar - Legacy Save Bridge**, load the old save, then
-save to a new slot. The bridge may be disabled after that migration save.
-
-Bannerlord itself can still show its normal missing-module warning if a save is
-loaded with any campaign mod disabled; this update removes the additional
-calendar-specific marker that previously made the save require the mod's custom
-data type.
+New saves use a primitive soft profile rather than the calendar's former hard
+save-lock marker. This release intentionally does **not** ship the old
+`_TwelveMonthCalendar` module or a legacy save bridge. Keep v1.4.5 if an older
+calendar save still needs its one-time migration path. Bannerlord may still show
+its normal missing-module warning whenever any campaign mod is disabled.
 
 Leap years use the Gregorian rule: divisible by 4, except century years unless
 they are also divisible by 400. The campaign's starting year, 1084, is treated

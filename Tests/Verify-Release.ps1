@@ -132,11 +132,10 @@ $mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTwe
 $mcmDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.MCM.dll'
 $harmonyDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\0Harmony.dll'
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
-$legacyModuleXml = Join-Path $ModuleRoot 'LegacyModule\SubModule.xml'
 $readme = Join-Path $ModuleRoot 'README.md'
 $optionsXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\Options.xml'
 $mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
-$runtimeFiles = @($moduleXml, $legacyModuleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $mapBarXml)
+$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $mapBarXml)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
@@ -184,11 +183,6 @@ if ($manifest.Module.Id.value -ne 'RealisticCalendarTweaks' -or
     $manifest.Module.Name.value -ne 'Realistic Calendar Tweaks') {
     throw 'The primary module manifest must use the RealisticCalendarTweaks ID and display name.'
 }
-[xml]$legacyManifest = Get-Content -Raw -LiteralPath $legacyModuleXml
-if ($legacyManifest.Module.Id.value -ne '_TwelveMonthCalendar' -or
-    $legacyManifest.Module.DependedModules.DependedModule.Id -notcontains 'RealisticCalendarTweaks') {
-    throw 'The legacy save bridge must retain the old ID and depend on the renamed primary module.'
-}
 
 if ([string]::IsNullOrWhiteSpace($ReleaseArchive)) {
     $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\RealisticCalendarTweaks-{0}.zip" -f $version)
@@ -202,19 +196,16 @@ if (Test-Path -LiteralPath $ReleaseArchive) {
 
 $stagingRoot = Join-Path ([IO.Path]::GetTempPath()) ("RealisticCalendarTweaks-release-{0}" -f [Guid]::NewGuid())
 $moduleStage = Join-Path $stagingRoot 'RealisticCalendarTweaks'
-$legacyModuleStage = Join-Path $stagingRoot '_TwelveMonthCalendar'
 try {
     New-Item -ItemType Directory -Force -Path `
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
         (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Map'), `
-        $legacyModuleStage | Out-Null
+        (Join-Path $moduleStage 'GUI\Prefabs\Map') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
-    Copy-Item -LiteralPath $legacyModuleXml -Destination (Join-Path $legacyModuleStage 'SubModule.xml')
     Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
     Copy-Item -LiteralPath $optionsXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
     Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
-    Compress-Archive -LiteralPath @($moduleStage, $legacyModuleStage) -DestinationPath $ReleaseArchive -CompressionLevel Optimal
+    Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
 }
 finally {
     if (Test-Path -LiteralPath $stagingRoot) {
@@ -230,8 +221,7 @@ $expectedEntries = @(
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.dll',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll',
     'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/Options.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml',
-    '_TwelveMonthCalendar/SubModule.xml'
+    'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml'
 )
 $archive = [IO.Compression.ZipFile]::OpenRead($ReleaseArchive)
 try {
@@ -245,8 +235,8 @@ finally {
 if (Compare-Object -ReferenceObject $expectedEntries -DifferenceObject $actualEntries) {
     throw 'Release archive contents do not exactly match the approved runtime file list.'
 }
-if ($actualEntries | Where-Object { $_ -match '(?i)BetterTime|TwelveMonthCalendar\.BetterTime' }) {
-    throw 'The retired Better Time adapter must not be present in a release archive.'
+if ($actualEntries | Where-Object { $_ -match '(?i)BetterTime|TwelveMonthCalendar\.BetterTime|^_TwelveMonthCalendar/' }) {
+    throw 'The retired Better Time adapter and legacy save bridge must not be present in a release archive.'
 }
 
 if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
