@@ -41,6 +41,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="netstandard">
       <HintPath>$(NetStandardPath)</HintPath>
@@ -65,6 +66,14 @@
     </Reference>
     <Reference Include="TaleWorlds.Engine">
       <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.DotNet">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.DotNet.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Engine.GauntletUI">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.GauntletUI.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="TaleWorlds.InputSystem">
@@ -103,6 +112,14 @@
       <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.SaveSystem.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="TaleWorlds.ScreenSystem">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ScreenSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.TwoDimension">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.TwoDimension.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="TaleWorlds.MountAndBlade">
       <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath>
       <Private>false</Private>
@@ -121,6 +138,17 @@
     <Compile Include="CrashFlightRecorder.cs" />
     <Compile Include="CalendarDiagnosticsBehavior.cs" />
     <Compile Include="CalendarTreatyMigrationBehavior.cs" />
+    <Compile Include="CalendarWorldLedgerBehavior.cs" />
+    <Compile Include="CalendarRefugeBehavior.cs" />
+    <Compile Include="RefugeUpgrade.cs" />
+    <Compile Include="CalendarRefugeMission.cs" />
+    <Compile Include="CalendarRefugeMapClickPatch.cs" />
+    <Compile Include="CalendarCampBehavior.cs" />
+    <Compile Include="CalendarWorldLedgerVM.cs" />
+    <Compile Include="CalendarWorldLedgerFixedStrategicLayers.cs" />
+    <Compile Include="CalendarStrategicMapLayout.cs" />
+    <Compile Include="CalendarStrategicMapTextureProvider.cs" />
+    <Compile Include="WorldCalendarScreen.cs" />
     <Compile Include="CalendarSaveCompatibility.cs" />
     <Compile Include="CalendarPatchSafetyAudit.cs" />
     <Compile Include="CalendarOptionsTabPatch.cs" />
@@ -131,6 +159,7 @@
     <Compile Include="CampaignTimeCalendarPatches.cs" />
     <Compile Include="CampaignTimeToStringPatch.cs" />
     <Compile Include="MapTimeTrackerPatch.cs" />
+    <Compile Include="MapWeatherNightFactorPatch.cs" />
     <Compile Include="CampaignPacingPatch.cs" />
     <Compile Include="MapBarSeasonDataSourcePatch.cs" />
     <Compile Include="EconomyAndLifeCyclePatches.cs" />

@@ -293,8 +293,8 @@ namespace TwelveMonthCalendar
             {
                 new CalendarBooleanOptionData(
                     "Annual Balance Enabled",
-                    IsAnnualBalanceEnabled,
-                    SetAnnualBalanceEnabled),
+                    delegate { return CalendarSettingsState.AnnualBalanceEnabled; },
+                    delegate(bool value) { Apply(annualBalanceEnabled: value); }),
                 new CalendarBooleanOptionData(
                     "Balance Party Impairment",
                     delegate { return CalendarSettingsState.BalancePartyImpairment; },
@@ -315,7 +315,7 @@ namespace TwelveMonthCalendar
                     "Balance Quest Deadlines",
                     delegate { return CalendarSettingsState.BalanceQuestDeadlines; },
                     delegate(bool value) { Apply(balanceQuestDeadlines: value); }),
-                new CalendarActionOptionData("Reset Annual Balance", "Reset Category", "Enables and restores Annual Balance defaults before a campaign starts. Active campaign profiles are kept safe and unchanged.", ResetAnnualBalanceCategory)
+                new CalendarActionOptionData("Reset Annual Balance", "Reset Category", "Enables annual-rate balancing and restores the category defaults. Existing quest deadlines are unchanged.", ResetAnnualBalanceCategory)
             };
             List<IOptionData> diagnosticsOptions = new List<IOptionData>
             {
@@ -804,6 +804,7 @@ namespace TwelveMonthCalendar
             bool? balanceNpcMarriage = null,
             bool? balanceMapTracks = null,
             bool? balanceQuestDeadlines = null,
+            bool? annualBalanceEnabled = null,
             bool? annualBalanceDiagnosticsEnabled = null,
             float? fastForwardTimeMultiplier = null)
         {
@@ -841,6 +842,8 @@ namespace TwelveMonthCalendar
                 ?? CalendarSettingsState.BalanceQuestDeadlines;
             bool requestedAnnualBalanceDiagnostics = annualBalanceDiagnosticsEnabled
                 ?? CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
+            bool requestedAnnualBalanceEnabled = annualBalanceEnabled
+                ?? CalendarSettingsState.AnnualBalanceEnabled;
 
             // Bannerlord initializes option controls by writing their current
             // value back to the data source. Do not treat those UI refreshes as
@@ -864,6 +867,7 @@ namespace TwelveMonthCalendar
                 && requestedBalanceNpcMarriage == CalendarSettingsState.BalanceNpcMarriage
                 && requestedBalanceMapTracks == CalendarSettingsState.BalanceMapTracks
                 && requestedBalanceQuestDeadlines == CalendarSettingsState.BalanceQuestDeadlines
+                && requestedAnnualBalanceEnabled == CalendarSettingsState.AnnualBalanceEnabled
                 && requestedAnnualBalanceDiagnostics == CalendarSettingsState.AnnualBalanceDiagnosticsEnabled)
             {
                 return;
@@ -890,6 +894,7 @@ namespace TwelveMonthCalendar
                 balanceNpcMarriage: requestedBalanceNpcMarriage,
                 balanceMapTracks: requestedBalanceMapTracks,
                 balanceQuestDeadlines: requestedBalanceQuestDeadlines,
+                annualBalanceEnabled: requestedAnnualBalanceEnabled,
                 annualBalanceDiagnosticsEnabled: requestedAnnualBalanceDiagnostics);
             CalendarSettingsState.Save();
         }
@@ -976,7 +981,7 @@ namespace TwelveMonthCalendar
 
         private void ResetAnnualBalanceCategory()
         {
-            SetAnnualBalanceEnabled(true);
+            Apply(annualBalanceEnabled: true, balancePartyImpairment: true, balancePrisonerRecruitment: true, balanceNpcMarriage: true, balanceMapTracks: true, balanceQuestDeadlines: true);
             CompleteCategoryReset("Annual Balance", "Annual Balance settings were reset. Existing quest deadlines are unchanged.");
         }
 

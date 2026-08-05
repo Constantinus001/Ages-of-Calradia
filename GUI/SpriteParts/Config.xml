@@ -1,0 +1,5 @@
+<Config>
+  <SpriteCategory Name="ui_world_calendar">
+    <AlwaysLoad />
+  </SpriteCategory>
+</Config>

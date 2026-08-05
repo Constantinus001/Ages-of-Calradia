@@ -2,6 +2,12 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## Unreleased hardening follow-up
+
+- Added a save-persisted Annual Balance master switch that does not disable the calendar itself.
+- Migrates v1.5 schema-3 profiles with obsolete high fast-forward values safely to the supported 4x maximum.
+- Made standalone settings writes atomic and remove temporary files after a failed write.
+
 ## v1.5.0 - Calendar settings and map-bar update
 
 - Added a fully interactive native Calendar settings page with categories,

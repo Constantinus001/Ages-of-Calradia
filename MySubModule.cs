@@ -7,6 +7,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core;
+using TaleWorlds.GauntletUI;
 using TaleWorlds.MountAndBlade;
 
 namespace TwelveMonthCalendar
@@ -181,15 +182,32 @@ namespace TwelveMonthCalendar
                 campaignStarter.AddBehavior(new CalendarDiagnosticsBehavior());
                 campaignStarter.AddBehavior(new CalendarCampaignProfileBehavior());
                 campaignStarter.AddBehavior(new CalendarTreatyMigrationBehavior());
+                campaignStarter.AddBehavior(new CalendarWorldLedgerBehavior());
+                campaignStarter.AddBehavior(new CalendarRefugeBehavior());
+                campaignStarter.AddBehavior(new CalendarCampBehavior());
                 Diagnostics.Info("Calendar diagnostics behavior registered for campaign.");
                 Diagnostics.Info("Calendar soft profile behavior registered; new saves write no calendar module-lock marker.");
                 Diagnostics.Info("Calendar treaty migration behavior registered for existing tribute agreements.");
+                Diagnostics.Info("Calendar refuge behavior registered with primitive save data and navigable-water validation.");
+                Diagnostics.Info("Calendar camp behavior registered for campaign-map menu testing.");
             }
         }
 
         protected override void OnBeforeInitialModuleScreenSetAsRoot()
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
+            try
+            {
+                // The Strategic Map uses a public custom TextureProvider. Ask
+                // Gauntlet to rescan loaded module assemblies after the normal
+                // UI stack is available, before the World Calendar movie opens.
+                TextureProviderFactory.RefreshProviderTypes();
+                Diagnostics.Info("Strategic map texture provider registered with Gauntlet.");
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Gauntlet could not register the Strategic Map texture provider.", exception);
+            }
             OptionalMcmIntegration.TryInitialize();
         }
 

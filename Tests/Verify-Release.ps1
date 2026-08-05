@@ -176,7 +176,12 @@ $optionItemXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\OptionItem
 $calendarOptionItemXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionItem.xml'
 $calendarOptionsGroupedPageXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionsGroupedPage.xml'
 $mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
-$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml)
+$worldCalendarXml = Join-Path $ModuleRoot 'GUI\Prefabs\WorldCalendar\WorldCalendar.xml'
+$worldCalendarSpriteData = Join-Path $ModuleRoot 'GUI\RealisticCalendarTweaksSpriteData.xml'
+$worldCalendarSpriteConfig = Join-Path $ModuleRoot 'GUI\SpriteParts\Config.xml'
+$worldCalendarMap = Join-Path $ModuleRoot 'GUI\SpriteParts\world_calendar\world_calendar_map.png'
+$worldCalendarSheet = Join-Path $ModuleRoot 'AssetSources\GauntletUI\world_calendar_1.png'
+$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml, $worldCalendarXml, $worldCalendarSpriteData, $worldCalendarSpriteConfig, $worldCalendarMap, $worldCalendarSheet)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
@@ -249,7 +254,10 @@ try {
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
         (Join-Path $moduleStage 'ModuleData'), `
         (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Map') | Out-Null
+        (Join-Path $moduleStage 'GUI\Prefabs\Map'), `
+        (Join-Path $moduleStage 'GUI\Prefabs\WorldCalendar'), `
+        (Join-Path $moduleStage 'GUI\SpriteParts\world_calendar'), `
+        (Join-Path $moduleStage 'AssetSources\GauntletUI') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
     Copy-Item -LiteralPath $moduleStrings -Destination (Join-Path $moduleStage 'ModuleData')
     Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
@@ -258,6 +266,11 @@ try {
     Copy-Item -LiteralPath $calendarOptionItemXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
     Copy-Item -LiteralPath $calendarOptionsGroupedPageXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
     Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
+    Copy-Item -LiteralPath $worldCalendarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\WorldCalendar')
+    Copy-Item -LiteralPath $worldCalendarSpriteData -Destination (Join-Path $moduleStage 'GUI')
+    Copy-Item -LiteralPath $worldCalendarSpriteConfig -Destination (Join-Path $moduleStage 'GUI\SpriteParts')
+    Copy-Item -LiteralPath $worldCalendarMap -Destination (Join-Path $moduleStage 'GUI\SpriteParts\world_calendar')
+    Copy-Item -LiteralPath $worldCalendarSheet -Destination (Join-Path $moduleStage 'AssetSources\GauntletUI')
     Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
 }
 finally {
@@ -278,7 +291,12 @@ $expectedEntries = @(
     'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/OptionItem.xml',
     'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/CalendarOptionItem.xml',
     'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/CalendarOptionsGroupedPage.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml'
+    'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml',
+    'RealisticCalendarTweaks/GUI/Prefabs/WorldCalendar/WorldCalendar.xml',
+    'RealisticCalendarTweaks/GUI/RealisticCalendarTweaksSpriteData.xml',
+    'RealisticCalendarTweaks/GUI/SpriteParts/Config.xml',
+    'RealisticCalendarTweaks/GUI/SpriteParts/world_calendar/world_calendar_map.png',
+    'RealisticCalendarTweaks/AssetSources/GauntletUI/world_calendar_1.png'
 )
 $archive = [IO.Compression.ZipFile]::OpenRead($ReleaseArchive)
 try {

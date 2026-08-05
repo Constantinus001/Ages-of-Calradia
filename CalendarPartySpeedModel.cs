@@ -45,7 +45,7 @@ namespace TwelveMonthCalendar
                 additionalTroopOnFootCount,
                 additionalTroopOnHorseCount);
 
-            if (CalendarSettingsState.ExtendedCalendarEnabled)
+            if (CalendarSettingsState.AnnualRateBalanceEnabled)
             {
                 result.Add(CalendarBaseSpeed - _native.BaseSpeed, CalendarBaseSpeedText);
             }

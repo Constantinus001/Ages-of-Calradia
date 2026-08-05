@@ -191,7 +191,7 @@ namespace TwelveMonthCalendar
         {
             Kingdom kingdom = null;
             int originalWallet = 0;
-            if (CalendarSettingsState.ExtendedCalendarEnabled
+            if (CalendarSettingsState.AnnualRateBalanceEnabled
                 && applyWithdrawals
                 && clan != null
                 && (kingdom = clan.Kingdom) != null)
@@ -258,7 +258,7 @@ namespace TwelveMonthCalendar
 
         private static void Scale(ref ExplainedNumber value)
         {
-            if (CalendarSettingsState.ExtendedCalendarEnabled)
+            if (CalendarSettingsState.AnnualRateBalanceEnabled)
             {
                 SettlementBalanceMath.Scale(ref value);
             }

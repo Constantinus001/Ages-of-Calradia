@@ -2,12 +2,14 @@
 <Module>
   <Name value="Realistic Calendar Tweaks" />
   <Id value="RealisticCalendarTweaks" />
-  <Version value="v1.5.1" />
+  <Version value="v1.5.2" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
 
   <DependedModules>
     <DependedModule Id="Native" DependentVersion="v1.4.7" />
+    <DependedModule Id="SandBoxCore" DependentVersion="v1.4.7" />
+    <DependedModule Id="Sandbox" DependentVersion="v1.4.7" />
   </DependedModules>
 
   <Xmls>

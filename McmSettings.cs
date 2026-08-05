@@ -30,6 +30,7 @@ namespace RealisticCalendarTweaks.MCM
         private bool _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
         private bool _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
         private bool _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+        private bool _annualBalanceEnabled = CalendarSettingsState.AnnualBalanceEnabled;
         private bool _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
         private bool _synchronizing;
 
@@ -257,6 +258,15 @@ namespace RealisticCalendarTweaks.MCM
             }
         }
 
+        [SettingPropertyBool("Annual Balance Enabled", Order = 19, RequireRestart = false,
+            HintText = "Master switch for annual-rate balancing. The calendar and display remain active when disabled.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool AnnualBalanceEnabled
+        {
+            get { return _annualBalanceEnabled; }
+            set { _annualBalanceEnabled = value; Apply(); OnPropertyChanged(); }
+        }
+
         [SettingPropertyBool("Balance Party Impairment", Order = 20, RequireRestart = false,
             HintText = "Scales post-battle disorganization and vulnerability durations to the 365-day year.")]
         [SettingPropertyGroup("Annual Balance")]
@@ -386,6 +396,7 @@ namespace RealisticCalendarTweaks.MCM
                 balanceNpcMarriage: _balanceNpcMarriage,
                 balanceMapTracks: _balanceMapTracks,
                 balanceQuestDeadlines: _balanceQuestDeadlines,
+                annualBalanceEnabled: _annualBalanceEnabled,
                 annualBalanceDiagnosticsEnabled: _annualBalanceDiagnosticsEnabled);
             CalendarSettingsState.Save();
         }
@@ -423,6 +434,7 @@ namespace RealisticCalendarTweaks.MCM
                 _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
                 _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
                 _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+                _annualBalanceEnabled = CalendarSettingsState.AnnualBalanceEnabled;
                 _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
             }
             finally
@@ -459,6 +471,7 @@ namespace RealisticCalendarTweaks.MCM
             OnPropertyChanged(nameof(BalanceNpcMarriage));
             OnPropertyChanged(nameof(BalanceMapTracks));
             OnPropertyChanged(nameof(BalanceQuestDeadlines));
+            OnPropertyChanged(nameof(AnnualBalanceEnabled));
             OnPropertyChanged(nameof(AnnualBalanceDiagnosticsEnabled));
         }
     }

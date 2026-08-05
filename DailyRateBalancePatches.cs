@@ -25,7 +25,7 @@ namespace TwelveMonthCalendar
 
         internal static bool IsExtendedCalendar
         {
-            get { return CalendarSettingsState.ExtendedCalendarEnabled; }
+            get { return CalendarSettingsState.AnnualRateBalanceEnabled; }
         }
 
         internal static float Factor
@@ -472,7 +472,7 @@ namespace TwelveMonthCalendar
             float oldDemand,
             ref ValueTuple<float, float> __result)
         {
-            if (!CalendarSettingsState.ExtendedCalendarEnabled)
+            if (!CalendarSettingsState.AnnualRateBalanceEnabled)
             {
                 return;
             }

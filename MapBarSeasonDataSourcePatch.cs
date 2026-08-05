@@ -2,6 +2,8 @@ using System;
 using System.Reflection;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.GameMenus;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapBar;
 using TaleWorlds.Library;
 
@@ -90,6 +92,35 @@ namespace TwelveMonthCalendar
             base.OnFinalize();
         }
 
+        public void ExecuteOpenWorldCalendar()
+        {
+            try
+            {
+                WorldCalendarScreen.Show();
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("World Calendar could not be opened from the map bar.", exception);
+            }
+        }
+
+        public void ExecuteOpenCamp()
+        {
+            try
+            {
+                if (Campaign.Current == null || MobileParty.MainParty == null)
+                {
+                    return;
+                }
+
+                GameMenu.ActivateGameMenu(CalendarCampBehavior.CampMenuId);
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Camp menu could not be opened from the map bar.", exception);
+            }
+        }
+
         internal void RefreshSeason()
         {
             try
@@ -147,6 +178,7 @@ namespace TwelveMonthCalendar
                 Diagnostics.Error("Map-bar clock refresh failed.", exception);
             }
         }
+
     }
 
     /// <summary>

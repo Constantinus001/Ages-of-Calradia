@@ -125,8 +125,8 @@ page with calendar, display, balance, lord-mortality, and fast-forward-speed
 controls. The date format supports `{Month}`, `{Season}`, `{Day}`,
 `{Year}`, `{MonthNumber}`, and `{DayOfYear}`. Without MCM, the native
 **Calendar** Options tab provides the same core controls. On the map bar, the
-date appears left of the clock and the current season appears separately to its
-right (for example `April 3rd 1084` and `Spring`). The preset default is
+date and season occupy the two-line block left of the sundial, while the clock
+appears to its right. The preset default is
 **Month-Day-Year**.
 
 ## Standalone in-game settings
@@ -201,13 +201,14 @@ subsequent campaign-time advancement.
 Positive renown rewards are multiplied by `RenownGainMultiplier`, which defaults
 to `0.5` and can be changed from the Calendar settings tab, MCM, or XML.
 
-The five annual-balance toggles and Lord Death Rate Multiplier are available in
-XML, optional MCM, and the native Calendar Options tab. They are campaign-start
-settings: changing one after a campaign session has started is ignored and
-logged, so the module does not attempt unsupported hot-swapping or rewrite
-existing quest deadlines. Fast-Forward Speed Multiplier is the exception: it
-uses Bannerlord's built-in speed property and may be changed live from 1x to
-128x; normal map pace remains fixed.
+Annual Balance, its five scoped toggles, and Lord Death Rate Multiplier are
+available in XML, optional MCM, and the native Calendar Options tab. They may
+be changed during a campaign and affect future calculations; existing quest
+deadlines are never rewritten. Annual Balance is a master switch for finance,
+food, settlement, diplomacy, and other annual-rate conversions while leaving
+the calendar and display active. Fast-Forward Speed Multiplier may be changed
+live from 1x to Bannerlord's supported 4x maximum; normal map pace remains
+fixed.
 
 For the 365-day calendar, the balance layer scales identified native daily
 economy, settlement, progression, and probability systems by the native-84-day

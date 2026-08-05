@@ -24,6 +24,10 @@ namespace TwelveMonthCalendar
 
         internal static void Scale(ref ExplainedNumber value, float factor)
         {
+            if (!CalendarSettingsState.AnnualRateBalanceEnabled)
+            {
+                return;
+            }
             // ExplainedNumber evaluates as BaseNumber * (1 + SumOfFactors).
             // Scale its base only: scaling factors too changes native
             // modifiers (especially negative finance modifiers) instead of

@@ -79,6 +79,7 @@ namespace TwelveMonthCalendar
         private static bool _balanceNpcMarriage = true;
         private static bool _balanceMapTracks = true;
         private static bool _balanceQuestDeadlines = true;
+        private static bool _annualBalanceEnabled = true;
         private static bool _annualBalanceDiagnosticsEnabled = true;
         private static bool _campaignSessionStarted;
         private static readonly string[] _monthNames = (string[])DefaultMonthNames.Clone();
@@ -282,6 +283,16 @@ namespace TwelveMonthCalendar
         public static int[] MonthLengthsSnapshot()
         {
             lock (SyncRoot) return (int[])_monthLengths.Clone();
+        }
+
+        public static bool AnnualBalanceEnabled
+        {
+            get { lock (SyncRoot) return _annualBalanceEnabled; }
+        }
+
+        public static bool AnnualRateBalanceEnabled
+        {
+            get { return ExtendedCalendarEnabled && AnnualBalanceEnabled; }
         }
 
         /// <summary>
@@ -511,6 +522,7 @@ namespace TwelveMonthCalendar
             bool? balanceNpcMarriage = null,
             bool? balanceMapTracks = null,
             bool? balanceQuestDeadlines = null,
+            bool? annualBalanceEnabled = null,
             bool? annualBalanceDiagnosticsEnabled = null,
             float? normalPlayTimeMultiplier = null,
             float? fastForwardTimeMultiplier = null)
@@ -582,6 +594,7 @@ namespace TwelveMonthCalendar
                 _balanceNpcMarriage = balanceNpcMarriage ?? _balanceNpcMarriage;
                 _balanceMapTracks = balanceMapTracks ?? _balanceMapTracks;
                 _balanceQuestDeadlines = balanceQuestDeadlines ?? _balanceQuestDeadlines;
+                _annualBalanceEnabled = annualBalanceEnabled ?? _annualBalanceEnabled;
                 _annualBalanceDiagnosticsEnabled = annualBalanceDiagnosticsEnabled ?? _annualBalanceDiagnosticsEnabled;
                 bool requestedAutoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
                 // Campaign pacing changes only affect future map-time ticks, so
@@ -645,6 +658,7 @@ namespace TwelveMonthCalendar
                 balanceNpcMarriage: true,
                 balanceMapTracks: true,
                 balanceQuestDeadlines: true,
+                annualBalanceEnabled: true,
                 annualBalanceDiagnosticsEnabled: true,
                 normalPlayTimeMultiplier: DefaultNormalPlayTimeMultiplier,
                 fastForwardTimeMultiplier: DefaultFastForwardTimeMultiplier);
@@ -731,6 +745,7 @@ namespace TwelveMonthCalendar
                 _balanceNpcMarriage = profile.BalanceNpcMarriage;
                 _balanceMapTracks = profile.BalanceMapTracks;
                 _balanceQuestDeadlines = profile.BalanceQuestDeadlines;
+                _annualBalanceEnabled = profile.AnnualBalanceEnabled;
             }
 
             Diagnostics.Info(
@@ -814,6 +829,7 @@ namespace TwelveMonthCalendar
                     balanceNpcMarriage: ReadBoolean(root, "BalanceNpcMarriage", true),
                     balanceMapTracks: ReadBoolean(root, "BalanceMapTracks", true),
                     balanceQuestDeadlines: ReadBoolean(root, "BalanceQuestDeadlines", true),
+                    annualBalanceEnabled: ReadBoolean(root, "AnnualBalanceEnabled", true),
                     annualBalanceDiagnosticsEnabled: ReadBoolean(root, "AnnualBalanceDiagnosticsEnabled", true),
                     fastForwardTimeMultiplier: ReadFastForwardSpeed(root));
 
@@ -871,6 +887,7 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("BalanceNpcMarriage", BalanceNpcMarriage.ToString());
                 root.SetAttribute("BalanceMapTracks", BalanceMapTracks.ToString());
                 root.SetAttribute("BalanceQuestDeadlines", BalanceQuestDeadlines.ToString());
+                root.SetAttribute("AnnualBalanceEnabled", AnnualBalanceEnabled.ToString());
                 root.SetAttribute("AnnualBalanceDiagnosticsEnabled", AnnualBalanceDiagnosticsEnabled.ToString());
                 string[] monthNames = MonthNamesSnapshot();
                 string[] seasonNames = SeasonNamesSnapshot();
@@ -884,12 +901,27 @@ namespace TwelveMonthCalendar
                 {
                     root.SetAttribute(string.Format("Season{0}Name", i + 1), seasonNames[i]);
                 }
-                document.Save(ConfigPath);
+                string temporaryPath = ConfigPath + ".tmp";
+                document.Save(temporaryPath);
+                if (File.Exists(ConfigPath))
+                {
+                    File.Replace(temporaryPath, ConfigPath, null);
+                }
+                else
+                {
+                    File.Move(temporaryPath, ConfigPath);
+                }
 
                 Diagnostics.Info(string.Format("Standalone settings saved to {0}.", ConfigPath));
             }
             catch (Exception exception)
             {
+                try
+                {
+                    string temporaryPath = ConfigPath + ".tmp";
+                    if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+                }
+                catch { }
                 Diagnostics.Error("Standalone settings could not be saved.", exception);
             }
         }
