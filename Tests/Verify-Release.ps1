@@ -181,10 +181,19 @@ $worldCalendarSpriteData = Join-Path $ModuleRoot 'GUI\RealisticCalendarTweaksSpr
 $worldCalendarSpriteConfig = Join-Path $ModuleRoot 'GUI\SpriteParts\Config.xml'
 $worldCalendarMap = Join-Path $ModuleRoot 'GUI\SpriteParts\world_calendar\world_calendar_map.png'
 $worldCalendarSheet = Join-Path $ModuleRoot 'AssetSources\GauntletUI\world_calendar_1.png'
+$guiRoot = Join-Path $ModuleRoot 'GUI'
+$assetsRoot = Join-Path $ModuleRoot 'Assets'
+$assetSourcesRoot = Join-Path $ModuleRoot 'AssetSources'
+$prefabsRoot = Join-Path $ModuleRoot 'Prefabs'
 $runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml, $worldCalendarXml, $worldCalendarSpriteData, $worldCalendarSpriteConfig, $worldCalendarMap, $worldCalendarSheet)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
+    }
+}
+foreach ($directory in @($guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot)) {
+    if (-not (Test-Path -LiteralPath $directory -PathType Container)) {
+        throw "Expected release runtime directory is missing: $directory"
     }
 }
 
@@ -252,25 +261,11 @@ $moduleStage = Join-Path $stagingRoot 'RealisticCalendarTweaks'
 try {
     New-Item -ItemType Directory -Force -Path `
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
-        (Join-Path $moduleStage 'ModuleData'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Map'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\WorldCalendar'), `
-        (Join-Path $moduleStage 'GUI\SpriteParts\world_calendar'), `
-        (Join-Path $moduleStage 'AssetSources\GauntletUI') | Out-Null
+        (Join-Path $moduleStage 'ModuleData') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
     Copy-Item -LiteralPath $moduleStrings -Destination (Join-Path $moduleStage 'ModuleData')
     Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
-    Copy-Item -LiteralPath $optionsXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
-    Copy-Item -LiteralPath $optionItemXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
-    Copy-Item -LiteralPath $calendarOptionItemXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
-    Copy-Item -LiteralPath $calendarOptionsGroupedPageXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
-    Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
-    Copy-Item -LiteralPath $worldCalendarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\WorldCalendar')
-    Copy-Item -LiteralPath $worldCalendarSpriteData -Destination (Join-Path $moduleStage 'GUI')
-    Copy-Item -LiteralPath $worldCalendarSpriteConfig -Destination (Join-Path $moduleStage 'GUI\SpriteParts')
-    Copy-Item -LiteralPath $worldCalendarMap -Destination (Join-Path $moduleStage 'GUI\SpriteParts\world_calendar')
-    Copy-Item -LiteralPath $worldCalendarSheet -Destination (Join-Path $moduleStage 'AssetSources\GauntletUI')
+    Copy-Item -LiteralPath $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot -Destination $moduleStage -Recurse
     Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
 }
 finally {
@@ -286,23 +281,22 @@ $expectedEntries = @(
     'RealisticCalendarTweaks/ModuleData/module_strings.xml',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/0Harmony.dll',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.dll',
-    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll',
-    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/Options.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/OptionItem.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/CalendarOptionItem.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/CalendarOptionsGroupedPage.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/WorldCalendar/WorldCalendar.xml',
-    'RealisticCalendarTweaks/GUI/RealisticCalendarTweaksSpriteData.xml',
-    'RealisticCalendarTweaks/GUI/SpriteParts/Config.xml',
-    'RealisticCalendarTweaks/GUI/SpriteParts/world_calendar/world_calendar_map.png',
-    'RealisticCalendarTweaks/AssetSources/GauntletUI/world_calendar_1.png'
+    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll'
 )
+$runtimeDirectoryEntries = foreach ($directory in @($guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot)) {
+    $directoryName = Split-Path -Leaf $directory
+    Get-ChildItem -LiteralPath $directory -Recurse -File | ForEach-Object {
+        $relativePath = $_.FullName.Substring($directory.Length).TrimStart('\', '/')
+        ('RealisticCalendarTweaks/{0}/{1}' -f $directoryName, $relativePath).Replace('\', '/')
+    }
+}
+$expectedEntries = @($expectedEntries + $runtimeDirectoryEntries | Sort-Object -Unique)
 $archive = [IO.Compression.ZipFile]::OpenRead($ReleaseArchive)
 try {
     $actualEntries = @($archive.Entries |
         ForEach-Object { $_.FullName.Replace('\', '/') } |
-        Where-Object { -not $_.EndsWith('/') })
+        Where-Object { -not $_.EndsWith('/') } |
+        Sort-Object -Unique)
 }
 finally {
     $archive.Dispose()
