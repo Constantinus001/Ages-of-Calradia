@@ -1,0 +1,12 @@
+# Keep source and metadata deterministic across Windows and GitHub checkouts.
+* text=auto eol=lf
+
+# Runtime assets are never text-normalized.
+*.bin binary
+*.dds binary
+*.dll binary
+*.pdb binary
+*.png binary
+*.sack binary
+*.tpac binary
+SceneObj/** binary

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Drop-in style folder. Keep the live test prefab at Prefabs\ until a
+     Bannerlord-version-specific nested Prefabs load test proves safe. -->
+<refuge_fort_style version="1">
+  <fort id="rct_refuge_fort_layout"
+        prefab_file="rct_refuge_fort_layout.xml"
+        linked_prefab_root="rct_refuge_fort_layout"
+        runtime_layout_file="rct_refuge_fort_runtime_layout.xml"
+        display_name="Palisade Ring"
+        description="A round timber palisade with inward-facing wall platforms."
+        scene_suffix="palisade"
+        allow_native_test_fallback="true" />
+</refuge_fort_style>

@@ -1,6 +1,19 @@
 # Realistic Calendar Tweaks
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete v1.0-to-v1.5.0 patch notes.
+See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.5.
+
+## Documentation location
+
+The canonical working documentation for this mod is kept outside the runtime
+module at:
+
+```text
+D:\AI-Related Apllications & Modding\Modding\Bannerlord Modding Stuff\bannerlord modding documentation
+```
+
+The canonical folder is the source of truth for development and design guides.
+The module keeps this root README only because the release archive requires a
+player-facing README.
 
 This Bannerlord v1.4.7 module changes the campaign calendar to a 365-day year
 with Gregorian-style month lengths:
@@ -34,8 +47,8 @@ The module uses:
 - December 31 days
 - seasons that change on the real-world dates above
 - campaign start preserved as April 1, which is in Spring
-- campaign time slowed to approximately 0.23x so a 365-day year takes about
-  the same real play time as Bannerlord's native 84-day year
+- campaign time slowed to approximately 0.15x so a normal campaign day takes
+  about 8.9 real minutes and the clock is easier to follow
 - daily party wages scaled to approximately 0.23x so annual wage pressure is
   comparable to the native 84-day year
 - party map speed uses a common base speed of 4.0; Bannerlord's native troop,
@@ -53,10 +66,11 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 ## Build and release verification
 
 Release archives contain the complete single runtime module: module XML, module
-strings, README, Harmony dependency, compiled module DLLs, and UI prefab XML files. The retired
-Better Time adapter and the old-module save bridge are intentionally excluded.
-Development and verification scripts, logs, debug symbols, and backups are
-intentionally excluded.
+data, README, Harmony dependency, compiled module DLLs, UI prefab XML files,
+and any finished module-owned refuge scenes. The retired Better Time adapter
+and the old-module save bridge are intentionally excluded. Development and
+verification scripts, logs, debug symbols, unfinished scene-editor work,
+editor backups, and shader caches are intentionally excluded.
 
 Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 
@@ -69,6 +83,16 @@ This command builds the module, creates the complete runtime ZIP in
 Defender scan. It also refuses uncommitted sources and rejects an invalid
 Bannerlord module-version format. Only upload an archive after it reports
 `PASS`.
+
+For the diagnostics-enabled **v1.5.5 Test** archive, run:
+
+```powershell
+& .\Tests\Verify-Release.ps1 -IncludeStrategicProvinceDiagnostics
+```
+
+This produces `artifacts\RealisticCalendarTweaks-v1.5.5-Test.zip`. It is for
+testers and includes strategic-province snapshot diagnostics plus every
+module-owned refuge/editor scene. Use the normal archive for players.
 
 The build output is written to `bin\Win64_Shipping_Client`. Install the
 `RealisticCalendarTweaks` module folder in the game's `Modules` directory, then
@@ -121,8 +145,8 @@ the module automatically falls back to
 ## Optional MCM settings
 
 MCM is optional. If MCM is installed, the calendar exposes an in-game settings
-page with calendar, display, balance, lord-mortality, and fast-forward-speed
-controls. The date format supports `{Month}`, `{Season}`, `{Day}`,
+page with calendar, display, balance, lord-mortality, fast-forward-speed, and
+clock-synchronized-lighting controls. The date format supports `{Month}`, `{Season}`, `{Day}`,
 `{Year}`, `{MonthNumber}`, and `{DayOfYear}`. Without MCM, the native
 **Calendar** Options tab provides the same core controls. On the map bar, the
 date and season occupy the two-line block left of the sundial, while the clock
@@ -159,8 +183,10 @@ toggles. For example:
 ```xml
 <RealisticCalendarTweaks UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
   UseOrdinalDaySuffixes="true"
-  AutoCampaignTimeScale="true" CampaignTimeScale="0.23"
+  AutoCampaignTimeScale="true" CampaignTimeScale="0.15"
   FastForwardSpeedMultiplier="4"
+  ClockSynchronizedLighting="true" VisualSunriseHour="5" VisualSunsetHour="21"
+  VisualLightingTransitionHours="1"
   DateFormat="{Month} {Day} {Year}"
   NativeDaysInYear="84" UseCalendarMonthPregnancy="true"
   PregnancyDurationMonths="9" PregnancyDurationDays="273.75" RenownGainMultiplier="0.5"

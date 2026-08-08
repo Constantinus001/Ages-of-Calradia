@@ -16,6 +16,10 @@ namespace RealisticCalendarTweaks.MCM
         private float _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
         private bool _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
         private float _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
+        private bool _clockSynchronizedLighting = CalendarSettingsState.ClockSynchronizedLighting;
+        private float _visualSunriseHour = CalendarSettingsState.VisualSunriseHour;
+        private float _visualSunsetHour = CalendarSettingsState.VisualSunsetHour;
+        private float _visualLightingTransitionHours = CalendarSettingsState.VisualLightingTransitionHours;
         private string _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
         private string _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
         private string _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
@@ -124,7 +128,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Campaign Time Scale", 0.01f, 1.0f, "0.000", Order = 4,
-            RequireRestart = false, HintText = "Controls how quickly campaign time advances. Default is 0.230.")]
+            RequireRestart = false, HintText = "Controls how quickly campaign time advances. Default is 0.150; lower values are slower.")]
         [SettingPropertyGroup("Economy")]
         public float CampaignTimeScale
         {
@@ -140,7 +144,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyBool("Automatic Campaign Time Scale", Order = 5, RequireRestart = false,
-            HintText = "Keeps campaign pacing at the fixed default of 0.230. Turning it off enables custom pacing.")]
+            HintText = "Keeps campaign pacing at the fixed default of 0.150. Turning it off enables custom pacing.")]
         [SettingPropertyGroup("Economy")]
         public bool AutoCampaignTimeScale
         {
@@ -182,6 +186,62 @@ namespace RealisticCalendarTweaks.MCM
             set
             {
                 _fastForwardTimeMultiplier = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyBool("Synchronize Campaign Lighting", Order = 1, RequireRestart = false,
+            HintText = "Aligns visual sunrise and sunset with the campaign clock without changing native gameplay sunrise/sunset mechanics.")]
+        [SettingPropertyGroup("Lighting")]
+        public bool ClockSynchronizedLighting
+        {
+            get { return _clockSynchronizedLighting; }
+            set
+            {
+                _clockSynchronizedLighting = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyFloatingInteger("Visual Sunrise Hour", 0f, 23.75f, "0.00", Order = 2,
+            RequireRestart = false, HintText = "Visual sunrise hour on the campaign clock. Default: 05:00.")]
+        [SettingPropertyGroup("Lighting")]
+        public float VisualSunriseHour
+        {
+            get { return _visualSunriseHour; }
+            set
+            {
+                _visualSunriseHour = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyFloatingInteger("Visual Sunset Hour", 0f, 23.75f, "0.00", Order = 3,
+            RequireRestart = false, HintText = "Visual sunset hour on the campaign clock. Default: 21:00.")]
+        [SettingPropertyGroup("Lighting")]
+        public float VisualSunsetHour
+        {
+            get { return _visualSunsetHour; }
+            set
+            {
+                _visualSunsetHour = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyFloatingInteger("Lighting Transition Hours", 0.25f, 4f, "0.00", Order = 4,
+            RequireRestart = false, HintText = "Length of the gradual dawn and dusk transition. Default: 1 hour.")]
+        [SettingPropertyGroup("Lighting")]
+        public float VisualLightingTransitionHours
+        {
+            get { return _visualLightingTransitionHours; }
+            set
+            {
+                _visualLightingTransitionHours = value;
                 Apply();
                 OnPropertyChanged();
             }
@@ -397,7 +457,11 @@ namespace RealisticCalendarTweaks.MCM
                 balanceMapTracks: _balanceMapTracks,
                 balanceQuestDeadlines: _balanceQuestDeadlines,
                 annualBalanceEnabled: _annualBalanceEnabled,
-                annualBalanceDiagnosticsEnabled: _annualBalanceDiagnosticsEnabled);
+                annualBalanceDiagnosticsEnabled: _annualBalanceDiagnosticsEnabled,
+                clockSynchronizedLighting: _clockSynchronizedLighting,
+                visualSunriseHour: _visualSunriseHour,
+                visualSunsetHour: _visualSunsetHour,
+                visualLightingTransitionHours: _visualLightingTransitionHours);
             CalendarSettingsState.Save();
         }
 
@@ -420,6 +484,10 @@ namespace RealisticCalendarTweaks.MCM
                 _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
                 _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
                 _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
+                _clockSynchronizedLighting = CalendarSettingsState.ClockSynchronizedLighting;
+                _visualSunriseHour = CalendarSettingsState.VisualSunriseHour;
+                _visualSunsetHour = CalendarSettingsState.VisualSunsetHour;
+                _visualLightingTransitionHours = CalendarSettingsState.VisualLightingTransitionHours;
                 _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
                 _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
                 _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
@@ -461,6 +529,10 @@ namespace RealisticCalendarTweaks.MCM
             OnPropertyChanged(nameof(CampaignTimeScale));
             OnPropertyChanged(nameof(AutoCampaignTimeScale));
             OnPropertyChanged(nameof(FastForwardTimeMultiplier));
+            OnPropertyChanged(nameof(ClockSynchronizedLighting));
+            OnPropertyChanged(nameof(VisualSunriseHour));
+            OnPropertyChanged(nameof(VisualSunsetHour));
+            OnPropertyChanged(nameof(VisualLightingTransitionHours));
             OnPropertyChanged(nameof(DateFormat));
             OnPropertyChanged(nameof(UseCalendarMonthPregnancy));
             OnPropertyChanged(nameof(PregnancyDurationMonths));

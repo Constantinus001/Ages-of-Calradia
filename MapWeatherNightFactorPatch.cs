@@ -2,64 +2,143 @@ using System;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
+using TaleWorlds.Library;
 
 namespace TwelveMonthCalendar
 {
     /// <summary>
-    /// The map scene consumes this blend for its sky and terrain exposure.
-    /// Anchor it to CampaignTime's hour so the Gregorian clock cannot display
-    /// night while the visual map remains in a cached daytime state.
+    /// Applies the optional visual lighting profile after Bannerlord has
+    /// calculated weather. Native CampaignTime.SunRise/SunSet are deliberately
+    /// not changed because they also drive gameplay rules.
     /// </summary>
-    [HarmonyPatch(typeof(DefaultMapWeatherModel), "GetNightTimeFactor")]
+    [HarmonyPatch(typeof(DefaultMapWeatherModel), nameof(DefaultMapWeatherModel.GetAtmosphereModel))]
     internal static class MapWeatherNightFactorPatch
     {
-        [HarmonyPrefix]
-        private static bool Prefix(ref float __result)
+        private static bool _failureLogged;
+
+        [HarmonyPostfix]
+        private static void Postfix(ref AtmosphereInfo __result)
         {
-            if (!CalendarSettingsState.ExtendedCalendarEnabled)
+            if (!CalendarSettingsState.ClockSynchronizedLighting
+                || Campaign.Current == null)
             {
-                return true;
+                return;
             }
 
-            float hour = CampaignTime.Now.CurrentHourInDay;
-            float sunrise = 6f;
-            float sunset = 18f;
             try
             {
-                if (Campaign.Current != null && Campaign.Current.Models != null && Campaign.Current.Models.CampaignTimeModel != null)
+                float hour = GetHourOfDay();
+                float customDaylight = GetDaylightFactor(
+                    hour,
+                    CalendarSettingsState.VisualSunriseHour,
+                    CalendarSettingsState.VisualSunsetHour,
+                    CalendarSettingsState.VisualLightingTransitionHours);
+                float nativeDaylight = GetDaylightFactor(
+                    hour,
+                    CampaignTime.SunRise,
+                    CampaignTime.SunSet,
+                    2f);
+
+                // Keep the weather model's colors and precipitation intact,
+                // but move its luminous values to the selected visual clock.
+                // The small floor prevents division spikes at native night.
+                float nativeLuminous = 0.001f + 0.999f * nativeDaylight;
+                float customLuminous = 0.001f + 0.999f * customDaylight;
+                float lightRatio = Clamp(customLuminous / nativeLuminous, 0.001f, 3f);
+
+                __result.SunInfo.Brightness = Scale(__result.SunInfo.Brightness, lightRatio);
+                __result.SunInfo.MaxBrightness = Scale(__result.SunInfo.MaxBrightness, lightRatio);
+                __result.SunInfo.Size = Scale(__result.SunInfo.Size, lightRatio);
+                __result.SunInfo.RayStrength = Scale(__result.SunInfo.RayStrength, lightRatio);
+                __result.AmbientInfo.EnvironmentMultiplier = Clamp(
+                    Scale(__result.AmbientInfo.EnvironmentMultiplier, lightRatio),
+                    0.001f,
+                    1.5f);
+                __result.SkyInfo.Brightness = Scale(__result.SkyInfo.Brightness, lightRatio);
+                __result.TimeInfo.TimeOfDay = hour;
+                __result.TimeInfo.NightTimeFactor = 1f - customDaylight;
+
+                // Bannerlord's native profile spans roughly -3 at night to -2
+                // in daylight. Preserve its weather-specific maximum exposure
+                // while aligning the minimum exposure to the visual clock.
+                __result.PostProInfo.MinExposure = -3f + customDaylight;
+            }
+            catch (Exception exception)
+            {
+                if (_failureLogged)
                 {
-                    sunrise = Campaign.Current.Models.CampaignTimeModel.SunRise;
-                    sunset = Campaign.Current.Models.CampaignTimeModel.SunSet;
+                    return;
                 }
+
+                _failureLogged = true;
+                Diagnostics.Error("Clock-synchronized campaign lighting failed; native atmosphere remains active.", exception);
             }
-            catch
+        }
+
+        private static float GetHourOfDay()
+        {
+            double hour = CampaignTime.Now.ToHours % CampaignTime.HoursInDay;
+            if (hour < 0d)
             {
-                // Use the native default daylight span if another module has
-                // not yet initialized its campaign-time model.
+                hour += CampaignTime.HoursInDay;
             }
 
-            sunrise = Math.Max(1f, Math.Min(11f, sunrise));
-            sunset = Math.Max(sunrise + 2f, Math.Min(23f, sunset));
-            if (hour < sunrise - 1f || hour > sunset + 1f)
+            return (float)hour;
+        }
+
+        private static float GetDaylightFactor(float hour, float sunrise, float sunset, float transition)
+        {
+            float dayLength = sunset - sunrise;
+            if (dayLength < 0f)
             {
-                __result = 1f;
-                return false;
+                dayLength += 24f;
             }
 
-            if (hour >= sunrise + 1f && hour <= sunset - 1f)
+            if (dayLength <= 0.25f || dayLength >= 23.75f)
             {
-                __result = 0f;
-                return false;
+                return 0f;
             }
 
-            if (hour < sunrise + 1f)
+            float safeTransition = Math.Max(0.25f, Math.Min(transition, dayLength / 2f));
+            float sinceSunrise = hour - sunrise;
+            if (sinceSunrise < 0f)
             {
-                __result = Math.Max(0f, Math.Min(1f, (sunrise + 1f - hour) / 2f));
-                return false;
+                sinceSunrise += 24f;
             }
 
-            __result = Math.Max(0f, Math.Min(1f, (hour - (sunset - 1f)) / 2f));
-            return false;
+            if (sinceSunrise >= dayLength)
+            {
+                return 0f;
+            }
+
+            if (sinceSunrise < safeTransition * 2f)
+            {
+                return SmoothStep(sinceSunrise / (safeTransition * 2f));
+            }
+
+            float duskStart = dayLength - safeTransition * 2f;
+            if (sinceSunrise > duskStart)
+            {
+                return 1f - SmoothStep((sinceSunrise - duskStart) / (safeTransition * 2f));
+            }
+
+            return 1f;
+        }
+
+        private static float SmoothStep(float value)
+        {
+            float normalized = Clamp(value, 0f, 1f);
+            return normalized * normalized * (3f - 2f * normalized);
+        }
+
+        private static float Scale(float value, float factor)
+        {
+            return Math.Max(0f, value * factor);
+        }
+
+        private static float Clamp(float value, float minimum, float maximum)
+        {
+            return Math.Max(minimum, Math.Min(maximum, value));
         }
     }
 }

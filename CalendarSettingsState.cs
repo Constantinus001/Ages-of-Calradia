@@ -27,7 +27,18 @@ namespace TwelveMonthCalendar
         private const bool DefaultUseOrdinalDaySuffixes = true;
         private const bool DefaultUse24HourClock = true;
         internal const int DefaultNativeDaysInYear = 84;
-        public const float DefaultCampaignTimeScale = 0.23f;
+        // A 0.15 scale gives roughly 2.7 campaign hours per real minute, or
+        // about 8.9 real minutes per campaign day. This is intentionally
+        // slower than the previous 0.23 default so the map clock is easier to
+        // follow during normal play.
+        public const float DefaultCampaignTimeScale = 0.15f;
+        // Visual lighting follows these hours only when the optional clock-
+        // synchronized atmosphere mode is enabled. Native sunrise/sunset
+        // remain untouched for gameplay mechanics and compatibility.
+        public const bool DefaultClockSynchronizedLighting = true;
+        public const float DefaultVisualSunriseHour = 5f;
+        public const float DefaultVisualSunsetHour = 21f;
+        public const float DefaultVisualLightingTransitionHours = 1f;
         internal const float DefaultPregnancyDurationInDays = 273.75f;
         internal const int DefaultPregnancyDurationMonths = 9;
         internal const float DefaultRenownGainMultiplier = 0.5f;
@@ -67,6 +78,10 @@ namespace TwelveMonthCalendar
         private static float _campaignTimeScale = DefaultCampaignTimeScale;
         private static bool _autoCampaignTimeScale = true;
         private static float _fastForwardTimeMultiplier = DefaultFastForwardTimeMultiplier;
+        private static bool _clockSynchronizedLighting = DefaultClockSynchronizedLighting;
+        private static float _visualSunriseHour = DefaultVisualSunriseHour;
+        private static float _visualSunsetHour = DefaultVisualSunsetHour;
+        private static float _visualLightingTransitionHours = DefaultVisualLightingTransitionHours;
         private static string _dateFormat = DefaultDateFormat;
         private static int _nativeDaysInYear = DefaultNativeDaysInYear;
         private static float _pregnancyDurationInDays = DefaultPregnancyDurationInDays;
@@ -150,6 +165,26 @@ namespace TwelveMonthCalendar
         public static float FastForwardTimeMultiplier
         {
             get { lock (SyncRoot) return _fastForwardTimeMultiplier; }
+        }
+
+        public static bool ClockSynchronizedLighting
+        {
+            get { lock (SyncRoot) return _clockSynchronizedLighting; }
+        }
+
+        public static float VisualSunriseHour
+        {
+            get { lock (SyncRoot) return _visualSunriseHour; }
+        }
+
+        public static float VisualSunsetHour
+        {
+            get { lock (SyncRoot) return _visualSunsetHour; }
+        }
+
+        public static float VisualLightingTransitionHours
+        {
+            get { lock (SyncRoot) return _visualLightingTransitionHours; }
         }
 
         internal static bool IsCampaignProfileLocked
@@ -525,7 +560,11 @@ namespace TwelveMonthCalendar
             bool? annualBalanceEnabled = null,
             bool? annualBalanceDiagnosticsEnabled = null,
             float? normalPlayTimeMultiplier = null,
-            float? fastForwardTimeMultiplier = null)
+            float? fastForwardTimeMultiplier = null,
+            bool? clockSynchronizedLighting = null,
+            float? visualSunriseHour = null,
+            float? visualSunsetHour = null,
+            float? visualLightingTransitionHours = null)
         {
             lock (SyncRoot)
             {
@@ -613,11 +652,25 @@ namespace TwelveMonthCalendar
                 _fastForwardTimeMultiplier = NormalizePacingMultiplier(
                     fastForwardTimeMultiplier ?? _fastForwardTimeMultiplier,
                     DefaultFastForwardTimeMultiplier);
+                _clockSynchronizedLighting = clockSynchronizedLighting ?? _clockSynchronizedLighting;
+                _visualSunriseHour = NormalizeLightingHour(
+                    visualSunriseHour ?? _visualSunriseHour,
+                    DefaultVisualSunriseHour);
+                _visualSunsetHour = NormalizeLightingHour(
+                    visualSunsetHour ?? _visualSunsetHour,
+                    DefaultVisualSunsetHour);
+                if (Math.Abs(_visualSunsetHour - _visualSunriseHour) < 0.25f)
+                {
+                    _visualSunriseHour = DefaultVisualSunriseHour;
+                    _visualSunsetHour = DefaultVisualSunsetHour;
+                }
+                _visualLightingTransitionHours = NormalizeLightingTransition(
+                    visualLightingTransitionHours ?? _visualLightingTransitionHours);
             }
 
             Diagnostics.Info(
                 string.Format(
-                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; Clock24Hour={5}; TimeScale={6:F6}; NormalPace=fixed; FastForwardSpeed={7:F0}; LordDeathRate={8:F3}; DateFormat={9}",
+                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; Clock24Hour={5}; TimeScale={6:F6}; NormalPace=fixed; FastForwardSpeed={7:F0}; LightingSync={8}; VisualSunrise={9:F2}; VisualSunset={10:F2}; LightingTransition={11:F2}; LordDeathRate={12:F3}; DateFormat={13}",
                     FixedCalendarSystem,
                     UseLeapYears,
                     ShowDayLabel,
@@ -626,6 +679,10 @@ namespace TwelveMonthCalendar
                     Use24HourClock,
                     CampaignTimeScale,
                     FastForwardTimeMultiplier,
+                    ClockSynchronizedLighting,
+                    VisualSunriseHour,
+                    VisualSunsetHour,
+                    VisualLightingTransitionHours,
                     LordDeathRateMultiplier,
                     DateFormat));
 
@@ -661,7 +718,11 @@ namespace TwelveMonthCalendar
                 annualBalanceEnabled: true,
                 annualBalanceDiagnosticsEnabled: true,
                 normalPlayTimeMultiplier: DefaultNormalPlayTimeMultiplier,
-                fastForwardTimeMultiplier: DefaultFastForwardTimeMultiplier);
+                fastForwardTimeMultiplier: DefaultFastForwardTimeMultiplier,
+                clockSynchronizedLighting: DefaultClockSynchronizedLighting,
+                visualSunriseHour: DefaultVisualSunriseHour,
+                visualSunsetHour: DefaultVisualSunsetHour,
+                visualLightingTransitionHours: DefaultVisualLightingTransitionHours);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
         }
@@ -831,7 +892,23 @@ namespace TwelveMonthCalendar
                     balanceQuestDeadlines: ReadBoolean(root, "BalanceQuestDeadlines", true),
                     annualBalanceEnabled: ReadBoolean(root, "AnnualBalanceEnabled", true),
                     annualBalanceDiagnosticsEnabled: ReadBoolean(root, "AnnualBalanceDiagnosticsEnabled", true),
-                    fastForwardTimeMultiplier: ReadFastForwardSpeed(root));
+                    fastForwardTimeMultiplier: ReadFastForwardSpeed(root),
+                    clockSynchronizedLighting: ReadBoolean(
+                        root,
+                        "ClockSynchronizedLighting",
+                        DefaultClockSynchronizedLighting),
+                    visualSunriseHour: ReadFloat(
+                        root,
+                        "VisualSunriseHour",
+                        DefaultVisualSunriseHour),
+                    visualSunsetHour: ReadFloat(
+                        root,
+                        "VisualSunsetHour",
+                        DefaultVisualSunsetHour),
+                    visualLightingTransitionHours: ReadFloat(
+                        root,
+                        "VisualLightingTransitionHours",
+                        DefaultVisualLightingTransitionHours));
 
                 Diagnostics.Info(
                     string.Format(
@@ -873,6 +950,12 @@ namespace TwelveMonthCalendar
                 root.SetAttribute(
                     "FastForwardSpeedMultiplier",
                     FastForwardTimeMultiplier.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("ClockSynchronizedLighting", ClockSynchronizedLighting.ToString());
+                root.SetAttribute("VisualSunriseHour", VisualSunriseHour.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("VisualSunsetHour", VisualSunsetHour.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute(
+                    "VisualLightingTransitionHours",
+                    VisualLightingTransitionHours.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("DateFormat", DateFormat);
                 root.SetAttribute("NativeDaysInYear", NativeDaysInYear.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("PregnancyDurationDays", PregnancyDurationInDays.ToString("R", CultureInfo.InvariantCulture));
@@ -1036,6 +1119,29 @@ namespace TwelveMonthCalendar
             }
 
             return DefaultFastForwardTimeMultiplier;
+        }
+
+        private static float NormalizeLightingHour(float value, float fallback)
+        {
+            if (!IsFinite(value))
+            {
+                return fallback;
+            }
+
+            float normalized = value % 24f;
+            if (normalized < 0f)
+            {
+                normalized += 24f;
+            }
+
+            return normalized;
+        }
+
+        private static float NormalizeLightingTransition(float value)
+        {
+            return IsFinite(value)
+                ? Math.Max(0.25f, Math.Min(4f, value))
+                : DefaultVisualLightingTransitionHours;
         }
 
         private static int ReadInt(XmlElement root, string name, int fallback)

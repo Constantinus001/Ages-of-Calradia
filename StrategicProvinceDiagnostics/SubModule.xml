@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="Strategic Province Diagnostics" />
+  <Id value="RealisticCalendarTweaksStrategicDiagnostics" />
+  <Version value="v0.1.0" />
+  <SingleplayerModule value="true" />
+  <MultiplayerModule value="false" />
+
+  <DependedModules>
+    <DependedModule Id="Native" DependentVersion="v1.4.7" />
+    <DependedModule Id="SandBoxCore" DependentVersion="v1.4.7" />
+    <DependedModule Id="Sandbox" DependentVersion="v1.4.7" />
+  </DependedModules>
+
+  <SubModules>
+    <SubModule>
+      <Name value="Strategic Province Diagnostics" />
+      <DLLName value="StrategicProvinceDiagnostics.dll" />
+      <SubModuleClassType value="TwelveMonthCalendar.StrategicProvinceDiagnosticsSubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>

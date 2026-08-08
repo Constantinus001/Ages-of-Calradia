@@ -13,6 +13,10 @@
 backups/
 artifacts/
 
+# Local editor recovery data and one-off investigation tools
+EditorBackups/
+SceneObj/**/ShaderCache/
+
 # Local reverse-engineering helpers and their generated files
 tools/
 tmp/

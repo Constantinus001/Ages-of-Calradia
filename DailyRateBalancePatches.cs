@@ -1,5 +1,5 @@
 using System;
-using System.Runtime.CompilerServices;
+using System.Reflection;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
@@ -84,8 +84,8 @@ namespace TwelveMonthCalendar
             if (fraction > 0f)
             {
                 long day = (long)Math.Floor(CampaignTime.Now.ToDays);
-                int scopeHash = scope == null ? 0 : RuntimeHelpers.GetHashCode(scope);
-                long hash = day * 1103515245L + scopeHash * 31L + channel.GetHashCode();
+                int scopeHash = GetStableScopeHash(scope);
+                long hash = day * 1103515245L + scopeHash * 31L + StableStringHash(channel);
                 double unit = (hash & 0x7FFFFFFF) / 2147483648.0;
                 if (unit < fraction)
                 {
@@ -94,6 +94,51 @@ namespace TwelveMonthCalendar
             }
 
             return sign * whole;
+        }
+
+        private static int GetStableScopeHash(object scope)
+        {
+            if (scope == null)
+            {
+                return 0;
+            }
+
+            try
+            {
+                PropertyInfo stringIdProperty = scope.GetType().GetProperty(
+                    "StringId",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                object value = stringIdProperty == null ? null : stringIdProperty.GetValue(scope, null);
+                string stringId = value as string;
+                if (!string.IsNullOrEmpty(stringId))
+                {
+                    return StableStringHash(stringId);
+                }
+            }
+            catch
+            {
+                // A third-party scope without a readable StringId falls back
+                // to its stable type name rather than process object identity.
+            }
+
+            return StableStringHash(scope.GetType().FullName ?? scope.GetType().Name);
+        }
+
+        private static int StableStringHash(string value)
+        {
+            unchecked
+            {
+                int hash = 17;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    for (int index = 0; index < value.Length; index++)
+                    {
+                        hash = (hash * 31) + value[index];
+                    }
+                }
+
+                return hash;
+            }
         }
 
         internal static void Scale(ref ExplainedNumber value)
@@ -511,13 +556,58 @@ namespace TwelveMonthCalendar
     [HarmonyPatch(typeof(DefaultSettlementEconomyModel), "GetTownGoldChange")]
     internal static class TownGoldChangeBalancePatch
     {
+        private const int LowLiquidityThreshold = 2500;
+
         [HarmonyPostfix]
-        private static void Postfix(ref int __result)
+        private static void Postfix(Town town, ref int __result)
         {
             if (!DailyRateBalance.IsFinanceEvaluation)
             {
-                DailyRateBalance.Scale(ref __result);
+                // Town gold is a target-buffer correction, not a pure income
+                // stream. If a town has reached the native zero clamp, keep
+                // Bannerlord's full positive recovery for this tick so a
+                // market cannot remain unusable for several calendar days.
+                // Normal towns continue to use the annualized correction.
+                if (town != null && town.Gold <= 0 && __result > 0)
+                {
+                    return;
+                }
+
+                int nativeChange = __result;
+                int annualizedChange = DailyRateBalance.ScaleDailyInteger(nativeChange);
+
+                // Town gold is also the market's working liquidity. A low-gold
+                // town needs a bounded portion of the native recovery signal or
+                // its prices and purchases can remain frozen for many calendar
+                // days. This is a blend, not a cash injection: the native model
+                // still determines the maximum recovery and siege/starvation
+                // states are deliberately excluded.
+                if (town != null
+                    && nativeChange > 0
+                    && town.Gold < LowLiquidityThreshold
+                    && IsEligibleForLiquidityRecovery(town))
+                {
+                    float urgency = 1f - town.Gold / (float)LowLiquidityThreshold;
+                    float nativeRecoveryBlend = Math.Max(0f, Math.Min(0.75f, urgency * 0.75f));
+                    __result = annualizedChange + (int)Math.Round(
+                        (nativeChange - annualizedChange) * nativeRecoveryBlend,
+                        MidpointRounding.AwayFromZero);
+                    return;
+                }
+
+                __result = annualizedChange;
             }
+        }
+
+        private static bool IsEligibleForLiquidityRecovery(Town town)
+        {
+            Settlement settlement = town.Settlement;
+            if (settlement == null || settlement.IsUnderSiege || settlement.IsStarving)
+            {
+                return false;
+            }
+
+            return town.FoodStocks >= 25f;
         }
     }
 

@@ -17,6 +17,8 @@ namespace TwelveMonthCalendar
         SleepingQuarters = 1 << 3,
         Blacksmith = 1 << 4,
         Stash = 1 << 5,
-        GuardTowers = 1 << 6
+        GuardTowers = 1 << 6,
+        Infirmary = 1 << 7,
+        TrainingYard = 1 << 8
     }
 }

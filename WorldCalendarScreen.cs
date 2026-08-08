@@ -1,5 +1,6 @@
 using System;
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
 
@@ -50,6 +51,14 @@ namespace TwelveMonthCalendar
         protected override void OnTick(float dt)
         {
             base.OnTick(dt);
+
+            // The view model accepts this wheel input only while the pointer
+            // is over the map viewport. The Kingdom Summary and saved-history
+            // panels retain their normal independent scrolling.
+            if (_dataSource.IsStrategicMap && Input.IsMouseScrollChanged)
+            {
+                _dataSource.AdjustStrategicMapZoomFromMouseWheel(Input.DeltaMouseScroll);
+            }
 
             int ownershipRevision = CalendarWorldLedgerBehavior.OwnershipRevision;
             if (ownershipRevision == _lastOwnershipRevision) return;

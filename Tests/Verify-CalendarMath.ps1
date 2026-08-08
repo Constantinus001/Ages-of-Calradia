@@ -1,6 +1,7 @@
 param(
     [string]$ModuleRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$BannerlordDir = 'C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord'
+    [string]$BannerlordDir = 'C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord',
+    [string]$CalendarAssemblyPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,8 +17,10 @@ foreach ($assemblyName in @(
     [Reflection.Assembly]::LoadFrom((Join-Path $gameBin $assemblyName)) | Out-Null
 }
 
-$calendarAssembly = [Reflection.Assembly]::LoadFrom(
-    (Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll'))
+if ([string]::IsNullOrWhiteSpace($CalendarAssemblyPath)) {
+    $CalendarAssemblyPath = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll'
+}
+$calendarAssembly = [Reflection.Assembly]::LoadFrom($CalendarAssemblyPath)
 $calendarMath = $calendarAssembly.GetType('TwelveMonthCalendar.CalendarTimeMath', $true)
 
 function Invoke-CalendarMath([string]$Name, [object[]]$Arguments) {

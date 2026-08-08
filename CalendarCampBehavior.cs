@@ -27,21 +27,16 @@ namespace TwelveMonthCalendar
     {
         internal const string CampMenuId = "realistic_calendar_camp";
         internal const string RefugeStatusMenuId = "realistic_calendar_refuge_status";
-        private const string RefugeUpgradesMenuId = "realistic_calendar_refuge_upgrades";
         private const string CampRestMenuId = "realistic_calendar_camp_rest";
         private const float RestHours = 8f;
-        private const float DawnHour = 7f;
         private static float _activeRestHours = RestHours;
         private const string CampTentPrefabId = "map_icon_siege_camp_tent";
 
-        // A compact native camp marker beside the resting party.
+        // A single native siege tent marks the party's temporary camp from
+        // the moment the camp menu opens until the player leaves it.
         private static readonly Vec2[] CampTentOffsets =
         {
-            new Vec2(-0.45f, -0.28f),
-            new Vec2(0.42f, -0.20f),
-            new Vec2(-0.52f, 0.32f),
-            new Vec2(0.00f, 0.50f),
-            new Vec2(0.55f, 0.22f)
+            new Vec2(0f, 0f)
         };
 
         private static readonly List<GameEntity> CampTentEntities = new List<GameEntity>();
@@ -72,11 +67,23 @@ namespace TwelveMonthCalendar
                 OnRefugeStatusMenuInit,
                 GameMenu.MenuOverlayType.None);
 
-            starter.AddGameMenu(
-                RefugeUpgradesMenuId,
-                "{=RCT_RefugeUpgradesTitle}The sergeant-at-arms reviews the refuge plans.",
-                OnRefugeUpgradesMenuInit,
-                GameMenu.MenuOverlayType.None);
+            starter.AddGameMenuOption(
+                RefugeStatusMenuId,
+                "realistic_calendar_refuge_status_pack_test_camp",
+                "Pack up test camp",
+                CanPackUpTestCamp,
+                PackUpTestCamp,
+                isLeave: false,
+                index: -1);
+
+            starter.AddGameMenuOption(
+                RefugeStatusMenuId,
+                "realistic_calendar_refuge_status_upgrade_camp",
+                "Upgrade camp to refuge",
+                CanUpgradeCamp,
+                UpgradeCampToRefuge,
+                isLeave: false,
+                index: -1);
 
             starter.AddGameMenuOption(
                 RefugeStatusMenuId,
@@ -98,10 +105,10 @@ namespace TwelveMonthCalendar
 
             starter.AddGameMenuOption(
                 RefugeStatusMenuId,
-                "realistic_calendar_refuge_status_sergeant",
-                "{=RCT_RefugeSergeant}Speak with the sergeant-at-arms",
-                CanManageRefuge,
-                OpenRefugeUpgrades,
+                "realistic_calendar_refuge_status_dismantle",
+                "Dismantle this refuge",
+                CanDismantleRefuge,
+                ConfirmDismantleRefuge,
                 isLeave: false,
                 index: -1);
 
@@ -114,27 +121,10 @@ namespace TwelveMonthCalendar
                 isLeave: true,
                 index: -1);
 
-            AddRefugeUpgradeOption(starter, "barracks", "Build barracks (1,200 denars)", RefugeUpgrade.Barracks, 1200);
-            AddRefugeUpgradeOption(starter, "tavern", "Build a tavern and cookhouse (900 denars)", RefugeUpgrade.Tavern, 900);
-            AddRefugeUpgradeOption(starter, "staff_tents", "Build staff tents (650 denars)", RefugeUpgrade.StaffTents, 650);
-            AddRefugeUpgradeOption(starter, "sleeping_quarters", "Build sleeping quarters (700 denars)", RefugeUpgrade.SleepingQuarters, 700);
-            AddRefugeUpgradeOption(starter, "blacksmith", "Build a blacksmith (1,100 denars)", RefugeUpgrade.Blacksmith, 1100);
-            AddRefugeUpgradeOption(starter, "stash", "Build a protected stash inside the palisade (350 denars)", RefugeUpgrade.Stash, 350);
-            AddRefugeUpgradeOption(starter, "guard_towers", "Complete the four guard towers (1,500 denars)", RefugeUpgrade.GuardTowers, 1500);
-
-            starter.AddGameMenuOption(
-                RefugeUpgradesMenuId,
-                "realistic_calendar_refuge_upgrade_return",
-                "{=RCT_RefugeUpgradeReturn}Return to refuge status",
-                CanReturnFromRefugeUpgrades,
-                ReturnFromRefugeUpgrades,
-                isLeave: true,
-                index: -1);
-
             starter.AddGameMenuOption(
                 CampMenuId,
                 "realistic_calendar_camp_rest",
-                "{=RCT_CampRest}Wait here (up to eight hours)",
+                "{=RCT_CampRest}Wait here for some time (8 hours)",
                 CanUseCamp,
                 OpenRestMenu,
                 isLeave: false,
@@ -151,28 +141,10 @@ namespace TwelveMonthCalendar
 
             starter.AddGameMenuOption(
                 CampMenuId,
-                "realistic_calendar_camp_order_land_refuge",
-                "{=RCT_OrderLandRefuge}Order construction of a land refuge",
-                CanOrderLandRefugeConstruction,
-                OrderLandRefugeConstruction,
-                isLeave: false,
-                index: -1);
-
-            starter.AddGameMenuOption(
-                CampMenuId,
-                "realistic_calendar_camp_order_river_refuge",
-                "{=RCT_OrderRiverRefuge}Order construction of a river refuge",
-                CanOrderRiverRefugeConstruction,
-                OrderRiverRefugeConstruction,
-                isLeave: false,
-                index: -1);
-
-            starter.AddGameMenuOption(
-                CampMenuId,
-                "realistic_calendar_camp_order_coast_refuge",
-                "{=RCT_OrderCoastRefuge}Order construction of a coastal refuge",
-                CanOrderCoastRefugeConstruction,
-                OrderCoastRefugeConstruction,
+                "realistic_calendar_camp_build_refuge",
+                "{=RCT_BuildRefuge}Build a refuge",
+                CanBuildSurveyedRefuge,
+                ConfirmBuildSurveyedRefuge,
                 isLeave: false,
                 index: -1);
 
@@ -228,6 +200,8 @@ namespace TwelveMonthCalendar
 
         private static void OnCampMenuInit(MenuCallbackArgs args)
         {
+            ShowTemporaryCampVisual();
+
             CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
             if (refuge != null
                 && refuge.ConstructionState == RefugeConstructionState.UnderConstruction)
@@ -254,126 +228,13 @@ namespace TwelveMonthCalendar
                 return;
             }
 
-            args.MenuTitle = new TextObject("{=RCT_RefugeStatusComplete}Your refuge is complete.");
-        }
-
-        private static void OnRefugeUpgradesMenuInit(MenuCallbackArgs args)
-        {
-            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
-            int completed = refuge == null ? 0 : refuge.GetUpgradeCount();
-            TextObject title = new TextObject(
-                "{=RCT_RefugeUpgradesTitle}The sergeant-at-arms reviews the refuge plans. Completed structures: {COUNT}/7.");
-            title.SetTextVariable("COUNT", completed);
-            args.MenuTitle = title;
-        }
-
-        private static void AddRefugeUpgradeOption(
-            CampaignGameStarter starter,
-            string id,
-            string text,
-            RefugeUpgrade upgrade,
-            int cost)
-        {
-            starter.AddGameMenuOption(
-                RefugeUpgradesMenuId,
-                "realistic_calendar_refuge_upgrade_" + id,
-                text,
-                delegate(MenuCallbackArgs args) { return CanPurchaseRefugeUpgrade(args, upgrade, cost); },
-                delegate(MenuCallbackArgs args) { PurchaseRefugeUpgrade(args, upgrade, cost); },
-                isLeave: false,
-                index: -1);
-        }
-
-        private static bool CanManageRefuge(MenuCallbackArgs args)
-        {
-            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
-            bool isComplete = refuge != null
-                && refuge.ConstructionState == RefugeConstructionState.Complete;
-            args.IsEnabled = isComplete;
-            args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
-            if (!isComplete)
+            if (refuge != null && refuge.IsCampOnly)
             {
-                args.Tooltip = new TextObject("{=RCT_RefugeSergeantUnavailable}The sergeant-at-arms arrives when the refuge is complete.");
-            }
-
-            return refuge != null && refuge.HasRefuge;
-        }
-
-        private static void OpenRefugeUpgrades(MenuCallbackArgs args)
-        {
-            GameMenu.SwitchToMenu(RefugeUpgradesMenuId);
-        }
-
-        private static bool CanPurchaseRefugeUpgrade(
-            MenuCallbackArgs args,
-            RefugeUpgrade upgrade,
-            int cost)
-        {
-            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
-            if (refuge == null || refuge.ConstructionState != RefugeConstructionState.Complete)
-            {
-                return false;
-            }
-
-            args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
-            if (refuge.HasUpgrade(upgrade))
-            {
-                args.IsEnabled = false;
-                args.Tooltip = new TextObject("{=RCT_RefugeUpgradeBuilt}This structure has already been built.");
-                return true;
-            }
-
-            Hero hero = Hero.MainHero;
-            args.IsEnabled = hero != null && hero.Gold >= cost;
-            args.Tooltip = args.IsEnabled
-                ? new TextObject("{=RCT_RefugeUpgradeBuy}The sergeant will begin this permanent refuge improvement immediately.")
-                : new TextObject("{=RCT_RefugeUpgradeNeedGold}You do not have enough denars for this construction order.");
-            return true;
-        }
-
-        private static void PurchaseRefugeUpgrade(
-            MenuCallbackArgs args,
-            RefugeUpgrade upgrade,
-            int cost)
-        {
-            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
-            string failure = string.Empty;
-            if (refuge == null || !refuge.TryPurchaseUpgrade(upgrade, cost, out failure))
-            {
-                InformationManager.DisplayMessage(new InformationMessage(
-                    string.IsNullOrEmpty(failure) ? "The refuge upgrade could not be ordered." : failure));
+                args.MenuTitle = new TextObject("Your camp is established.");
                 return;
             }
 
-            InformationManager.DisplayMessage(new InformationMessage(
-                "The sergeant-at-arms has added " + GetUpgradeName(upgrade) + " to the refuge."));
-            GameMenu.SwitchToMenu(RefugeUpgradesMenuId);
-        }
-
-        private static bool CanReturnFromRefugeUpgrades(MenuCallbackArgs args)
-        {
-            args.optionLeaveType = GameMenuOption.LeaveType.Leave;
-            return true;
-        }
-
-        private static void ReturnFromRefugeUpgrades(MenuCallbackArgs args)
-        {
-            GameMenu.SwitchToMenu(RefugeStatusMenuId);
-        }
-
-        private static string GetUpgradeName(RefugeUpgrade upgrade)
-        {
-            switch (upgrade)
-            {
-                case RefugeUpgrade.Barracks: return "the barracks";
-                case RefugeUpgrade.Tavern: return "the tavern and cookhouse";
-                case RefugeUpgrade.StaffTents: return "the staff tents";
-                case RefugeUpgrade.SleepingQuarters: return "the sleeping quarters";
-                case RefugeUpgrade.Blacksmith: return "the blacksmith";
-                case RefugeUpgrade.Stash: return "the protected stash";
-                case RefugeUpgrade.GuardTowers: return "the guard towers";
-                default: return "the improvement";
-            }
+            args.MenuTitle = new TextObject("{=RCT_RefugeStatusComplete}Your refuge is complete.");
         }
 
         private static bool RefugeStatusProgressCondition(MenuCallbackArgs args)
@@ -395,7 +256,9 @@ namespace TwelveMonthCalendar
             }
             else
             {
-                args.Text = new TextObject("{=RCT_RefugeStatusProgressComplete}A palisaded camp marks your completed refuge.");
+                args.Text = new TextObject(
+                    refuge.SelectedFortDisplayName + " marks your completed refuge. "
+                    + refuge.GetManagementSummary());
             }
 
             return true;
@@ -411,7 +274,7 @@ namespace TwelveMonthCalendar
         {
             CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
             bool canEnter = refuge != null
-                && refuge.ConstructionState == RefugeConstructionState.Complete
+                && (refuge.ConstructionState == RefugeConstructionState.Complete || refuge.ConstructionState == RefugeConstructionState.Camp)
                 && refuge.IsMainPartyWithinInteractionRange
                 && Campaign.Current != null
                 && Mission.Current == null;
@@ -422,13 +285,17 @@ namespace TwelveMonthCalendar
             {
                 args.Tooltip = new TextObject(
                     refuge != null
-                        && refuge.ConstructionState == RefugeConstructionState.Complete
+                        && (refuge.ConstructionState == RefugeConstructionState.Complete || refuge.ConstructionState == RefugeConstructionState.Camp)
                         && !refuge.IsMainPartyWithinInteractionRange
                         ? "{=RCT_RefugeEnterTooFar}Move your party closer to the refuge before entering."
                         : "{=RCT_RefugeEnterUnavailable}The refuge must be complete and no other mission may be active.");
             }
 
-            return refuge != null && refuge.HasRefuge;
+            if (refuge != null && refuge.IsCampOnly)
+            {
+                args.Text = new TextObject("Enter camp");
+            }
+            return refuge != null && refuge.HasCamp;
         }
 
         private static void EnterRefuge(MenuCallbackArgs args)
@@ -450,34 +317,85 @@ namespace TwelveMonthCalendar
             GameMenu.ExitToLast();
         }
 
-        private static bool CanOrderLandRefugeConstruction(MenuCallbackArgs args)
+        private static bool CanDismantleRefuge(MenuCallbackArgs args)
         {
-            return CanOrderRefugeConstruction(
-                args,
-                RefugeWaterAccessType.Land,
-                "Requires 30 party members, more than 150 denars in camp funds, and 1,000 denars for construction. A land refuge has no ship berth. Construction takes one campaign hour.");
+            args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            string reason = string.Empty;
+            bool canDismantle = refuge != null && refuge.CanRemoveRefuge(out reason);
+            args.IsEnabled = canDismantle;
+            if (!canDismantle)
+            {
+                args.Tooltip = new TextObject(refuge == null
+                    ? "Refuge management is not available in this campaign session."
+                    : reason);
+            }
+            return refuge != null && refuge.HasRefuge;
         }
 
-        private static bool CanOrderRiverRefugeConstruction(MenuCallbackArgs args)
+        private static bool CanPackUpTestCamp(MenuCallbackArgs args)
         {
-            return CanOrderRefugeConstruction(
-                args,
-                RefugeWaterAccessType.River,
-                "Requires 30 party members, more than 150 denars in camp funds, 1,000 denars for construction, and a verified navigable river. River refuges can later store ships. Construction takes one campaign hour.");
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
+            args.IsEnabled = refuge != null && refuge.IsCampOnly;
+            return refuge != null && refuge.IsCampOnly;
         }
 
-        private static bool CanOrderCoastRefugeConstruction(MenuCallbackArgs args)
+        private static void PackUpTestCamp(MenuCallbackArgs args)
         {
-            return CanOrderRefugeConstruction(
-                args,
-                RefugeWaterAccessType.Coast,
-                "Requires 30 party members, more than 150 denars in camp funds, 1,000 denars for construction, and a verified coastline. Coastal refuges can later store ships. Construction takes one campaign hour.");
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            string failure = string.Empty;
+            if (refuge != null && refuge.TryRemoveRefuge(out failure))
+            {
+                InformationManager.DisplayMessage(new InformationMessage("Test camp packed up. Your terrain checklist was kept; you may found the next camp."));
+                GameMenu.SwitchToMenu(CampMenuId);
+            }
+            else
+            {
+                InformationManager.DisplayMessage(new InformationMessage(string.IsNullOrWhiteSpace(failure) ? "Test camp could not be packed up." : failure));
+            }
         }
 
-        private static bool CanOrderRefugeConstruction(
-            MenuCallbackArgs args,
-            RefugeWaterAccessType requestedAccess,
-            string enabledTooltip)
+        private static void ConfirmDismantleRefuge(MenuCallbackArgs args)
+        {
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            string failure = string.Empty;
+            if (refuge == null || !refuge.CanRemoveRefuge(out failure))
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    string.IsNullOrWhiteSpace(failure) ? "This refuge cannot be dismantled." : failure));
+                return;
+            }
+
+            InformationManager.ShowInquiry(new InquiryData(
+                "Dismantle " + refuge.SelectedFortDisplayName + "?",
+                "This removes the refuge from this campaign. The stash and garrison must remain empty. "
+                + "You may then found a new refuge and choose a different fort style.",
+                true,
+                true,
+                "Dismantle refuge",
+                "Keep refuge",
+                delegate
+                {
+                    string removeFailure;
+                    if (refuge.TryRemoveRefuge(out removeFailure))
+                    {
+                        InformationManager.DisplayMessage(new InformationMessage(
+                            "The refuge has been dismantled. You may build a new refuge."));
+                        GameMenu.SwitchToMenu(CampMenuId);
+                    }
+                    else
+                    {
+                        InformationManager.DisplayMessage(new InformationMessage(
+                            string.IsNullOrWhiteSpace(removeFailure)
+                                ? "The refuge could not be dismantled."
+                                : removeFailure));
+                    }
+                },
+                null), true);
+        }
+
+        private static bool CanBuildSurveyedRefuge(MenuCallbackArgs args)
         {
             args.IsEnabled = false;
             args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
@@ -489,39 +407,163 @@ namespace TwelveMonthCalendar
                 return true;
             }
 
-            if (refuge.HasRefuge)
+            if (refuge.HasCamp)
             {
                 return false;
             }
 
+            RefugeWaterAccessType recommendedAccess;
             string reason;
-            args.IsEnabled = refuge.CanStartConstruction(requestedAccess, out reason);
-            args.Tooltip = args.IsEnabled
-                ? new TextObject(enabledTooltip)
-                : new TextObject(reason);
+            args.IsEnabled = refuge.TrySurveyCurrentSite(out recommendedAccess, out reason);
+            if (args.IsEnabled)
+            {
+                string kind = GetRefugeTypeName(recommendedAccess);
+                TextObject optionText = new TextObject("{=RCT_BuildSurveyedRefuge}Build a {TYPE} refuge");
+                optionText.SetTextVariable("TYPE", kind.ToLowerInvariant());
+                args.Text = optionText;
+                args.Tooltip = new TextObject(GetRefugeTypeDescription(recommendedAccess));
+            }
+            else
+            {
+                args.Tooltip = new TextObject(reason);
+            }
+
             return true;
         }
 
-        private static void OrderLandRefugeConstruction(MenuCallbackArgs args)
+        private static void ConfirmBuildSurveyedRefuge(MenuCallbackArgs args)
         {
-            OrderRefugeConstruction(args, RefugeWaterAccessType.Land);
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            RefugeWaterAccessType recommendedAccess;
+            string failure = "Refuge management is not available in this campaign session.";
+            if (refuge == null || !refuge.TrySurveyCurrentSite(out recommendedAccess, out failure))
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    string.IsNullOrEmpty(failure) ? "This refuge site could not be surveyed." : failure));
+                return;
+            }
+
+            if (refuge.TryFoundCamp(recommendedAccess, out failure))
+            {
+                InformationManager.DisplayMessage(new InformationMessage("Camp established. Move to its marker and enter camp to upgrade it into a refuge."));
+            }
+            else
+            {
+                InformationManager.DisplayMessage(new InformationMessage(string.IsNullOrWhiteSpace(failure) ? "Camp could not be established." : failure));
+            }
         }
 
-        private static void OrderRiverRefugeConstruction(MenuCallbackArgs args)
+        private static bool CanUpgradeCamp(MenuCallbackArgs args)
         {
-            OrderRefugeConstruction(args, RefugeWaterAccessType.River);
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            args.IsEnabled = refuge != null && refuge.IsCampOnly && refuge.IsMainPartyWithinInteractionRange;
+            args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
+            if (!args.IsEnabled) args.Tooltip = new TextObject("Enter an established camp and stand near it to choose a refuge style.");
+            return refuge != null && refuge.HasCamp;
         }
 
-        private static void OrderCoastRefugeConstruction(MenuCallbackArgs args)
+        private static void UpgradeCampToRefuge(MenuCallbackArgs args)
         {
-            OrderRefugeConstruction(args, RefugeWaterAccessType.Coast);
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            if (refuge != null && refuge.IsCampOnly)
+            {
+                OrderRefugeConstruction(
+                    refuge.WaterAccess,
+                    RefugeFortPrefabCatalog.DefaultFortPrefabId);
+            }
         }
 
-        private static void OrderRefugeConstruction(MenuCallbackArgs args, RefugeWaterAccessType requestedAccess)
+        /// <summary>
+        /// The fort decision belongs at founding time, while campaign state is
+        /// still atomic. Each option is enabled only when its complete prefab
+        /// and matching authored terrain/navmesh scene are actually ready.
+        /// </summary>
+        internal static void ShowFortStyleSelectionForSteward()
+        {
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            if (refuge == null)
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    "Refuge management is not available in this campaign session."));
+                return;
+            }
+            ShowFortStyleSelection(refuge.WaterAccess, changingExistingRefuge: true);
+        }
+
+        private static void ShowFortStyleSelection(
+            RefugeWaterAccessType requestedAccess,
+            bool changingExistingRefuge = false)
+        {
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            if (refuge == null)
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    "Refuge management is not available in this campaign session."));
+                return;
+            }
+
+            List<InquiryElement> choices = new List<InquiryElement>();
+            foreach (RefugeFortPrefabDefinition fort in RefugeFortPrefabCatalog.All)
+            {
+                string reason;
+                bool enabled = changingExistingRefuge
+                    ? refuge.CanChangeFortStyle(fort.PrefabId, out reason)
+                    : refuge.CanStartConstruction(requestedAccess, fort.PrefabId, out reason);
+                string hint = fort.Description + "\n\n"
+                    + (enabled
+                        ? (changingExistingRefuge
+                            ? "Ready. The Steward will apply this style on your next refuge visit."
+                            : "Ready for this site. Construction costs 1,000 denars and takes one campaign hour.")
+                        : reason);
+                choices.Add(new InquiryElement(
+                    fort.PrefabId,
+                    fort.DisplayName,
+                    null,
+                    enabled,
+                    hint));
+            }
+
+            string typeName = GetRefugeTypeName(requestedAccess);
+            MBInformationManager.ShowMultiSelectionInquiry(
+                new MultiSelectionInquiryData(
+                    changingExistingRefuge ? "Change Refuge Style" : "Choose a " + typeName + " Refuge Style",
+                    changingExistingRefuge
+                        ? "Choose the visual fort style managed by the Steward. It will appear when you next enter the refuge."
+                        : "Choose the complete fort style for this refuge. The selection is saved when construction begins. "
+                            + "A style becomes available only after its prefab, terrain, collision, and navmesh scene are ready.",
+                    choices,
+                    true,
+                    1,
+                    1,
+                    changingExistingRefuge ? "Apply style" : "Begin construction",
+                    "Cancel",
+                    delegate(List<InquiryElement> selected)
+                    {
+                        if (selected == null || selected.Count == 0) return;
+                        string fortPrefabId = selected[0].Identifier as string;
+                        if (!string.IsNullOrWhiteSpace(fortPrefabId))
+                        {
+                            if (changingExistingRefuge)
+                            {
+                                ChangeRefugeStyle(fortPrefabId);
+                            }
+                            else
+                            {
+                                OrderRefugeConstruction(requestedAccess, fortPrefabId);
+                            }
+                        }
+                    },
+                    null),
+                true);
+        }
+
+        private static void OrderRefugeConstruction(
+            RefugeWaterAccessType requestedAccess,
+            string fortPrefabId)
         {
             CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
             string failure = string.Empty;
-            if (refuge == null || !refuge.TryStartConstruction(requestedAccess, out failure))
+            if (refuge == null || !refuge.TryStartConstruction(requestedAccess, fortPrefabId, out failure))
             {
                 InformationManager.DisplayMessage(
                     new InformationMessage(string.IsNullOrEmpty(failure)
@@ -531,8 +573,49 @@ namespace TwelveMonthCalendar
             }
 
             InformationManager.DisplayMessage(
-                new InformationMessage("Refuge construction has begun: 1 campaign hour remaining."));
+                new InformationMessage("Refuge construction has begun: "
+                    + refuge.SelectedFortDisplayName + ", 1 campaign hour remaining."));
             GameMenu.SwitchToMenu(CampMenuId);
+        }
+
+        private static void ChangeRefugeStyle(string fortPrefabId)
+        {
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            string failure = string.Empty;
+            if (refuge == null || !refuge.TryChangeFortStyle(fortPrefabId, out failure))
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    string.IsNullOrEmpty(failure)
+                        ? "The Steward could not change the refuge style."
+                        : failure));
+                return;
+            }
+
+            InformationManager.DisplayMessage(new InformationMessage(
+                "The Steward has changed the refuge style. Re-enter the refuge to see it."));
+        }
+
+        private static string GetRefugeTypeName(RefugeWaterAccessType access)
+        {
+            switch (access)
+            {
+                case RefugeWaterAccessType.River: return "River";
+                case RefugeWaterAccessType.Coast: return "Coastal";
+                default: return "Land";
+            }
+        }
+
+        private static string GetRefugeTypeDescription(RefugeWaterAccessType access)
+        {
+            switch (access)
+            {
+                case RefugeWaterAccessType.River:
+                    return "This site has verified navigable-river access and can support ship storage.";
+                case RefugeWaterAccessType.Coast:
+                    return "This site has verified coastal access and can support ship storage.";
+                default:
+                    return "This inland site will create a land refuge without ship storage.";
+            }
         }
 
         private static bool RefugeUnderConstructionCondition(MenuCallbackArgs args)
@@ -596,7 +679,14 @@ namespace TwelveMonthCalendar
 
         private static void OpenRestUntilDawn(MenuCallbackArgs args)
         {
-            float hoursUntilDawn = DawnHour - CampaignTime.Now.CurrentHourInDay;
+            float dawnHour = GetNativeSunriseHour();
+            double hourInDay = CampaignTime.Now.ToHours % CampaignTime.HoursInDay;
+            if (hourInDay < 0d)
+            {
+                hourInDay += CampaignTime.HoursInDay;
+            }
+
+            float hoursUntilDawn = dawnHour - (float)hourInDay;
             if (hoursUntilDawn <= 0.05f)
             {
                 hoursUntilDawn += 24f;
@@ -609,8 +699,34 @@ namespace TwelveMonthCalendar
             GameMenu.SwitchToMenu(CampRestMenuId);
         }
 
+        private static float GetNativeSunriseHour()
+        {
+            try
+            {
+                if (Campaign.Current != null
+                    && Campaign.Current.Models != null
+                    && Campaign.Current.Models.CampaignTimeModel != null)
+                {
+                    return Campaign.Current.Models.CampaignTimeModel.SunRise;
+                }
+            }
+            catch
+            {
+                // Use the initialized native static value below.
+            }
+
+            if (CampaignTime.SunRise > 0 && CampaignTime.SunRise < CampaignTime.HoursInDay)
+            {
+                return CampaignTime.SunRise;
+            }
+
+            // Bannerlord's DefaultCampaignTimeModel sunrise is 02:00.
+            return 2f;
+        }
+
         private static void LeaveCamp(MenuCallbackArgs args)
         {
+            HideTemporaryCampVisual();
             GameMenu.ExitToLast();
         }
 
@@ -635,6 +751,27 @@ namespace TwelveMonthCalendar
         private static void FinishRest(MenuCallbackArgs args)
         {
             HideTemporaryCampVisual();
+            CalendarRefugeBehavior refuge = CalendarRefugeBehavior.Active;
+            int moraleBonus = refuge == null ? 0 : refuge.ApplyRestBenefitIfAtRefuge();
+            int recoveredTroops = refuge == null ? 0 : refuge.ApplyHealerRestBenefitIfAtRefuge();
+            int trainedGarrison = refuge == null ? 0 : refuge.ApplyGarrisonTrainingIfAtRefuge();
+            if (moraleBonus > 0)
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    "The refuge tavern and cookhouse improve party morale by " + moraleBonus + "."));
+            }
+            if (recoveredTroops > 0)
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    "The refuge healer treats " + recoveredTroops + " wounded troop"
+                    + (recoveredTroops == 1 ? "." : "s.")));
+            }
+            if (trainedGarrison > 0)
+            {
+                InformationManager.DisplayMessage(new InformationMessage(
+                    "The Guard Captain trains " + trainedGarrison + " low-tier garrison troop"
+                    + (trainedGarrison == 1 ? "." : "s.")));
+            }
             _activeRestHours = RestHours;
             GameMenu.SwitchToMenu(CampMenuId);
         }
@@ -648,9 +785,9 @@ namespace TwelveMonthCalendar
         }
 
         /// <summary>
-        /// Creates five native map tent props beside the party only while the
-        /// camp wait menu is active. The entities are held by reference and
-        /// removed again on either normal completion or "Stop resting".
+        /// Creates one native map tent beside the party while the camp menu or
+        /// its wait menu is active. The entity is held by reference and
+        /// removed when the player leaves camp.
         /// </summary>
         private static void ShowTemporaryCampVisual()
         {

@@ -16,6 +16,7 @@
     <NetStandardPath Condition=" '$(NetStandardPath)' == '' and '$(NETSTANDARD_PATH)' != '' ">$(NETSTANDARD_PATH)</NetStandardPath>
     <NetStandardPath Condition=" '$(NetStandardPath)' == '' ">C:\Program Files\dotnet\sdk\3.1.426\Microsoft\Microsoft.NET.Build.Extensions\net461\lib\netstandard.dll</NetStandardPath>
     <McmAssemblyPath Condition=" '$(McmAssemblyPath)' == '' ">$(UserProfile)\.nuget\packages\bannerlord.mcm\5.12.2\lib\netstandard2.0\MCMv5.dll</McmAssemblyPath>
+    <MainAssemblyPath Condition=" '$(MainAssemblyPath)' == '' ">bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll</MainAssemblyPath>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -43,7 +44,7 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="RealisticCalendarTweaks">
-      <HintPath>bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll</HintPath>
+      <HintPath>$(MainAssemblyPath)</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="MCMv5">

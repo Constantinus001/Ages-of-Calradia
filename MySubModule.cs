@@ -31,6 +31,10 @@ namespace TwelveMonthCalendar
             base.OnSubModuleLoad();
 
             Diagnostics.Initialize();
+#if STRATEGIC_PROVINCE_DIAGNOSTICS
+            StrategicProvinceDiagnosticsLog.Initialize();
+            StrategicProvinceDiagnosticsLog.Info("Strategic province diagnostics enabled in the v1.5.5 Test build.");
+#endif
             Diagnostics.Info("Submodule load started.");
             CrashFlightRecorder.Record("Module", "OnSubModuleLoad entered.");
             CrashDiagnostics.RegisterUnhandledExceptionHandler();
@@ -180,12 +184,18 @@ namespace TwelveMonthCalendar
                 InstallAnnualBalanceModels(campaignStarter);
 
                 campaignStarter.AddBehavior(new CalendarDiagnosticsBehavior());
+#if STRATEGIC_PROVINCE_DIAGNOSTICS
+                campaignStarter.AddBehavior(new StrategicProvinceDiagnosticsBehavior());
+#endif
                 campaignStarter.AddBehavior(new CalendarCampaignProfileBehavior());
                 campaignStarter.AddBehavior(new CalendarTreatyMigrationBehavior());
                 campaignStarter.AddBehavior(new CalendarWorldLedgerBehavior());
                 campaignStarter.AddBehavior(new CalendarRefugeBehavior());
                 campaignStarter.AddBehavior(new CalendarCampBehavior());
                 Diagnostics.Info("Calendar diagnostics behavior registered for campaign.");
+#if STRATEGIC_PROVINCE_DIAGNOSTICS
+                Diagnostics.Info("Strategic province diagnostics behavior registered; full province snapshots use StrategicProvinceDiagnostics.tsv.");
+#endif
                 Diagnostics.Info("Calendar soft profile behavior registered; new saves write no calendar module-lock marker.");
                 Diagnostics.Info("Calendar treaty migration behavior registered for existing tribute agreements.");
                 Diagnostics.Info("Calendar refuge behavior registered with primitive save data and navigable-water validation.");

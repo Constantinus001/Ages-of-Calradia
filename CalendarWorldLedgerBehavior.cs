@@ -16,7 +16,6 @@ namespace TwelveMonthCalendar
     {
         private const string LedgerKey = "RealisticCalendarTweaks.WorldLedgerV1";
         private const string SettlementOwnershipKey = "RealisticCalendarTweaks.SettlementOwnershipV1";
-        private const int MaximumEntries = 500;
         private List<string> _entries = new List<string>();
         // Primitive, ID-keyed snapshot: settlementId, settlementName, factionId, factionName.
         // Keeping this as strings avoids a custom save type and remains compatible with saves.
@@ -44,10 +43,6 @@ namespace TwelveMonthCalendar
             dataStore.SyncData(SettlementOwnershipKey, ref _settlementOwners);
             _entries = _entries ?? new List<string>();
             _settlementOwners = _settlementOwners ?? new List<string>();
-            if (_entries.Count > MaximumEntries)
-            {
-                _entries.RemoveRange(0, _entries.Count - MaximumEntries);
-            }
         }
 
         internal void Record(string category, string message)
@@ -56,7 +51,203 @@ namespace TwelveMonthCalendar
             string entry = CampaignTime.Now.ToDays.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
                 + "\t" + category.Trim() + "\t" + message.Trim();
             _entries.Add(entry);
-            if (_entries.Count > MaximumEntries) _entries.RemoveAt(0);
+        }
+
+        /// <summary>
+        /// Returns the first day represented in the saved world-event ledger.
+        /// The ledger is intentionally no longer trimmed, so the calendar can
+        /// present every event recorded by this module in the current campaign.
+        /// </summary>
+        internal static long GetFirstRecordedDay(long fallbackDay)
+        {
+            CalendarWorldLedgerBehavior active = _active;
+            if (active == null || active._entries == null || active._entries.Count == 0) return fallbackDay;
+
+            long firstDay = long.MaxValue;
+            foreach (string entry in active._entries)
+            {
+                string[] fields = entry.Split(new[] { '\t' }, 3);
+                double recordedDays;
+                if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
+                long day = (long)Math.Floor(recordedDays);
+                if (day < firstDay) firstDay = day;
+            }
+
+            return firstDay == long.MaxValue ? fallbackDay : firstDay;
+        }
+
+        internal static int CountRecordedEntries(long firstDayInclusive, long firstDayExclusive)
+        {
+            CalendarWorldLedgerBehavior active = _active;
+            if (active == null || active._entries == null || firstDayExclusive <= firstDayInclusive) return 0;
+
+            int count = 0;
+            foreach (string entry in active._entries)
+            {
+                string[] fields = entry.Split(new[] { '\t' }, 3);
+                double recordedDays;
+                if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
+                long day = (long)Math.Floor(recordedDays);
+                if (day >= firstDayInclusive && day < firstDayExclusive) count++;
+            }
+            return count;
+        }
+
+        internal static string GetRecordedEntriesText(long firstDayInclusive, long firstDayExclusive, int visibleLimit)
+        {
+            CalendarWorldLedgerBehavior active = _active;
+            if (active == null || active._entries == null || firstDayExclusive <= firstDayInclusive)
+            {
+                return "No events were recorded for this month.";
+            }
+
+            List<string> matchingEntries = new List<string>();
+            foreach (string entry in active._entries)
+            {
+                string[] fields = entry.Split(new[] { '\t' }, 3);
+                double recordedDays;
+                if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
+                long day = (long)Math.Floor(recordedDays);
+                if (day < firstDayInclusive || day >= firstDayExclusive) continue;
+                matchingEntries.Add("[" + fields[1] + "] " + fields[2]);
+            }
+
+            if (matchingEntries.Count == 0) return "No events were recorded for this month.";
+
+            StringBuilder text = new StringBuilder();
+            int count = Math.Min(Math.Max(1, visibleLimit), matchingEntries.Count);
+            for (int index = 0; index < count; index++)
+            {
+                if (index > 0) text.AppendLine();
+                text.Append("• ").Append(matchingEntries[index]);
+            }
+            if (matchingEntries.Count > count)
+            {
+                text.AppendLine().Append("+ ").Append(matchingEntries.Count - count).Append(" more saved events.");
+            }
+            return text.ToString();
+        }
+
+        internal static string GetRecordedSummaryText(long firstDayInclusive, long firstDayExclusive)
+        {
+            CalendarWorldLedgerBehavior active = _active;
+            if (active == null || active._entries == null || firstDayExclusive <= firstDayInclusive)
+            {
+                return "No events were recorded.";
+            }
+
+            Dictionary<string, int> categories = new Dictionary<string, int>(StringComparer.Ordinal);
+            List<string> examples = new List<string>();
+            int total = 0;
+            foreach (string entry in active._entries)
+            {
+                string[] fields = entry.Split(new[] { '\t' }, 3);
+                double recordedDays;
+                if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
+                long day = (long)Math.Floor(recordedDays);
+                if (day < firstDayInclusive || day >= firstDayExclusive) continue;
+
+                total++;
+                int categoryCount;
+                categories.TryGetValue(fields[1], out categoryCount);
+                categories[fields[1]] = categoryCount + 1;
+                if (examples.Count < 2) examples.Add("• " + fields[2]);
+            }
+
+            if (total == 0) return "No events were recorded.";
+
+            StringBuilder text = new StringBuilder("Recorded: ").Append(total);
+            foreach (KeyValuePair<string, int> category in categories)
+            {
+                text.Append(" | ").Append(category.Key).Append(": ").Append(category.Value);
+            }
+            foreach (string example in examples)
+            {
+                text.AppendLine().Append(example);
+            }
+            return text.ToString();
+        }
+
+        internal static string GetImportantEventsText(long firstDayInclusive, long firstDayExclusive, int limit, bool includeCounts)
+        {
+            CalendarWorldLedgerBehavior active = _active;
+            if (active == null || active._entries == null || firstDayExclusive <= firstDayInclusive)
+            {
+                return "No events were recorded.";
+            }
+
+            List<ImportantLedgerEntry> matching = new List<ImportantLedgerEntry>();
+            Dictionary<string, int> categories = new Dictionary<string, int>(StringComparer.Ordinal);
+            int sequence = 0;
+            foreach (string entry in active._entries)
+            {
+                string[] fields = entry.Split(new[] { '\t' }, 3);
+                double recordedDays;
+                if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
+                long day = (long)Math.Floor(recordedDays);
+                if (day < firstDayInclusive || day >= firstDayExclusive) continue;
+
+                int categoryCount;
+                categories.TryGetValue(fields[1], out categoryCount);
+                categories[fields[1]] = categoryCount + 1;
+                matching.Add(new ImportantLedgerEntry(day, fields[1], fields[2], GetImportanceScore(fields[1]), sequence++));
+            }
+
+            if (matching.Count == 0) return "No events were recorded.";
+            matching.Sort(delegate(ImportantLedgerEntry left, ImportantLedgerEntry right)
+            {
+                int importance = right.Importance.CompareTo(left.Importance);
+                if (importance != 0) return importance;
+                int day = right.Day.CompareTo(left.Day);
+                return day != 0 ? day : right.Sequence.CompareTo(left.Sequence);
+            });
+
+            StringBuilder text = new StringBuilder();
+            if (includeCounts)
+            {
+                text.Append("Recorded: ").Append(matching.Count);
+                foreach (KeyValuePair<string, int> category in categories)
+                {
+                    text.Append(" | ").Append(category.Key).Append(": ").Append(category.Value);
+                }
+            }
+
+            int selectedCount = Math.Min(Math.Max(1, limit), matching.Count);
+            for (int index = 0; index < selectedCount; index++)
+            {
+                if (text.Length > 0) text.AppendLine();
+                ImportantLedgerEntry selected = matching[index];
+                text.Append("• [").Append(selected.Category).Append("] ").Append(selected.Message);
+            }
+            return text.ToString();
+        }
+
+        private static int GetImportanceScore(string category)
+        {
+            if (string.Equals(category, "War", StringComparison.Ordinal)) return 100;
+            if (string.Equals(category, "Settlement", StringComparison.Ordinal)) return 95;
+            if (string.Equals(category, "Peace", StringComparison.Ordinal)) return 90;
+            if (string.Equals(category, "Death", StringComparison.Ordinal)) return 80;
+            if (string.Equals(category, "Birth", StringComparison.Ordinal)) return 50;
+            return 25;
+        }
+
+        private sealed class ImportantLedgerEntry
+        {
+            internal ImportantLedgerEntry(long day, string category, string message, int importance, int sequence)
+            {
+                Day = day;
+                Category = category ?? string.Empty;
+                Message = message ?? string.Empty;
+                Importance = importance;
+                Sequence = sequence;
+            }
+
+            internal long Day { get; private set; }
+            internal string Category { get; private set; }
+            internal string Message { get; private set; }
+            internal int Importance { get; private set; }
+            internal int Sequence { get; private set; }
         }
 
         internal static string GetRecentEntriesText(string filter)

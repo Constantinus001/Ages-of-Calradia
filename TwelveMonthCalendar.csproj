@@ -128,6 +128,14 @@
       <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.ViewModelCollection.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.View">
+      <HintPath>$(BannerlordDir)\Modules\Native\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.View.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.ModuleManager">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ModuleManager.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -137,16 +145,27 @@
     <Compile Include="Diagnostics.cs" />
     <Compile Include="CrashFlightRecorder.cs" />
     <Compile Include="CalendarDiagnosticsBehavior.cs" />
+    <Compile Include="StrategicProvinceDiagnostics\StrategicProvinceDiagnosticsBehavior.cs" Condition="'$(IncludeStrategicProvinceDiagnostics)' == 'true'" />
+    <Compile Include="StrategicProvinceDiagnostics\StrategicProvinceDiagnosticsLog.cs" Condition="'$(IncludeStrategicProvinceDiagnostics)' == 'true'" />
     <Compile Include="CalendarTreatyMigrationBehavior.cs" />
     <Compile Include="CalendarWorldLedgerBehavior.cs" />
     <Compile Include="CalendarRefugeBehavior.cs" />
+    <Compile Include="PortableCampAnchorStore.cs" />
+    <Compile Include="RefugeFortPrefabCatalog.cs" />
+    <Compile Include="RefugeSceneProfileCatalog.cs" />
     <Compile Include="RefugeUpgrade.cs" />
+    <Compile Include="RefugeStaffRole.cs" />
+    <Compile Include="RefugeBuildingCatalog.cs" />
+    <Compile Include="CalendarRefugeStewardInteraction.cs" />
     <Compile Include="CalendarRefugeMission.cs" />
+    <Compile Include="CalendarRefugeLayoutBuilderBehavior.cs" />
+    <Compile Include="CalendarRefugeBuilderHudView.cs" />
     <Compile Include="CalendarRefugeMapClickPatch.cs" />
     <Compile Include="CalendarCampBehavior.cs" />
     <Compile Include="CalendarWorldLedgerVM.cs" />
     <Compile Include="CalendarWorldLedgerFixedStrategicLayers.cs" />
     <Compile Include="CalendarStrategicMapLayout.cs" />
+    <Compile Include="CalendarStrategicSettlementReference.cs" />
     <Compile Include="CalendarStrategicMapTextureProvider.cs" />
     <Compile Include="WorldCalendarScreen.cs" />
     <Compile Include="CalendarSaveCompatibility.cs" />
@@ -162,6 +181,7 @@
     <Compile Include="MapWeatherNightFactorPatch.cs" />
     <Compile Include="CampaignPacingPatch.cs" />
     <Compile Include="MapBarSeasonDataSourcePatch.cs" />
+    <Compile Include="CaravanTradePriorityPatch.cs" />
     <Compile Include="EconomyAndLifeCyclePatches.cs" />
     <Compile Include="SettlementBalancePatches.cs" />
     <Compile Include="WorkshopFoodContextPatch.cs" />

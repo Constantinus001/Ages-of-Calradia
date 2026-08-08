@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Runtime-verified reference anchors for native water scenes.
+  These are documentation/calibration records; portable_camp_anchors.xml
+  contains only player-selected global overrides.
+-->
+<verified_builtin_anchors>
+  <anchor scene="river_bt_aserai_01_4x4km"
+          profile="Desert River"
+          x="500.974"
+          y="1492.877"
+          status="verified_without_manual_anchor" />
+</verified_builtin_anchors>

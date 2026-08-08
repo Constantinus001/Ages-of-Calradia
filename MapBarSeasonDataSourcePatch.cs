@@ -17,6 +17,7 @@ namespace TwelveMonthCalendar
         private string _timeOfDay = string.Empty;
         private string _calendarDateLine = string.Empty;
         private string _seasonYearLine = string.Empty;
+        private double _lastFastForwardDisplayHours = double.NaN;
 
         internal CalendarMapTimeControlVM(
             Func<MapBarShortcuts> getMapBarShortcuts,
@@ -84,6 +85,28 @@ namespace TwelveMonthCalendar
         {
             base.RefreshValues();
             RefreshSeason();
+        }
+
+        internal void RefreshFastForwardDisplay()
+        {
+            if (Campaign.Current == null
+                || !CalendarTimeMath.IsFastForwardMode(Campaign.Current.TimeControlMode))
+            {
+                _lastFastForwardDisplayHours = double.NaN;
+                return;
+            }
+
+            // MapBarVM intentionally refreshes its native clock less often
+            // during fast-forward. Keep the custom date, season, and numeric
+            // clock aligned with the same CampaignTime source while time is
+            // moving quickly, without issuing a property update every frame.
+            double totalHours = CampaignTime.Now.ToHours;
+            if (double.IsNaN(_lastFastForwardDisplayHours)
+                || Math.Abs(totalHours - _lastFastForwardDisplayHours) >= 0.05d)
+            {
+                _lastFastForwardDisplayHours = totalHours;
+                RefreshCalendarDisplay();
+            }
         }
 
         public override void OnFinalize()
@@ -158,10 +181,22 @@ namespace TwelveMonthCalendar
         {
             try
             {
-                float hourInDay = CampaignTime.Now.CurrentHourInDay;
-                int totalMinutes = Math.Max(0, Math.Min(1439, (int)Math.Floor(hourInDay * 60f)));
+                // Keep the custom numeric display on the same hour source as
+                // vanilla MapTimeControlVM.Time and its native time-of-day
+                // tooltip (Morning/Noon/Afternoon/Evening/Night).
+                double hourInDay = CampaignTime.Now.ToHours % CampaignTime.HoursInDay;
+                if (hourInDay < 0d)
+                {
+                    hourInDay += CampaignTime.HoursInDay;
+                }
+
+                int totalMinutes = Math.Max(0, Math.Min(1439, (int)Math.Floor(hourInDay * 60d)));
                 int hour = totalMinutes / 60;
                 int minute = totalMinutes % 60;
+                // The native sundial widget is bound to MapTimeControlVM.Time;
+                // explicitly update it beside the custom text so both visuals
+                // use the exact same hour value during accelerated time.
+                Time = (float)hourInDay;
                 if (CalendarSettingsState.Use24HourClock)
                 {
                     TimeOfDay = string.Format("{0:00}:{1:00}", hour, minute);
@@ -246,6 +281,20 @@ namespace TwelveMonthCalendar
             {
                 calendarTimeControl.RefreshSeason();
                 calendarTimeControl.RefreshClock();
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(MapTimeControlVM), nameof(MapTimeControlVM.Tick))]
+    internal static class MapBarFastForwardTickPatch
+    {
+        [HarmonyPostfix]
+        private static void Postfix(MapTimeControlVM __instance)
+        {
+            CalendarMapTimeControlVM calendarTimeControl = __instance as CalendarMapTimeControlVM;
+            if (calendarTimeControl != null)
+            {
+                calendarTimeControl.RefreshFastForwardDisplay();
             }
         }
     }

@@ -255,7 +255,39 @@ namespace TwelveMonthCalendar
                     1,
                     delegate { return CalendarSettingsState.FastForwardTimeMultiplier; },
                     delegate(float value) { Apply(fastForwardTimeMultiplier: value); }),
-                new CalendarActionOptionData("Reset Pacing", "Reset Category", "Restores automatic pacing, 0.23 campaign scale, and 4x fast-forward.", ResetPacingCategory)
+                new CalendarActionOptionData("Reset Pacing", "Reset Category", "Restores automatic pacing, 0.15 campaign scale, and 4x fast-forward.", ResetPacingCategory)
+            };
+            List<IOptionData> lightingOptions = new List<IOptionData>
+            {
+                new CalendarBooleanOptionData(
+                    "Synchronize Campaign Lighting",
+                    delegate { return CalendarSettingsState.ClockSynchronizedLighting; },
+                    delegate(bool value) { Apply(clockSynchronizedLighting: value); }),
+                new CalendarNumericOptionData(
+                    "Visual Sunrise Hour",
+                    0f,
+                    23.75f,
+                    false,
+                    2,
+                    delegate { return CalendarSettingsState.VisualSunriseHour; },
+                    delegate(float value) { Apply(visualSunriseHour: value); }),
+                new CalendarNumericOptionData(
+                    "Visual Sunset Hour",
+                    0f,
+                    23.75f,
+                    false,
+                    2,
+                    delegate { return CalendarSettingsState.VisualSunsetHour; },
+                    delegate(float value) { Apply(visualSunsetHour: value); }),
+                new CalendarNumericOptionData(
+                    "Lighting Transition Hours",
+                    0.25f,
+                    4f,
+                    false,
+                    2,
+                    delegate { return CalendarSettingsState.VisualLightingTransitionHours; },
+                    delegate(float value) { Apply(visualLightingTransitionHours: value); }),
+                new CalendarActionOptionData("Reset Lighting", "Reset Category", "Restores clock-synchronized lighting, 05:00 sunrise, 21:00 sunset, and one-hour transitions.", ResetLightingCategory)
             };
             List<IOptionData> lifeCycleOptions = new List<IOptionData>
             {
@@ -329,6 +361,7 @@ namespace TwelveMonthCalendar
             options.AddRange(calendarOptions);
             options.AddRange(displayOptions);
             options.AddRange(pacingOptions);
+            options.AddRange(lightingOptions);
             options.AddRange(lifeCycleOptions);
             options.AddRange(annualBalanceOptions);
             options.AddRange(diagnosticsOptions);
@@ -340,6 +373,7 @@ namespace TwelveMonthCalendar
                     new OptionGroup(new TextObject("Calendar"), calendarOptions),
                     new OptionGroup(new TextObject("Display"), displayOptions),
                     new OptionGroup(new TextObject("Pacing"), pacingOptions),
+                    new OptionGroup(new TextObject("Lighting"), lightingOptions),
                     new OptionGroup(new TextObject("Life Cycle"), lifeCycleOptions),
                     new OptionGroup(new TextObject("Annual Balance"), annualBalanceOptions),
                     new OptionGroup(new TextObject("Diagnostics"), diagnosticsOptions)
@@ -806,7 +840,11 @@ namespace TwelveMonthCalendar
             bool? balanceQuestDeadlines = null,
             bool? annualBalanceEnabled = null,
             bool? annualBalanceDiagnosticsEnabled = null,
-            float? fastForwardTimeMultiplier = null)
+            float? fastForwardTimeMultiplier = null,
+            bool? clockSynchronizedLighting = null,
+            float? visualSunriseHour = null,
+            float? visualSunsetHour = null,
+            float? visualLightingTransitionHours = null)
         {
             bool requestedLeapYears = useLeapYears ?? CalendarSettingsState.UseLeapYears;
             bool requestedShowDayLabel = showDayLabel ?? CalendarSettingsState.ShowDayLabel;
@@ -817,7 +855,8 @@ namespace TwelveMonthCalendar
             string requestedDateFormat = dateFormat ?? CalendarSettingsState.DateFormat;
             bool requestedAutoTimeScale = autoCampaignTimeScale ?? CalendarSettingsState.AutoCampaignTimeScale;
             // Only the checkbox enables automatic pacing. A slider edit is a
-            // manual choice even when its resulting value is exactly 0.23.
+            // manual choice even when its resulting value is exactly the
+            // automatic 0.15 default.
             float requestedFastForwardTimeMultiplier = fastForwardTimeMultiplier
                 ?? CalendarSettingsState.FastForwardTimeMultiplier;
             bool requestedCalendarMonthPregnancy = useCalendarMonthPregnancy
@@ -844,6 +883,14 @@ namespace TwelveMonthCalendar
                 ?? CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
             bool requestedAnnualBalanceEnabled = annualBalanceEnabled
                 ?? CalendarSettingsState.AnnualBalanceEnabled;
+            bool requestedClockSynchronizedLighting = clockSynchronizedLighting
+                ?? CalendarSettingsState.ClockSynchronizedLighting;
+            float requestedVisualSunriseHour = visualSunriseHour
+                ?? CalendarSettingsState.VisualSunriseHour;
+            float requestedVisualSunsetHour = visualSunsetHour
+                ?? CalendarSettingsState.VisualSunsetHour;
+            float requestedVisualLightingTransitionHours = visualLightingTransitionHours
+                ?? CalendarSettingsState.VisualLightingTransitionHours;
 
             // Bannerlord initializes option controls by writing their current
             // value back to the data source. Do not treat those UI refreshes as
@@ -868,7 +915,11 @@ namespace TwelveMonthCalendar
                 && requestedBalanceMapTracks == CalendarSettingsState.BalanceMapTracks
                 && requestedBalanceQuestDeadlines == CalendarSettingsState.BalanceQuestDeadlines
                 && requestedAnnualBalanceEnabled == CalendarSettingsState.AnnualBalanceEnabled
-                && requestedAnnualBalanceDiagnostics == CalendarSettingsState.AnnualBalanceDiagnosticsEnabled)
+                && requestedAnnualBalanceDiagnostics == CalendarSettingsState.AnnualBalanceDiagnosticsEnabled
+                && requestedClockSynchronizedLighting == CalendarSettingsState.ClockSynchronizedLighting
+                && NearlyEqual(requestedVisualSunriseHour, CalendarSettingsState.VisualSunriseHour)
+                && NearlyEqual(requestedVisualSunsetHour, CalendarSettingsState.VisualSunsetHour)
+                && NearlyEqual(requestedVisualLightingTransitionHours, CalendarSettingsState.VisualLightingTransitionHours))
             {
                 return;
             }
@@ -895,7 +946,11 @@ namespace TwelveMonthCalendar
                 balanceMapTracks: requestedBalanceMapTracks,
                 balanceQuestDeadlines: requestedBalanceQuestDeadlines,
                 annualBalanceEnabled: requestedAnnualBalanceEnabled,
-                annualBalanceDiagnosticsEnabled: requestedAnnualBalanceDiagnostics);
+                annualBalanceDiagnosticsEnabled: requestedAnnualBalanceDiagnostics,
+                clockSynchronizedLighting: requestedClockSynchronizedLighting,
+                visualSunriseHour: requestedVisualSunriseHour,
+                visualSunsetHour: requestedVisualSunsetHour,
+                visualLightingTransitionHours: requestedVisualLightingTransitionHours);
             CalendarSettingsState.Save();
         }
 
@@ -966,7 +1021,17 @@ namespace TwelveMonthCalendar
                 campaignTimeScale: CalendarSettingsState.DefaultCampaignTimeScale,
                 autoCampaignTimeScale: true,
                 fastForwardTimeMultiplier: 4f);
-            CompleteCategoryReset("Pacing", "Pacing was reset to automatic 0.23 scale and 4x fast-forward.");
+            CompleteCategoryReset("Pacing", "Pacing was reset to automatic 0.15 scale and 4x fast-forward.");
+        }
+
+        private void ResetLightingCategory()
+        {
+            Apply(
+                clockSynchronizedLighting: CalendarSettingsState.DefaultClockSynchronizedLighting,
+                visualSunriseHour: CalendarSettingsState.DefaultVisualSunriseHour,
+                visualSunsetHour: CalendarSettingsState.DefaultVisualSunsetHour,
+                visualLightingTransitionHours: CalendarSettingsState.DefaultVisualLightingTransitionHours);
+            CompleteCategoryReset("Lighting", "Lighting was reset to the campaign clock with 05:00 sunrise, 21:00 sunset, and one-hour transitions.");
         }
 
         private void ResetLifeCycleCategory()
@@ -1035,7 +1100,7 @@ namespace TwelveMonthCalendar
                     case "Use Ordinal Day Suffixes":
                         return "Displays dates as 1st, 2nd, 3rd, and so on. 11th, 12th, and 13th use the correct th suffix.";
                     case "Automatic Campaign Time Scale":
-                        return "Keeps campaign pacing at the fixed default of 0.230. Turning it off lets you choose a different slider value.";
+                        return "Keeps campaign pacing at the fixed default of 0.150. Turning it off lets you choose a different slider value.";
                     case "Campaign Time Scale":
                         return "Controls how quickly campaign time advances when automatic pacing is disabled. Lower values are slower.";
                     case "Fast-Forward Speed Multiplier":

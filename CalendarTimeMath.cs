@@ -74,6 +74,7 @@ namespace TwelveMonthCalendar
             }
         }
 
+
         internal static bool IsLeapYear(int year)
         {
             return CalendarSettingsState.UseLeapYears
