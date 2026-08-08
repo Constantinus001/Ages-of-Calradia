@@ -43,7 +43,7 @@ namespace TwelveMonthCalendar
         // stored an additional TickMapTime multiplier and are converted once on
         // load so their old default of 1.00 becomes Bannerlord's native 4x
         // fast-forward speed rather than an unexpectedly slow 1x speed.
-        public const int CurrentSchemaVersion = 3;
+        public const int CurrentSchemaVersion = 4;
         private const string SerializedRootName = "CalendarCampaignProfile";
         private const int MaximumSerializedLength = 32768;
 
@@ -98,6 +98,9 @@ namespace TwelveMonthCalendar
         [SaveableField(17)]
         public bool BalanceQuestDeadlines;
 
+        [SaveableField(20)]
+        public bool AnnualBalanceEnabled = true;
+
         [SaveableField(18)]
         public string Fingerprint = string.Empty;
 
@@ -125,7 +128,8 @@ namespace TwelveMonthCalendar
                 BalancePrisonerRecruitment = CalendarSettingsState.BalancePrisonerRecruitment,
                 BalanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage,
                 BalanceMapTracks = CalendarSettingsState.BalanceMapTracks,
-                BalanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines
+                BalanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines,
+                AnnualBalanceEnabled = CalendarSettingsState.AnnualBalanceEnabled
             };
             profile.RefreshFingerprint();
             return profile;
@@ -144,15 +148,25 @@ namespace TwelveMonthCalendar
                 return true;
             }
 
-            if (SchemaVersion != 1 && SchemaVersion != 2)
+            if (SchemaVersion != 1 && SchemaVersion != 2 && SchemaVersion != 3)
             {
                 return false;
             }
 
             int legacySchema = SchemaVersion;
             NormalPlayTimeMultiplier = CalendarSettingsState.DefaultNormalPlayTimeMultiplier;
-            FastForwardTimeMultiplier = CalendarSettingsState.ConvertLegacyFastForwardPacingToSpeed(
-                FastForwardTimeMultiplier);
+            if (legacySchema <= 2)
+            {
+                FastForwardTimeMultiplier = CalendarSettingsState.ConvertLegacyFastForwardPacingToSpeed(
+                    FastForwardTimeMultiplier);
+            }
+            if (legacySchema == 3)
+            {
+                FastForwardTimeMultiplier = Math.Min(
+                    CalendarSettingsState.MaximumPacingMultiplier,
+                    Math.Max(CalendarSettingsState.MinimumPacingMultiplier, FastForwardTimeMultiplier));
+            }
+            AnnualBalanceEnabled = true;
             SchemaVersion = CurrentSchemaVersion;
             if (legacySchema == 1)
             {
@@ -279,6 +293,7 @@ namespace TwelveMonthCalendar
             if (BalanceNpcMarriage != CalendarSettingsState.BalanceNpcMarriage) differences.Add("BalanceNpcMarriage");
             if (BalanceMapTracks != CalendarSettingsState.BalanceMapTracks) differences.Add("BalanceMapTracks");
             if (BalanceQuestDeadlines != CalendarSettingsState.BalanceQuestDeadlines) differences.Add("BalanceQuestDeadlines");
+            if (AnnualBalanceEnabled != CalendarSettingsState.AnnualBalanceEnabled) differences.Add("AnnualBalanceEnabled");
             return differences.Count == 0 ? string.Empty : string.Join(",", differences);
         }
 
@@ -316,6 +331,7 @@ namespace TwelveMonthCalendar
             root.SetAttribute("BalanceNpcMarriage", BalanceNpcMarriage.ToString());
             root.SetAttribute("BalanceMapTracks", BalanceMapTracks.ToString());
             root.SetAttribute("BalanceQuestDeadlines", BalanceQuestDeadlines.ToString());
+            root.SetAttribute("AnnualBalanceEnabled", AnnualBalanceEnabled.ToString());
             root.SetAttribute("Fingerprint", Fingerprint ?? string.Empty);
             return document.OuterXml;
         }
@@ -365,6 +381,13 @@ namespace TwelveMonthCalendar
                     || !TryReadString(root, "Fingerprint", out candidate.Fingerprint))
                 {
                     failure = "the serialized profile has missing or invalid values.";
+                    return false;
+                }
+
+                if (candidate.SchemaVersion >= 4
+                    && !TryReadBoolean(root, "AnnualBalanceEnabled", out candidate.AnnualBalanceEnabled))
+                {
+                    failure = "the serialized profile has a missing or invalid annual-balance setting.";
                     return false;
                 }
 
@@ -432,6 +455,7 @@ namespace TwelveMonthCalendar
                     BalanceNpcMarriage.ToString(),
                     BalanceMapTracks.ToString(),
                     BalanceQuestDeadlines.ToString()
+                    , AnnualBalanceEnabled.ToString()
                 });
 
             using (SHA256 sha256 = SHA256.Create())

@@ -2,6 +2,7 @@ param(
     [string]$ModuleRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$ReleaseArchive,
     [switch]$AllowDirtySource,
+    [switch]$IncludeStrategicProvinceDiagnostics,
     [ValidateRange(1, 30)]
     [int]$CloudVerdictHoldMinutes = 10
 )
@@ -17,9 +18,29 @@ if (-not $AllowDirtySource) {
 
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
-dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /v:minimal
-dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /v:minimal
-& (Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1') -ModuleRoot $ModuleRoot
+if ($IncludeStrategicProvinceDiagnostics) {
+    $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\Test_Win64_Shipping_Client'
+    dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /p:IncludeStrategicProvinceDiagnostics=true /p:DefineConstants=TRACE%3BSTRATEGIC_PROVINCE_DIAGNOSTICS /p:OutputPath='bin\Test_Win64_Shipping_Client\' /v:minimal
+}
+else {
+    $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client'
+    dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /v:minimal
+}
+if ($LASTEXITCODE -ne 0) {
+    throw "Main Release build failed with exit code $LASTEXITCODE."
+}
+$mainDll = Join-Path $runtimeBinDirectory 'RealisticCalendarTweaks.dll'
+if ($IncludeStrategicProvinceDiagnostics) {
+    dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /p:MainAssemblyPath=$mainDll /p:OutputPath='bin\Test_Win64_Shipping_Client\' /v:minimal
+}
+else {
+    dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /v:minimal
+}
+if ($LASTEXITCODE -ne 0) {
+    throw "MCM Release build failed with exit code $LASTEXITCODE."
+}
+$mcmDll = Join-Path $runtimeBinDirectory 'RealisticCalendarTweaks.MCM.dll'
+& (Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1') -ModuleRoot $ModuleRoot -CalendarAssemblyPath $mainDll
 
 $settlementBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'SettlementBalancePatches.cs')
 $dailyBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'DailyRateBalancePatches.cs')
@@ -115,6 +136,43 @@ if ($pacingSource -notmatch 'SpeedUpMultiplier' -or
     $pacingSource -match 'realDt \*=') {
     throw 'Fast-forward speed must use Bannerlord''s direct SpeedUpMultiplier without stacking a TickMapTime multiplier.'
 }
+$settingsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarSettingsState.cs')
+$optionsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarOptionsTabPatch.cs')
+$mcmSettingsSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'McmSettings.cs')
+$calendarOptionItemSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionItem.xml')
+if ($settingsSource -notmatch 'DefaultCampaignTimeScale = 0\.15f' -or
+    $settingsSource -notmatch 'MaximumPacingMultiplier = 4f' -or
+    $settingsSource -notmatch 'requestedAutoCampaignTimeScale[\s\S]{0,120}\? DefaultCampaignTimeScale' -or
+    $settingsSource -match 'case "Pregnancy Duration \(Months\)"' -or
+    $settingsSource -match 'case "Lord Death Rate Multiplier"' -or
+    $settingsSource -match 'case "Renown Gain Multiplier"' -or
+    $settingsSource -match 'ApplyCampaignStartSetting\([\s\S]{0,160}AutoCampaignTimeScale' -or
+    $optionsSource -notmatch 'new OptionGroup\(new TextObject\("Pacing"\)' -or
+    $optionsSource -notmatch 'CalendarNumericOptionDataVM' -or
+    $optionsSource -notmatch 'CalendarBooleanOptionDataVM' -or
+    $optionsSource -notmatch 'base\("Benchmark", action\)' -or
+    $optionsSource -notmatch 'ActionName = calendarAction\.DisplayActionName' -or
+    $optionsSource -notmatch 'HarmonyPatch\(typeof\(ActionOptionDataVM\), nameof\(ActionOptionDataVM\.RefreshValues\)\)' -or
+    $optionsSource -notmatch 'CompleteCategoryReset' -or
+    $optionsSource -notmatch 'InformationManager\.DisplayMessage\(new InformationMessage' -or
+    $optionsSource -notmatch 'const bool nativeCalendarSettingsEnabled = true' -or
+    $optionsSource -notmatch 'RefreshCalendarOptionControls' -or
+    $optionsSource -notmatch 'new CalendarBooleanOptionData\(\s*"Annual Balance Enabled"' -or
+    $optionsSource -notmatch 'Reset Pacing' -or
+    $optionsSource -notmatch 'Reset Annual Balance' -or
+    $optionsSource -notmatch 'RefreshCalendarOptions\(\)' -or
+    $optionsSource -match 'Reset Diagnostics' -or
+    $settingsSource -notmatch 'ResetCalendarCategory' -or
+    $optionsSource -match 'nativeCalendarSettingsEnabled = !OptionalMcmIntegration\.IsSettingsRegistered' -or
+    $optionsSource -match 'base\("Calendar(MonthNames|SeasonNames|MonthLengths)", action\)' -or
+    $optionsSource -notmatch 'SetValue\(Math\.Max\(Min, Math\.Min\(Max, value\)\)\)' -or
+    $optionsSource -match 'Fixed Pregnancy Duration \(Days\)' -or
+    $mcmSettingsSource -match 'Fixed Pregnancy Duration \(Days\)' -or
+    $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteDecrease"' -or
+    $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteIncrease"' -or
+    $calendarOptionItemSource -notmatch 'Command\.Click="ExecuteToggle"') {
+    throw 'Campaign pacing must reset live to the exact 0.15 automatic default and stay within Bannerlord''s 4x AI-safe limit; Calendar sliders and toggles must write through their view models; and fixed pregnancy days must stay out of the settings UI.'
+}
 $lordDeathSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarLordDeathModels.cs')
 if ($lordDeathSource -notmatch 'CalendarHeroDeathProbabilityModel' -or
     $lordDeathSource -notmatch 'CalendarLordBattleSurvivalModel' -or
@@ -127,42 +185,160 @@ if ($saveProfileSource -notmatch 'CalendarCampaignProfileBehavior' -or
     $saveProfileSource -notmatch 'RealisticCalendarTweaks\.CampaignProfileV3') {
     throw 'New saves must use the primitive soft campaign profile rather than a hard module-lock marker.'
 }
+$campSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarCampBehavior.cs')
+$refugeSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeBehavior.cs')
+$refugeCatalogSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'RefugeFortPrefabCatalog.cs')
+$refugeStewardSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeStewardInteraction.cs')
+$refugeMissionSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeMission.cs')
+if ($campSource -notmatch 'Wait here for some time \(8 hours\)' -or
+    $campSource -notmatch 'realistic_calendar_camp_build_refuge' -or
+    $campSource -notmatch 'InformationManager\.ShowInquiry' -or
+    $campSource -notmatch 'OnCampMenuInit[\s\S]{0,180}ShowTemporaryCampVisual\(\)' -or
+    $campSource -match 'realistic_calendar_camp_order_(land|river|coast)_refuge' -or
+    $refugeSource -notmatch 'TrySurveyCurrentSite') {
+    throw 'Camp must create its temporary marker on entry and expose one surveyed, confirmed refuge-construction action.'
+}
+if ($refugeSource -notmatch 'RealisticCalendarTweaks\.RefugeStashV2' -or
+    $refugeSource -notmatch 'TryOpenStash' -or
+    $refugeSource -notmatch 'ApplyRestBenefitIfAtRefuge' -or
+    $refugeSource -notmatch 'GetUpgradeConstructionHours' -or
+    $refugeStewardSource -notmatch 'TryOpenStash' -or
+    $refugeStewardSource -notmatch 'CalendarRefugeBehavior\.GetUpgradeConstructionHours') {
+    throw 'Refuge management must retain a persistent stash, refuge-only rest benefit, and one timed construction queue for all upgrades.'
+}
+if ($refugeMissionSource -notmatch 'NativeSceneProfiles' -or
+    $refugeMissionSource -notmatch 'river_bt_empirewest_01_4x4km' -or
+    $refugeMissionSource -notmatch 'river_bt_aserai_01_4x4km' -or
+    $refugeMissionSource -notmatch 'river_bt_nord_01_4x4km' -or
+    $refugeMissionSource -notmatch 'TryGetNativeSceneProfile' -or
+    $refugeMissionSource -notmatch 'TryFindOpenTerrainSpawnFrame' -or
+    $refugeMissionSource -notmatch 'TryProjectToClearTerrain' -or
+    (($refugeMissionSource + $refugeCatalogSource) -notmatch 'DefaultFortPrefabId = "rct_refuge_fort_layout"') -or
+    $refugeMissionSource -notmatch 'GetNavigationMeshForPosition' -or
+    $refugeMissionSource -notmatch 'SetMissionMode\(MissionMode\.StartUp' -or
+    $refugeMissionSource -match 'ActiveMissionObjects[\s\S]{0,200}SetDisabled') {
+    throw 'Native refuge profiles must use a clear-terrain search, the authored fort prefab, navmesh-based spawn checks, peaceful mission setup, and no blanket mission-object disabling.'
+}
+if ($refugeSource -notmatch 'battle_terrain_biome_130' -or
+    $refugeSource -notmatch 'river_bt_empirewest_01_4x4km' -or
+    $refugeSource -notmatch 'battle_terrain_coastal_02' -or
+    $refugeSource -notmatch 'river_bt_aserai_01_4x4km' -or
+    $refugeSource -notmatch 'river_bt_nord_01_4x4km') {
+    throw 'Refuge scene selection must retain curated native land, river, and coast profiles.'
+}
 
-$mainDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll'
-$mcmDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.MCM.dll'
-$harmonyDll = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\0Harmony.dll'
+$harmonyDll = Join-Path $runtimeBinDirectory '0Harmony.dll'
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
+$moduleDataRoot = Join-Path $ModuleRoot 'ModuleData'
+$moduleStrings = Join-Path $moduleDataRoot 'module_strings.xml'
 $readme = Join-Path $ModuleRoot 'README.md'
 $optionsXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\Options.xml'
+$optionItemXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\OptionItem.xml'
+$calendarOptionItemXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionItem.xml'
+$calendarOptionsGroupedPageXml = Join-Path $ModuleRoot 'GUI\Prefabs\Options\SPOptions\CalendarOptionsGroupedPage.xml'
 $mapBarXml = Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml'
-$runtimeFiles = @($moduleXml, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $mapBarXml)
+$worldCalendarXml = Join-Path $ModuleRoot 'GUI\Prefabs\WorldCalendar\WorldCalendar.xml'
+$worldCalendarViewModelSource = Join-Path $ModuleRoot 'CalendarWorldLedgerVM.cs'
+$worldCalendarSpriteData = Join-Path $ModuleRoot 'GUI\RealisticCalendarTweaksSpriteData.xml'
+$worldCalendarSpriteConfig = Join-Path $ModuleRoot 'GUI\SpriteParts\Config.xml'
+$worldCalendarMap = Join-Path $ModuleRoot 'GUI\SpriteParts\world_calendar\world_calendar_map.png'
+$worldCalendarSheet = Join-Path $ModuleRoot 'AssetSources\GauntletUI\world_calendar_1.png'
+$guiRoot = Join-Path $ModuleRoot 'GUI'
+$assetsRoot = Join-Path $ModuleRoot 'Assets'
+$assetSourcesRoot = Join-Path $ModuleRoot 'AssetSources'
+$prefabsRoot = Join-Path $ModuleRoot 'Prefabs'
+$sceneObjRoot = Join-Path $ModuleRoot 'SceneObj'
+$allModuleSceneDirectories = @(Get-ChildItem -LiteralPath $sceneObjRoot -Directory)
+if ($IncludeStrategicProvinceDiagnostics) {
+    $runtimeSceneDirectories = $allModuleSceneDirectories
+}
+else {
+    $runtimeSceneDirectories = @($allModuleSceneDirectories | Where-Object {
+        (Test-Path -LiteralPath (Join-Path $_.FullName 'scene.xscene') -PathType Leaf) -and
+        (Test-Path -LiteralPath (Join-Path $_.FullName 'terrain.bin') -PathType Leaf) -and
+        (Test-Path -LiteralPath (Join-Path $_.FullName 'navmesh.bin') -PathType Leaf) -and
+        -not (Test-Path -LiteralPath (Join-Path $_.FullName 'REFUGE_AUTHORING_REQUIRED.txt') -PathType Leaf)
+    })
+}
+$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $mcmDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml, $worldCalendarXml, $worldCalendarSpriteData, $worldCalendarSpriteConfig, $worldCalendarMap, $worldCalendarSheet)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
     }
 }
 
+$worldCalendarViewModelText = Get-Content -Raw -LiteralPath $worldCalendarViewModelSource
+if ($worldCalendarViewModelText -notmatch 'FirstCalendarMonth = 0' -or
+    $worldCalendarViewModelText -notmatch 'LastCalendarMonth = 11' -or
+    $worldCalendarViewModelText -match 'BuildYearImportantSummary\(year,\s*1,\s*12') {
+    throw 'World Events summaries must use zero-based month indices 0 through 11.'
+}
+[xml]$worldCalendarDocument = Get-Content -Raw -LiteralPath $worldCalendarXml
+$strategicMapViewport = @($worldCalendarDocument.SelectNodes('//Widget[@IsVisible="@IsStrategicMap" and @SuggestedWidth="810" and @SuggestedHeight="610" and @MarginLeft="35"]'))
+$strategicMapScroller = @($worldCalendarDocument.SelectNodes('//EncyclopediaTroopScrollablePanel[@Id="StrategicMapScroller"]'))
+$strategicMapCanvas = @($worldCalendarDocument.SelectNodes('//Widget[@Id="StrategicMapCanvas"]'))
+if ($strategicMapViewport.Count -ne 1 -or
+    $strategicMapViewport[0].'Command.HoverBegin' -ne 'ExecuteStrategicMapHoverBegin' -or
+    $strategicMapViewport[0].'Command.HoverEnd' -ne 'ExecuteStrategicMapHoverEnd' -or
+    $strategicMapScroller.Count -ne 1 -or
+    $strategicMapScroller[0].'PanWithMouseEnabled' -ne 'true' -or
+    $strategicMapScroller[0].'AutoHideScrollBars' -ne 'false' -or
+    $strategicMapScroller[0].'AutoHideScrollBarHandle' -ne 'false' -or
+    $strategicMapScroller[0].'Command.HoverBegin' -ne 'ExecuteStrategicMapHoverBegin' -or
+    $strategicMapScroller[0].'Command.HoverEnd' -ne 'ExecuteStrategicMapHoverEnd' -or
+    $strategicMapCanvas.Count -ne 1 -or
+    $strategicMapCanvas[0].HorizontalAlignment -ne 'Left' -or
+    $strategicMapCanvas[0].VerticalAlignment -ne 'Top' -or
+    $worldCalendarViewModelText -notmatch '!_isPointerOverStrategicMap') {
+    throw 'Strategic-map zoom and panning must remain bound to the hovered scroll viewport, with the canvas anchored from its top-left edge.'
+}
+$strategicTextureWidgets = @($worldCalendarDocument.SelectNodes('//TextureWidget'))
+if ($strategicTextureWidgets.Count -ne 3 -or
+    $strategicTextureWidgets[0].TextureProviderName -ne 'CalendarStrategicCampaignAtlasTextureProvider' -or
+    @($worldCalendarDocument.SelectNodes('//TextureWidget[@TextureProviderName="CalendarStrategicTownLegendTextureProvider"]')).Count -ne 1 -or
+    @($worldCalendarDocument.SelectNodes('//TextureWidget[@TextureProviderName="CalendarStrategicCastleLegendTextureProvider"]')).Count -ne 1 -or
+    @($worldCalendarDocument.SelectNodes('//Widget[@Id="TownLegendGeometry" or @Id="CastleLegendGeometry"]')).Count -ne 0 -or
+    @($worldCalendarDocument.SelectNodes('//ImageWidget[@Sprite="strategic_marker_town" or @Sprite="strategic_marker_castle"]')).Count -ne 0) {
+    throw 'The full strategic map and the two direct legend-marker textures must be present; legend markers must not use fragile atlas sprites or placeholder geometry.'
+}
+$goldFramedPanels = @('WorldEventsFrame','CalendarContentPanel','CalendarSummaryPanel','MonthlySummaryPanel','YearlySummaryPanel','CalendarNotesPanel','SavedSummariesPanel','StrategicMapPanel','StrategicSidePanel','MapLegendFrame','KingdomSummaryFrame')
+foreach ($panelId in $goldFramedPanels) {
+    $panel = @($worldCalendarDocument.SelectNodes("//Widget[@Id='$panelId']"))
+    if ($panel.Count -ne 1 -or @($panel[0].SelectNodes('.//BrushWidget[@Brush="TownManagement.GovernorPopup.GoldFrame"]')).Count -lt 1) {
+        throw "World Events panel is missing its gold frame: $panelId"
+    }
+}
+foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot, $sceneObjRoot)) {
+    if (-not (Test-Path -LiteralPath $directory -PathType Container)) {
+        throw "Expected release runtime directory is missing: $directory"
+    }
+}
+
 [xml]$mapBar = Get-Content -Raw -LiteralPath $mapBarXml
 $centerPanel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]'))
-if ($centerPanel.Count -ne 1 -or $centerPanel[0].HorizontalAlignment -ne 'Center' -or $centerPanel[0].VerticalAlignment -ne 'Bottom') {
+if ($centerPanel.Count -ne 1 -or $centerPanel[0].HorizontalAlignment -ne 'Center' -or $centerPanel[0].PositionXOffset -ne '10' -or $centerPanel[0].VerticalAlignment -ne 'Bottom' -or $centerPanel[0].SuggestedWidth -ne '420' -or $centerPanel[0].SuggestedHeight -ne '60') {
     throw 'Map bar center panel must remain bottom-centered for resolution-independent placement.'
 }
-$calendarDate = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Date"]'))
-if ($calendarDate.Count -ne 1) {
-    throw 'Map bar must contain exactly one calendar date label.'
+$calendarDate = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@CalendarDateLine"]'))
+$seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@SeasonYearLine"]'))
+if ($calendarDate.Count -ne 1 -or [int]$calendarDate[0].SuggestedWidth -ne 150 -or $calendarDate[0].PositionXOffset -ne '40' -or $calendarDate[0].PositionYOffset -ne '-6' -or $calendarDate[0].'Brush.FontSize' -ne '18') {
+    throw 'Map bar calendar date must use the upper line of the widened two-line calendar block.'
 }
-if ($calendarDate[0].PositionYOffset -ne '-2' -or $calendarDate[0].'Brush.FontSize' -ne '17') {
-    throw 'Map bar calendar date must retain Y=-2 and 17-point text.'
+if ($seasonLabel.Count -ne 1 -or [int]$seasonLabel[0].SuggestedWidth -ne 150 -or $seasonLabel[0].PositionXOffset -ne '40' -or $seasonLabel[0].PositionYOffset -ne '12' -or $seasonLabel[0].'Brush.FontSize' -ne '18') {
+    throw 'Map bar season and year must use the lower line of the widened two-line calendar block.'
 }
-if ([int]$calendarDate[0].SuggestedWidth -ne 230 -or $calendarDate[0].PositionXOffset -ne '-50') {
-    throw 'Map bar calendar date must move 20 pixels left while preserving sundial clearance.'
-}
-$seasonLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@Season"]'))
-if ($seasonLabel.Count -ne 1 -or $seasonLabel[0].PositionXOffset -ne '95' -or $seasonLabel[0].VerticalAlignment -ne 'Bottom' -or $seasonLabel[0].PositionYOffset -ne '-4') {
-    throw 'Map bar season label must be independently placed two pixels higher at the marked position.'
+$clockLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@TimeOfDay"]'))
+if ($clockLabel.Count -ne 1 -or [int]$clockLabel[0].SuggestedWidth -ne 90 -or $clockLabel[0].PositionXOffset -ne '55' -or $clockLabel[0].PositionYOffset -ne '0' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '18') {
+    throw 'Map bar clock must occupy the former season position just right of the sundial.'
 }
 
 $binaryText = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($mainDll))
+if ($IncludeStrategicProvinceDiagnostics -and -not $binaryText.Contains('StrategicProvinceDiagnostics')) {
+    throw 'The Test build must include the strategic-province diagnostics.'
+}
+if (-not $IncludeStrategicProvinceDiagnostics -and $binaryText.Contains('StrategicProvinceDiagnostics')) {
+    throw 'The production build must not include the strategic-province diagnostics.'
+}
 foreach ($unsafeSymbol in @(
     'DefaultClanFinanceModel',
     'DefaultPartyImpairmentModel',
@@ -184,8 +360,18 @@ if ($manifest.Module.Id.value -ne 'RealisticCalendarTweaks' -or
     throw 'The primary module manifest must use the RealisticCalendarTweaks ID and display name.'
 }
 
+[xml]$moduleText = Get-Content -Raw -LiteralPath $moduleStrings
+foreach ($optionId in @('CalendarMonthNames', 'CalendarSeasonNames', 'CalendarMonthLengths')) {
+    if (@($moduleText.strings.string | Where-Object { $_.id -eq ('str_options_type.' + $optionId) }).Count -ne 1 -or
+        @($moduleText.strings.string | Where-Object { $_.id -eq ('str_options_type_action.' + $optionId) }).Count -ne 1 -or
+        @($moduleText.strings.string | Where-Object { $_.id -eq ('str_options_description.' + $optionId) }).Count -ne 1) {
+        throw "Calendar action localization is incomplete for option ID: $optionId"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ReleaseArchive)) {
-    $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\RealisticCalendarTweaks-{0}.zip" -f $version)
+    $archiveLabel = if ($IncludeStrategicProvinceDiagnostics) { "{0}-Test" -f $version } else { $version }
+    $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\RealisticCalendarTweaks-{0}.zip" -f $archiveLabel)
 }
 
 $archiveDirectory = Split-Path -Parent $ReleaseArchive
@@ -199,12 +385,21 @@ $moduleStage = Join-Path $stagingRoot 'RealisticCalendarTweaks'
 try {
     New-Item -ItemType Directory -Force -Path `
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions'), `
-        (Join-Path $moduleStage 'GUI\Prefabs\Map') | Out-Null
+        (Join-Path $moduleStage 'SceneObj') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
+    Copy-Item -LiteralPath $moduleDataRoot -Destination $moduleStage -Recurse
     Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
-    Copy-Item -LiteralPath $optionsXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Options\SPOptions')
-    Copy-Item -LiteralPath $mapBarXml -Destination (Join-Path $moduleStage 'GUI\Prefabs\Map')
+    Copy-Item -LiteralPath $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot -Destination $moduleStage -Recurse
+    foreach ($sceneDirectory in $runtimeSceneDirectories) {
+        Get-ChildItem -LiteralPath $sceneDirectory.FullName -Recurse -File |
+            Where-Object { $_.FullName -notmatch '[\\/]ShaderCache[\\/]' } |
+            ForEach-Object {
+                $relativePath = $_.FullName.Substring($sceneObjRoot.Length).TrimStart('\', '/')
+                $destinationPath = Join-Path $moduleStage ('SceneObj\' + $relativePath)
+                New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destinationPath) | Out-Null
+                Copy-Item -LiteralPath $_.FullName -Destination $destinationPath
+            }
+    }
     Compress-Archive -LiteralPath $moduleStage -DestinationPath $ReleaseArchive -CompressionLevel Optimal
 }
 finally {
@@ -217,17 +412,33 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $expectedEntries = @(
     'RealisticCalendarTweaks/README.md',
     'RealisticCalendarTweaks/SubModule.xml',
+    'RealisticCalendarTweaks/ModuleData/module_strings.xml',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/0Harmony.dll',
     'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.dll',
-    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll',
-    'RealisticCalendarTweaks/GUI/Prefabs/Options/SPOptions/Options.xml',
-    'RealisticCalendarTweaks/GUI/Prefabs/Map/MapBar.xml'
+    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll'
 )
+$runtimeDirectoryEntries = foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot)) {
+    $directoryName = Split-Path -Leaf $directory
+    Get-ChildItem -LiteralPath $directory -Recurse -File | ForEach-Object {
+        $relativePath = $_.FullName.Substring($directory.Length).TrimStart('\', '/')
+        ('RealisticCalendarTweaks/{0}/{1}' -f $directoryName, $relativePath).Replace('\', '/')
+    }
+}
+$runtimeSceneEntries = foreach ($sceneDirectory in $runtimeSceneDirectories) {
+    Get-ChildItem -LiteralPath $sceneDirectory.FullName -Recurse -File |
+        Where-Object { $_.FullName -notmatch '[\\/]ShaderCache[\\/]' } |
+        ForEach-Object {
+        $relativePath = $_.FullName.Substring($sceneObjRoot.Length).TrimStart('\', '/')
+        ('RealisticCalendarTweaks/SceneObj/{0}' -f $relativePath).Replace('\', '/')
+    }
+}
+$expectedEntries = @($expectedEntries + $runtimeDirectoryEntries + $runtimeSceneEntries | Sort-Object -Unique)
 $archive = [IO.Compression.ZipFile]::OpenRead($ReleaseArchive)
 try {
     $actualEntries = @($archive.Entries |
         ForEach-Object { $_.FullName.Replace('\', '/') } |
-        Where-Object { -not $_.EndsWith('/') })
+        Where-Object { -not $_.EndsWith('/') } |
+        Sort-Object -Unique)
 }
 finally {
     $archive.Dispose()

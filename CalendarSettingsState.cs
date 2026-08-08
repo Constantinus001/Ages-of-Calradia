@@ -25,18 +25,32 @@ namespace TwelveMonthCalendar
         private const int RequiredCommonDaysInYear = 365;
         private const string DefaultDateFormat = "{Month} {Day} {Year}";
         private const bool DefaultUseOrdinalDaySuffixes = true;
+        private const bool DefaultUse24HourClock = true;
         internal const int DefaultNativeDaysInYear = 84;
+        // A 0.15 scale gives roughly 2.7 campaign hours per real minute, or
+        // about 8.9 real minutes per campaign day. This is intentionally
+        // slower than the previous 0.23 default so the map clock is easier to
+        // follow during normal play.
+        public const float DefaultCampaignTimeScale = 0.15f;
+        // Visual lighting follows these hours only when the optional clock-
+        // synchronized atmosphere mode is enabled. Native sunrise/sunset
+        // remain untouched for gameplay mechanics and compatibility.
+        public const bool DefaultClockSynchronizedLighting = true;
+        public const float DefaultVisualSunriseHour = 5f;
+        public const float DefaultVisualSunsetHour = 21f;
+        public const float DefaultVisualLightingTransitionHours = 1f;
         internal const float DefaultPregnancyDurationInDays = 273.75f;
         internal const int DefaultPregnancyDurationMonths = 9;
         internal const float DefaultRenownGainMultiplier = 0.5f;
         internal const float DefaultLordDeathRateMultiplier = 0.20f;
         internal const float DefaultNormalPlayTimeMultiplier = 1f;
         // Bannerlord initializes Campaign.SpeedUpMultiplier to 4. The engine
-        // accepts values through 128, so the calendar uses that direct range
+        // is calibrated for its native 4x fast-forward. Higher injected
+        // values can skip AI and pathing simulation work.
         // rather than stacking a second TickMapTime multiplier.
         internal const float DefaultFastForwardTimeMultiplier = 4f;
         internal const float MinimumPacingMultiplier = 1f;
-        internal const float MaximumPacingMultiplier = 128f;
+        internal const float MaximumPacingMultiplier = 4f;
         private const int MaximumConfiguredMonthLength = 1000;
         private const int MaximumConfiguredMonthNameLength = 24;
 
@@ -60,9 +74,14 @@ namespace TwelveMonthCalendar
         private static bool _showDayLabel;
         private static bool _showYearLabel;
         private static bool _useOrdinalDaySuffixes = DefaultUseOrdinalDaySuffixes;
-        private static float _campaignTimeScale = 84f / 365.2425f;
+        private static bool _use24HourClock = DefaultUse24HourClock;
+        private static float _campaignTimeScale = DefaultCampaignTimeScale;
         private static bool _autoCampaignTimeScale = true;
         private static float _fastForwardTimeMultiplier = DefaultFastForwardTimeMultiplier;
+        private static bool _clockSynchronizedLighting = DefaultClockSynchronizedLighting;
+        private static float _visualSunriseHour = DefaultVisualSunriseHour;
+        private static float _visualSunsetHour = DefaultVisualSunsetHour;
+        private static float _visualLightingTransitionHours = DefaultVisualLightingTransitionHours;
         private static string _dateFormat = DefaultDateFormat;
         private static int _nativeDaysInYear = DefaultNativeDaysInYear;
         private static float _pregnancyDurationInDays = DefaultPregnancyDurationInDays;
@@ -75,6 +94,7 @@ namespace TwelveMonthCalendar
         private static bool _balanceNpcMarriage = true;
         private static bool _balanceMapTracks = true;
         private static bool _balanceQuestDeadlines = true;
+        private static bool _annualBalanceEnabled = true;
         private static bool _annualBalanceDiagnosticsEnabled = true;
         private static bool _campaignSessionStarted;
         private static readonly string[] _monthNames = (string[])DefaultMonthNames.Clone();
@@ -113,6 +133,11 @@ namespace TwelveMonthCalendar
             get { lock (SyncRoot) return _useOrdinalDaySuffixes; }
         }
 
+        public static bool Use24HourClock
+        {
+            get { lock (SyncRoot) return _use24HourClock; }
+        }
+
         public static float CampaignTimeScale
         {
             get { lock (SyncRoot) return _campaignTimeScale; }
@@ -134,12 +159,32 @@ namespace TwelveMonthCalendar
 
         /// <summary>
         /// The direct Bannerlord Campaign.SpeedUpMultiplier used while map time
-        /// fast-forwards. It is configurable from 1 through 128; normal pace
-        /// remains fixed at Bannerlord's default cadence.
+        /// fast-forwards. It is limited to Bannerlord's supported 1 through
+        /// 4 range; normal pace remains fixed at native cadence.
         /// </summary>
         public static float FastForwardTimeMultiplier
         {
             get { lock (SyncRoot) return _fastForwardTimeMultiplier; }
+        }
+
+        public static bool ClockSynchronizedLighting
+        {
+            get { lock (SyncRoot) return _clockSynchronizedLighting; }
+        }
+
+        public static float VisualSunriseHour
+        {
+            get { lock (SyncRoot) return _visualSunriseHour; }
+        }
+
+        public static float VisualSunsetHour
+        {
+            get { lock (SyncRoot) return _visualSunsetHour; }
+        }
+
+        public static float VisualLightingTransitionHours
+        {
+            get { lock (SyncRoot) return _visualLightingTransitionHours; }
         }
 
         internal static bool IsCampaignProfileLocked
@@ -273,6 +318,16 @@ namespace TwelveMonthCalendar
         public static int[] MonthLengthsSnapshot()
         {
             lock (SyncRoot) return (int[])_monthLengths.Clone();
+        }
+
+        public static bool AnnualBalanceEnabled
+        {
+            get { lock (SyncRoot) return _annualBalanceEnabled; }
+        }
+
+        public static bool AnnualRateBalanceEnabled
+        {
+            get { return ExtendedCalendarEnabled && AnnualBalanceEnabled; }
         }
 
         /// <summary>
@@ -496,14 +551,20 @@ namespace TwelveMonthCalendar
             float? renownGainMultiplier = null,
             float? lordDeathRateMultiplier = null,
             bool? useOrdinalDaySuffixes = null,
+            bool? use24HourClock = null,
             bool? balancePartyImpairment = null,
             bool? balancePrisonerRecruitment = null,
             bool? balanceNpcMarriage = null,
             bool? balanceMapTracks = null,
             bool? balanceQuestDeadlines = null,
+            bool? annualBalanceEnabled = null,
             bool? annualBalanceDiagnosticsEnabled = null,
             float? normalPlayTimeMultiplier = null,
-            float? fastForwardTimeMultiplier = null)
+            float? fastForwardTimeMultiplier = null,
+            bool? clockSynchronizedLighting = null,
+            float? visualSunriseHour = null,
+            float? visualSunsetHour = null,
+            float? visualLightingTransitionHours = null)
         {
             lock (SyncRoot)
             {
@@ -527,6 +588,7 @@ namespace TwelveMonthCalendar
                 _showDayLabel = showDayLabel;
                 _showYearLabel = showYearLabel;
                 _useOrdinalDaySuffixes = useOrdinalDaySuffixes ?? _useOrdinalDaySuffixes;
+                _use24HourClock = use24HourClock ?? _use24HourClock;
                 _dateFormat = NormalizeDateFormat(dateFormat);
 
                 ApplyMonthNames(monthNames);
@@ -548,68 +610,79 @@ namespace TwelveMonthCalendar
                     ref _pregnancyDurationInDays,
                     normalizedPregnancyDays,
                     "PregnancyDurationDays");
-                ApplyCampaignStartSetting(
-                    ref _pregnancyDurationMonths,
-                    Math.Max(1, pregnancyDurationMonths ?? _pregnancyDurationMonths),
-                    "PregnancyDurationMonths");
-                ApplyCampaignStartSetting(
-                    ref _useCalendarMonthPregnancy,
-                    useCalendarMonthPregnancy,
-                    "UseCalendarMonthPregnancy");
+                // These control only future life-cycle calculations. Keep
+                // them live-adjustable so the native slider arrows remain
+                // usable in an existing campaign.
+                _pregnancyDurationMonths = Math.Max(1, pregnancyDurationMonths ?? _pregnancyDurationMonths);
+                _useCalendarMonthPregnancy = useCalendarMonthPregnancy ?? _useCalendarMonthPregnancy;
                 float requestedRenownMultiplier = renownGainMultiplier ?? _renownGainMultiplier;
                 float normalizedRenownMultiplier = IsFinite(requestedRenownMultiplier)
                     ? Math.Max(0f, Math.Min(1f, requestedRenownMultiplier))
                     : DefaultRenownGainMultiplier;
-                ApplyCampaignStartSetting(
-                    ref _renownGainMultiplier,
-                    normalizedRenownMultiplier,
-                    "RenownGainMultiplier");
+                _renownGainMultiplier = normalizedRenownMultiplier;
                 float requestedLordDeathRateMultiplier = lordDeathRateMultiplier ?? _lordDeathRateMultiplier;
                 float normalizedLordDeathRateMultiplier = IsFinite(requestedLordDeathRateMultiplier)
                     ? Math.Max(0f, Math.Min(1f, requestedLordDeathRateMultiplier))
                     : DefaultLordDeathRateMultiplier;
-                ApplyCampaignStartSetting(
-                    ref _lordDeathRateMultiplier,
-                    normalizedLordDeathRateMultiplier,
-                    "LordDeathRateMultiplier");
-                ApplyCampaignStartSetting(ref _balancePartyImpairment, balancePartyImpairment, "BalancePartyImpairment");
-                ApplyCampaignStartSetting(ref _balancePrisonerRecruitment, balancePrisonerRecruitment, "BalancePrisonerRecruitment");
-                ApplyCampaignStartSetting(ref _balanceNpcMarriage, balanceNpcMarriage, "BalanceNpcMarriage");
-                ApplyCampaignStartSetting(ref _balanceMapTracks, balanceMapTracks, "BalanceMapTracks");
-                ApplyCampaignStartSetting(ref _balanceQuestDeadlines, balanceQuestDeadlines, "BalanceQuestDeadlines");
+                _lordDeathRateMultiplier = normalizedLordDeathRateMultiplier;
+                // These switches govern future model evaluations, so they are
+                // safe to change in an existing campaign. Existing quest
+                // deadlines are intentionally never rewritten.
+                _balancePartyImpairment = balancePartyImpairment ?? _balancePartyImpairment;
+                _balancePrisonerRecruitment = balancePrisonerRecruitment ?? _balancePrisonerRecruitment;
+                _balanceNpcMarriage = balanceNpcMarriage ?? _balanceNpcMarriage;
+                _balanceMapTracks = balanceMapTracks ?? _balanceMapTracks;
+                _balanceQuestDeadlines = balanceQuestDeadlines ?? _balanceQuestDeadlines;
+                _annualBalanceEnabled = annualBalanceEnabled ?? _annualBalanceEnabled;
                 _annualBalanceDiagnosticsEnabled = annualBalanceDiagnosticsEnabled ?? _annualBalanceDiagnosticsEnabled;
                 bool requestedAutoCampaignTimeScale = autoCampaignTimeScale ?? _autoCampaignTimeScale;
-                ApplyCampaignStartSetting(
-                    ref _autoCampaignTimeScale,
-                    requestedAutoCampaignTimeScale,
-                    "AutoCampaignTimeScale");
+                // Campaign pacing changes only affect future map-time ticks, so
+                // unlike simulation-profile values this control is safe to use
+                // during an active campaign.
+                _autoCampaignTimeScale = requestedAutoCampaignTimeScale;
                 float normalizedCampaignTimeScale = requestedAutoCampaignTimeScale
-                    ? GetAutomaticCampaignTimeScale()
+                    ? DefaultCampaignTimeScale
                     : IsFinite(campaignTimeScale)
                         ? Math.Max(0.01f, Math.Min(1.0f, campaignTimeScale))
-                        : GetAutomaticCampaignTimeScale();
-                ApplyCampaignStartSetting(
-                    ref _campaignTimeScale,
-                    normalizedCampaignTimeScale,
-                    "CampaignTimeScale");
+                        : DefaultCampaignTimeScale;
+                _campaignTimeScale = normalizedCampaignTimeScale;
                 // Fast-forward is intentionally runtime-safe. Campaign.TickMapTime
                 // applies it on its next fast-forward tick through Bannerlord's
                 // own SpeedUpMultiplier; it does not reinterpret saved time.
                 _fastForwardTimeMultiplier = NormalizePacingMultiplier(
                     fastForwardTimeMultiplier ?? _fastForwardTimeMultiplier,
                     DefaultFastForwardTimeMultiplier);
+                _clockSynchronizedLighting = clockSynchronizedLighting ?? _clockSynchronizedLighting;
+                _visualSunriseHour = NormalizeLightingHour(
+                    visualSunriseHour ?? _visualSunriseHour,
+                    DefaultVisualSunriseHour);
+                _visualSunsetHour = NormalizeLightingHour(
+                    visualSunsetHour ?? _visualSunsetHour,
+                    DefaultVisualSunsetHour);
+                if (Math.Abs(_visualSunsetHour - _visualSunriseHour) < 0.25f)
+                {
+                    _visualSunriseHour = DefaultVisualSunriseHour;
+                    _visualSunsetHour = DefaultVisualSunsetHour;
+                }
+                _visualLightingTransitionHours = NormalizeLightingTransition(
+                    visualLightingTransitionHours ?? _visualLightingTransitionHours);
             }
 
             Diagnostics.Info(
                 string.Format(
-                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; TimeScale={5:F6}; NormalPace=fixed; FastForwardSpeed={6:F0}; LordDeathRate={7:F3}; DateFormat={8}",
+                    "Settings applied. CalendarSystem={0}; LeapYears={1}; ShowDayLabel={2}; ShowYearLabel={3}; OrdinalDays={4}; Clock24Hour={5}; TimeScale={6:F6}; NormalPace=fixed; FastForwardSpeed={7:F0}; LightingSync={8}; VisualSunrise={9:F2}; VisualSunset={10:F2}; LightingTransition={11:F2}; LordDeathRate={12:F3}; DateFormat={13}",
                     FixedCalendarSystem,
                     UseLeapYears,
                     ShowDayLabel,
                     ShowYearLabel,
                     UseOrdinalDaySuffixes,
+                    Use24HourClock,
                     CampaignTimeScale,
                     FastForwardTimeMultiplier,
+                    ClockSynchronizedLighting,
+                    VisualSunriseHour,
+                    VisualSunsetHour,
+                    VisualLightingTransitionHours,
                     LordDeathRateMultiplier,
                     DateFormat));
 
@@ -623,7 +696,7 @@ namespace TwelveMonthCalendar
                 true,
                 false,
                 false,
-                GetAutomaticCampaignTimeScale(),
+                DefaultCampaignTimeScale,
                 DefaultDateFormat,
                 (string[])DefaultMonthNames.Clone(),
                 (int[])DefaultMonthLengths.Clone(),
@@ -636,16 +709,42 @@ namespace TwelveMonthCalendar
                 DefaultRenownGainMultiplier,
                 lordDeathRateMultiplier: DefaultLordDeathRateMultiplier,
                 useOrdinalDaySuffixes: DefaultUseOrdinalDaySuffixes,
+                use24HourClock: DefaultUse24HourClock,
                 balancePartyImpairment: true,
                 balancePrisonerRecruitment: true,
                 balanceNpcMarriage: true,
                 balanceMapTracks: true,
                 balanceQuestDeadlines: true,
+                annualBalanceEnabled: true,
                 annualBalanceDiagnosticsEnabled: true,
                 normalPlayTimeMultiplier: DefaultNormalPlayTimeMultiplier,
-                fastForwardTimeMultiplier: DefaultFastForwardTimeMultiplier);
+                fastForwardTimeMultiplier: DefaultFastForwardTimeMultiplier,
+                clockSynchronizedLighting: DefaultClockSynchronizedLighting,
+                visualSunriseHour: DefaultVisualSunriseHour,
+                visualSunsetHour: DefaultVisualSunsetHour,
+                visualLightingTransitionHours: DefaultVisualLightingTransitionHours);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
+        }
+
+        internal static void ResetCalendarCategory()
+        {
+            lock (SyncRoot)
+            {
+                if (!_campaignSessionStarted)
+                {
+                    _useLeapYears = true;
+                    Array.Copy(DefaultMonthLengths, _monthLengths, DefaultMonthLengths.Length);
+                    RebuildMonthCache();
+                }
+
+                Array.Copy(DefaultMonthNames, _monthNames, DefaultMonthNames.Length);
+                Array.Copy(DefaultSeasonNames, _seasonNames, DefaultSeasonNames.Length);
+            }
+
+            Save();
+            NotifySettingsChanged();
+            Diagnostics.Info("Calendar category settings reset to defaults.");
         }
 
         internal static void MarkCampaignSessionStarted()
@@ -691,7 +790,9 @@ namespace TwelveMonthCalendar
 
                 RebuildMonthCache();
                 _autoCampaignTimeScale = profile.AutoCampaignTimeScale;
-                _campaignTimeScale = Math.Max(0.01f, Math.Min(1f, profile.CampaignTimeScale));
+                _campaignTimeScale = _autoCampaignTimeScale
+                    ? DefaultCampaignTimeScale
+                    : Math.Max(0.01f, Math.Min(1f, profile.CampaignTimeScale));
                 _fastForwardTimeMultiplier = NormalizePacingMultiplier(
                     profile.FastForwardTimeMultiplier,
                     DefaultFastForwardTimeMultiplier);
@@ -705,6 +806,7 @@ namespace TwelveMonthCalendar
                 _balanceNpcMarriage = profile.BalanceNpcMarriage;
                 _balanceMapTracks = profile.BalanceMapTracks;
                 _balanceQuestDeadlines = profile.BalanceQuestDeadlines;
+                _annualBalanceEnabled = profile.AnnualBalanceEnabled;
             }
 
             Diagnostics.Info(
@@ -727,19 +829,6 @@ namespace TwelveMonthCalendar
             switch (settingName)
             {
                 case "Use Leap Years":
-                case "Automatic Campaign Time Scale":
-                case "Campaign Time Scale":
-                case "Use Calendar-Month Pregnancy":
-                case "Pregnancy Duration (Months)":
-                case "Fixed Pregnancy Duration (Days)":
-                case "Renown Gain Multiplier":
-                case "Lord Death Rate Multiplier":
-                case "Balance Party Impairment":
-                case "Balance Prisoner Recruitment":
-                case "Balance NPC Marriage":
-                case "Balance Map Tracks":
-                case "Balance Quest Deadlines":
-                    return true;
                 default:
                     return false;
             }
@@ -779,7 +868,7 @@ namespace TwelveMonthCalendar
                     ReadBoolean(root, "UseLeapYears", true),
                     ReadBoolean(root, "ShowDayLabel", false),
                     ReadBoolean(root, "ShowYearLabel", false),
-                    ReadFloat(root, "CampaignTimeScale", 84f / 365.2425f),
+                    ReadFloat(root, "CampaignTimeScale", DefaultCampaignTimeScale),
                     ReadAttribute(root, "DateFormat", DefaultDateFormat),
                     ReadMonthNames(root),
                     ReadMonthLengths(root),
@@ -795,13 +884,31 @@ namespace TwelveMonthCalendar
                         "LordDeathRateMultiplier",
                         DefaultLordDeathRateMultiplier),
                     useOrdinalDaySuffixes: ReadBoolean(root, "UseOrdinalDaySuffixes", DefaultUseOrdinalDaySuffixes),
+                    use24HourClock: ReadBoolean(root, "Use24HourClock", DefaultUse24HourClock),
                     balancePartyImpairment: ReadBoolean(root, "BalancePartyImpairment", true),
                     balancePrisonerRecruitment: ReadBoolean(root, "BalancePrisonerRecruitment", true),
                     balanceNpcMarriage: ReadBoolean(root, "BalanceNpcMarriage", true),
                     balanceMapTracks: ReadBoolean(root, "BalanceMapTracks", true),
                     balanceQuestDeadlines: ReadBoolean(root, "BalanceQuestDeadlines", true),
+                    annualBalanceEnabled: ReadBoolean(root, "AnnualBalanceEnabled", true),
                     annualBalanceDiagnosticsEnabled: ReadBoolean(root, "AnnualBalanceDiagnosticsEnabled", true),
-                    fastForwardTimeMultiplier: ReadFastForwardSpeed(root));
+                    fastForwardTimeMultiplier: ReadFastForwardSpeed(root),
+                    clockSynchronizedLighting: ReadBoolean(
+                        root,
+                        "ClockSynchronizedLighting",
+                        DefaultClockSynchronizedLighting),
+                    visualSunriseHour: ReadFloat(
+                        root,
+                        "VisualSunriseHour",
+                        DefaultVisualSunriseHour),
+                    visualSunsetHour: ReadFloat(
+                        root,
+                        "VisualSunsetHour",
+                        DefaultVisualSunsetHour),
+                    visualLightingTransitionHours: ReadFloat(
+                        root,
+                        "VisualLightingTransitionHours",
+                        DefaultVisualLightingTransitionHours));
 
                 Diagnostics.Info(
                     string.Format(
@@ -837,11 +944,18 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("ShowDayLabel", ShowDayLabel.ToString());
                 root.SetAttribute("ShowYearLabel", ShowYearLabel.ToString());
                 root.SetAttribute("UseOrdinalDaySuffixes", UseOrdinalDaySuffixes.ToString());
+                root.SetAttribute("Use24HourClock", Use24HourClock.ToString());
                 root.SetAttribute("CampaignTimeScale", CampaignTimeScale.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("AutoCampaignTimeScale", AutoCampaignTimeScale.ToString());
                 root.SetAttribute(
                     "FastForwardSpeedMultiplier",
                     FastForwardTimeMultiplier.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("ClockSynchronizedLighting", ClockSynchronizedLighting.ToString());
+                root.SetAttribute("VisualSunriseHour", VisualSunriseHour.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("VisualSunsetHour", VisualSunsetHour.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute(
+                    "VisualLightingTransitionHours",
+                    VisualLightingTransitionHours.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("DateFormat", DateFormat);
                 root.SetAttribute("NativeDaysInYear", NativeDaysInYear.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("PregnancyDurationDays", PregnancyDurationInDays.ToString("R", CultureInfo.InvariantCulture));
@@ -856,6 +970,7 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("BalanceNpcMarriage", BalanceNpcMarriage.ToString());
                 root.SetAttribute("BalanceMapTracks", BalanceMapTracks.ToString());
                 root.SetAttribute("BalanceQuestDeadlines", BalanceQuestDeadlines.ToString());
+                root.SetAttribute("AnnualBalanceEnabled", AnnualBalanceEnabled.ToString());
                 root.SetAttribute("AnnualBalanceDiagnosticsEnabled", AnnualBalanceDiagnosticsEnabled.ToString());
                 string[] monthNames = MonthNamesSnapshot();
                 string[] seasonNames = SeasonNamesSnapshot();
@@ -869,12 +984,27 @@ namespace TwelveMonthCalendar
                 {
                     root.SetAttribute(string.Format("Season{0}Name", i + 1), seasonNames[i]);
                 }
-                document.Save(ConfigPath);
+                string temporaryPath = ConfigPath + ".tmp";
+                document.Save(temporaryPath);
+                if (File.Exists(ConfigPath))
+                {
+                    File.Replace(temporaryPath, ConfigPath, null);
+                }
+                else
+                {
+                    File.Move(temporaryPath, ConfigPath);
+                }
 
                 Diagnostics.Info(string.Format("Standalone settings saved to {0}.", ConfigPath));
             }
             catch (Exception exception)
             {
+                try
+                {
+                    string temporaryPath = ConfigPath + ".tmp";
+                    if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+                }
+                catch { }
                 Diagnostics.Error("Standalone settings could not be saved.", exception);
             }
         }
@@ -989,6 +1119,29 @@ namespace TwelveMonthCalendar
             }
 
             return DefaultFastForwardTimeMultiplier;
+        }
+
+        private static float NormalizeLightingHour(float value, float fallback)
+        {
+            if (!IsFinite(value))
+            {
+                return fallback;
+            }
+
+            float normalized = value % 24f;
+            if (normalized < 0f)
+            {
+                normalized += 24f;
+            }
+
+            return normalized;
+        }
+
+        private static float NormalizeLightingTransition(float value)
+        {
+            return IsFinite(value)
+                ? Math.Max(0.25f, Math.Min(4f, value))
+                : DefaultVisualLightingTransitionHours;
         }
 
         private static int ReadInt(XmlElement root, string name, int fallback)
@@ -1199,14 +1352,6 @@ namespace TwelveMonthCalendar
             }
 
             return normalized;
-        }
-
-        private static float GetAutomaticCampaignTimeScale()
-        {
-            double averageDays = _useLeapYears
-                ? _commonDaysInYear + 0.2425
-                : _commonDaysInYear;
-            return (float)Math.Max(0.01, Math.Min(1.0, _nativeDaysInYear / averageDays));
         }
 
         private static float NormalizePacingMultiplier(float value, float fallback)

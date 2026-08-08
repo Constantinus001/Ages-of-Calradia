@@ -2,6 +2,8 @@ using System;
 using System.Reflection;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.GameMenus;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapBar;
 using TaleWorlds.Library;
 
@@ -12,6 +14,10 @@ namespace TwelveMonthCalendar
     {
         private bool _seasonRefreshFailureLogged;
         private string _season = string.Empty;
+        private string _timeOfDay = string.Empty;
+        private string _calendarDateLine = string.Empty;
+        private string _seasonYearLine = string.Empty;
+        private double _lastFastForwardDisplayHours = double.NaN;
 
         internal CalendarMapTimeControlVM(
             Func<MapBarShortcuts> getMapBarShortcuts,
@@ -36,16 +42,106 @@ namespace TwelveMonthCalendar
             }
         }
 
+        [DataSourceProperty]
+        public string TimeOfDay
+        {
+            get { return _timeOfDay; }
+            private set
+            {
+                string normalized = value ?? string.Empty;
+                if (string.Equals(_timeOfDay, normalized, StringComparison.Ordinal)) return;
+                _timeOfDay = normalized;
+                OnPropertyChangedWithValue(_timeOfDay, "TimeOfDay");
+            }
+        }
+
+        [DataSourceProperty]
+        public string CalendarDateLine
+        {
+            get { return _calendarDateLine; }
+            private set
+            {
+                string normalized = value ?? string.Empty;
+                if (string.Equals(_calendarDateLine, normalized, StringComparison.Ordinal)) return;
+                _calendarDateLine = normalized;
+                OnPropertyChangedWithValue(_calendarDateLine, "CalendarDateLine");
+            }
+        }
+
+        [DataSourceProperty]
+        public string SeasonYearLine
+        {
+            get { return _seasonYearLine; }
+            private set
+            {
+                string normalized = value ?? string.Empty;
+                if (string.Equals(_seasonYearLine, normalized, StringComparison.Ordinal)) return;
+                _seasonYearLine = normalized;
+                OnPropertyChangedWithValue(_seasonYearLine, "SeasonYearLine");
+            }
+        }
+
         public override void RefreshValues()
         {
             base.RefreshValues();
             RefreshSeason();
         }
 
+        internal void RefreshFastForwardDisplay()
+        {
+            if (Campaign.Current == null
+                || !CalendarTimeMath.IsFastForwardMode(Campaign.Current.TimeControlMode))
+            {
+                _lastFastForwardDisplayHours = double.NaN;
+                return;
+            }
+
+            // MapBarVM intentionally refreshes its native clock less often
+            // during fast-forward. Keep the custom date, season, and numeric
+            // clock aligned with the same CampaignTime source while time is
+            // moving quickly, without issuing a property update every frame.
+            double totalHours = CampaignTime.Now.ToHours;
+            if (double.IsNaN(_lastFastForwardDisplayHours)
+                || Math.Abs(totalHours - _lastFastForwardDisplayHours) >= 0.05d)
+            {
+                _lastFastForwardDisplayHours = totalHours;
+                RefreshCalendarDisplay();
+            }
+        }
+
         public override void OnFinalize()
         {
             CalendarSettingsState.SettingsChanged -= OnCalendarSettingsChanged;
             base.OnFinalize();
+        }
+
+        public void ExecuteOpenWorldCalendar()
+        {
+            try
+            {
+                WorldCalendarScreen.Show();
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("World Calendar could not be opened from the map bar.", exception);
+            }
+        }
+
+        public void ExecuteOpenCamp()
+        {
+            try
+            {
+                if (Campaign.Current == null || MobileParty.MainParty == null)
+                {
+                    return;
+                }
+
+                GameMenu.ActivateGameMenu(CalendarCampBehavior.CampMenuId);
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Camp menu could not be opened from the map bar.", exception);
+            }
         }
 
         internal void RefreshSeason()
@@ -68,7 +164,10 @@ namespace TwelveMonthCalendar
             try
             {
                 Date = CalendarFormatter.Format(CampaignTime.Now);
+                CalendarDateLine = CalendarFormatter.FormatMapDateLine(CampaignTime.Now);
+                SeasonYearLine = CalendarFormatter.FormatMapSeasonYearLine(CampaignTime.Now);
                 RefreshSeason();
+                RefreshClock();
             }
             catch (Exception exception)
             {
@@ -77,6 +176,44 @@ namespace TwelveMonthCalendar
         }
 
         private void OnCalendarSettingsChanged() { RefreshCalendarDisplay(); }
+
+        internal void RefreshClock()
+        {
+            try
+            {
+                // Keep the custom numeric display on the same hour source as
+                // vanilla MapTimeControlVM.Time and its native time-of-day
+                // tooltip (Morning/Noon/Afternoon/Evening/Night).
+                double hourInDay = CampaignTime.Now.ToHours % CampaignTime.HoursInDay;
+                if (hourInDay < 0d)
+                {
+                    hourInDay += CampaignTime.HoursInDay;
+                }
+
+                int totalMinutes = Math.Max(0, Math.Min(1439, (int)Math.Floor(hourInDay * 60d)));
+                int hour = totalMinutes / 60;
+                int minute = totalMinutes % 60;
+                // The native sundial widget is bound to MapTimeControlVM.Time;
+                // explicitly update it beside the custom text so both visuals
+                // use the exact same hour value during accelerated time.
+                Time = (float)hourInDay;
+                if (CalendarSettingsState.Use24HourClock)
+                {
+                    TimeOfDay = string.Format("{0:00}:{1:00}", hour, minute);
+                    return;
+                }
+
+                string meridiem = hour < 12 ? "AM" : "PM";
+                int twelveHour = hour % 12;
+                TimeOfDay = string.Format("{0}:{1:00} {2}", twelveHour == 0 ? 12 : twelveHour, minute, meridiem);
+            }
+            catch (Exception exception)
+            {
+                TimeOfDay = string.Empty;
+                Diagnostics.Error("Map-bar clock refresh failed.", exception);
+            }
+        }
+
     }
 
     /// <summary>
@@ -140,7 +277,25 @@ namespace TwelveMonthCalendar
         private static void Postfix(MapTimeControlVM __instance)
         {
             CalendarMapTimeControlVM calendarTimeControl = __instance as CalendarMapTimeControlVM;
-            if (calendarTimeControl != null) calendarTimeControl.RefreshSeason();
+            if (calendarTimeControl != null)
+            {
+                calendarTimeControl.RefreshSeason();
+                calendarTimeControl.RefreshClock();
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(MapTimeControlVM), nameof(MapTimeControlVM.Tick))]
+    internal static class MapBarFastForwardTickPatch
+    {
+        [HarmonyPostfix]
+        private static void Postfix(MapTimeControlVM __instance)
+        {
+            CalendarMapTimeControlVM calendarTimeControl = __instance as CalendarMapTimeControlVM;
+            if (calendarTimeControl != null)
+            {
+                calendarTimeControl.RefreshFastForwardDisplay();
+            }
         }
     }
 }

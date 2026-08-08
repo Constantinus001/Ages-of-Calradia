@@ -1,6 +1,7 @@
 param(
     [string]$ModuleRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$BannerlordDir = 'C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord'
+    [string]$BannerlordDir = 'C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord',
+    [string]$CalendarAssemblyPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,8 +17,10 @@ foreach ($assemblyName in @(
     [Reflection.Assembly]::LoadFrom((Join-Path $gameBin $assemblyName)) | Out-Null
 }
 
-$calendarAssembly = [Reflection.Assembly]::LoadFrom(
-    (Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll'))
+if ([string]::IsNullOrWhiteSpace($CalendarAssemblyPath)) {
+    $CalendarAssemblyPath = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll'
+}
+$calendarAssembly = [Reflection.Assembly]::LoadFrom($CalendarAssemblyPath)
 $calendarMath = $calendarAssembly.GetType('TwelveMonthCalendar.CalendarTimeMath', $true)
 
 function Invoke-CalendarMath([string]$Name, [object[]]$Arguments) {
@@ -64,7 +67,7 @@ Assert-Equal $true ($fastForwardModeMethod.Invoke($null, @([Enum]::Parse($timeCo
 $profileType = $calendarAssembly.GetType('TwelveMonthCalendar.CalendarCampaignProfile', $true)
 $captureProfile = $profileType.GetMethod('Capture', [Reflection.BindingFlags]'Static,Public')
 $profile = $captureProfile.Invoke($null, @())
-Assert-Equal 3 $profile.SchemaVersion 'Campaign profile schema'
+Assert-Equal 4 $profile.SchemaVersion 'Campaign profile schema'
 Assert-Equal 1.0 $profile.NormalPlayTimeMultiplier 'Campaign profile normal pace'
 Assert-Equal 4.0 $profile.FastForwardTimeMultiplier 'Campaign profile fast-forward speed'
 Assert-True (-not [string]::IsNullOrWhiteSpace($profile.Fingerprint)) 'Campaign profile fingerprint'
@@ -90,23 +93,32 @@ $legacyProfile.SchemaVersion = 2
 $legacyProfile.NormalPlayTimeMultiplier = 1.25
 $legacyProfile.FastForwardTimeMultiplier = 2.5
 Assert-True ($legacyProfile.TryUpgradeLegacyProfile()) 'Legacy profile upgrade'
-Assert-Equal 3 $legacyProfile.SchemaVersion 'Legacy profile schema migration'
+Assert-Equal 4 $legacyProfile.SchemaVersion 'Legacy profile schema migration'
 Assert-Equal 1.0 $legacyProfile.NormalPlayTimeMultiplier 'Legacy profile fixed normal pace migration'
-Assert-Equal 10.0 $legacyProfile.FastForwardTimeMultiplier 'Legacy profile fast-forward speed migration'
+Assert-Equal 4.0 $legacyProfile.FastForwardTimeMultiplier 'Legacy profile fast-forward speed migration clamps to AI-safe maximum'
+
+$v15Profile = $captureProfile.Invoke($null, @())
+$v15Profile.SchemaVersion = 3
+$v15Profile.FastForwardTimeMultiplier = 128.0
+Assert-True ($v15Profile.TryUpgradeLegacyProfile()) 'v1.5 profile upgrade'
+Assert-Equal 4 $v15Profile.SchemaVersion 'v1.5 profile schema migration'
+Assert-Equal 4.0 $v15Profile.FastForwardTimeMultiplier 'v1.5 profile fast-forward clamp'
+Assert-True $v15Profile.AnnualBalanceEnabled 'v1.5 profile annual-balance master migration'
 
 $profile.NormalPlayTimeMultiplier = 1.0
-$profile.FastForwardTimeMultiplier = 128.0
+$profile.FastForwardTimeMultiplier = 4.0
 $profile.RefreshFingerprint()
 $settingsType.GetMethod('ApplyPersistedCampaignProfile', [Reflection.BindingFlags]'Static,NonPublic').Invoke($null, @($profile)) | Out-Null
 Assert-Equal 1.0 ($settingsType.GetProperty('NormalPlayTimeMultiplier').GetValue($null)) 'Saved profile fixed normal pace restore'
-Assert-Equal 128.0 ($settingsType.GetProperty('FastForwardTimeMultiplier').GetValue($null)) 'Saved profile fast-forward speed restore'
+Assert-Equal 4.0 ($settingsType.GetProperty('FastForwardTimeMultiplier').GetValue($null)) 'Saved profile fast-forward speed restore clamps to AI-safe maximum'
 
 $serializedProfile = $profile.Serialize()
 $deserializeArguments = [object[]]@($serializedProfile, $null, $null)
 Assert-True ($profileType.GetMethod('TryDeserialize', [Reflection.BindingFlags]'Static,Public').Invoke($null, $deserializeArguments)) 'Soft profile serialization round trip'
 $roundTripProfile = $deserializeArguments[1]
-Assert-Equal 3 $roundTripProfile.SchemaVersion 'Soft profile round-trip schema'
-Assert-Equal 128.0 $roundTripProfile.FastForwardTimeMultiplier 'Soft profile round-trip fast-forward speed'
+Assert-Equal 4 $roundTripProfile.SchemaVersion 'Soft profile round-trip schema'
+Assert-Equal 4.0 $roundTripProfile.FastForwardTimeMultiplier 'Soft profile round-trip fast-forward speed'
+Assert-Equal $profile.AnnualBalanceEnabled $roundTripProfile.AnnualBalanceEnabled 'Soft profile round-trip annual-balance master'
 
 $lordDeathBalance = $calendarAssembly.GetType('TwelveMonthCalendar.CalendarLordDeathBalance', $true)
 $scaleDailyDeath = $lordDeathBalance.GetMethod('ScaleDailyDeathProbability', [Reflection.BindingFlags]'Static,NonPublic')

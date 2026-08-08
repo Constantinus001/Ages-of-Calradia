@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Temporary test alias: replace prefab_file and linked_prefab_root with
+     Hill Fort's original asset once its art is available. -->
+<refuge_fort_style version="1">
+  <fort id="rct_refuge_fort_hill"
+        prefab_file="rct_refuge_fort_layout.xml"
+        linked_prefab_root="rct_refuge_fort_layout"
+        display_name="Hill Fort (test)"
+        description="Temporary test style using the Palisade Ring prefab."
+        scene_suffix="hill"
+        allow_native_test_fallback="true" />
+</refuge_fort_style>

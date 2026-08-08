@@ -11,14 +11,14 @@ namespace TwelveMonthCalendar
 
         internal static float ScaleDuration(float nativeDuration)
         {
-            return CalendarSettingsState.ExtendedCalendarEnabled
+            return CalendarSettingsState.AnnualRateBalanceEnabled
                 ? nativeDuration * DurationFactor
                 : nativeDuration;
         }
 
         internal static void ScaleDuration(ref ExplainedNumber value)
         {
-            if (CalendarSettingsState.ExtendedCalendarEnabled)
+            if (CalendarSettingsState.AnnualRateBalanceEnabled)
             {
                 SettlementBalanceMath.Scale(ref value, DurationFactor);
             }

@@ -97,6 +97,15 @@ namespace TwelveMonthCalendar
                 __instance.Name = calendarOption.Name;
                 __instance.Description = calendarOption.Description;
             }
+
+            ActionOptionDataVM actionOption = __instance as ActionOptionDataVM;
+            CalendarActionOptionData calendarAction = __instance.GetOptionData() as CalendarActionOptionData;
+            if (actionOption != null && calendarAction != null)
+            {
+                actionOption.Name = calendarAction.DisplayName;
+                actionOption.Description = calendarAction.Description;
+                actionOption.ActionName = calendarAction.DisplayActionName;
+            }
         }
     }
 
@@ -173,26 +182,33 @@ namespace TwelveMonthCalendar
             CopyNativeState(source);
             DetachProxyGamepadHandler();
 
-            bool nativeCalendarSettingsEnabled = !OptionalMcmIntegration.IsSettingsRegistered;
+            // MCM and the native Calendar tab share CalendarSettingsState and
+            // synchronize through SettingsChanged. Keeping this page enabled
+            // is essential: a disabled Gauntlet category still renders its
+            // checkboxes/sliders but makes them appear decorative.
+            const bool nativeCalendarSettingsEnabled = true;
 
-            List<IOptionData> options = new List<IOptionData>
+            List<IOptionData> calendarOptions = new List<IOptionData>
             {
-                new CalendarBooleanOptionData(
-                    "Use Leap Years",
-                    delegate { return CalendarSettingsState.UseLeapYears; },
-                    delegate(bool value) { Apply(useLeapYears: value); }),
                 new CalendarActionOptionData(
+                    "Calendar Month Names",
                     "Edit Month Names",
                     "Edit all twelve month names in one pipe-separated text field. Example: January|February|...|December.",
                     ShowMonthNamesEditor),
                 new CalendarActionOptionData(
+                    "Calendar Season Names",
                     "Edit Season Names",
                     "Edit all four season names in one pipe-separated text field. Example: Spring|Summer|Autumn|Winter.",
                     ShowSeasonNamesEditor),
                 new CalendarActionOptionData(
+                    "Calendar Month Lengths",
                     "Edit Month Lengths",
                     "Edit twelve pipe-separated month lengths that total exactly 365. This is locked after a campaign session starts.",
                     ShowMonthLengthsEditor),
+                new CalendarActionOptionData("Reset Calendar", "Reset Category", "Restores Calendar defaults. In an active campaign, only custom month and season names can be reset safely.", ResetCalendarCategory)
+            };
+            List<IOptionData> displayOptions = new List<IOptionData>
+            {
                 new CalendarBooleanOptionData(
                     "Show Day Label",
                     delegate { return CalendarSettingsState.ShowDayLabel; },
@@ -205,6 +221,20 @@ namespace TwelveMonthCalendar
                     "Use Ordinal Day Suffixes",
                     delegate { return CalendarSettingsState.UseOrdinalDaySuffixes; },
                     delegate(bool value) { Apply(useOrdinalDaySuffixes: value); }),
+                new CalendarSelectionOptionData(
+                    "Clock Format",
+                    new[] { "24-Hour", "12-Hour" },
+                    GetClockFormatIndex,
+                    delegate(float value) { Apply(use24HourClock: ClampIndex(value, 2) == 0); }),
+                new CalendarSelectionOptionData(
+                    "Date Format",
+                    new[] { "Day-Month-Year", "Month-Day-Year", "Year-Month-Day" },
+                    GetDateFormatIndex,
+                    delegate(float value) { Apply(dateFormat: GetDateFormats()[ClampIndex(value, GetDateFormats().Length)]); }),
+                new CalendarActionOptionData("Reset Display", "Reset Category", "Restores the Display category defaults.", ResetDisplayCategory)
+            };
+            List<IOptionData> pacingOptions = new List<IOptionData>
+            {
                 new CalendarBooleanOptionData(
                     "Automatic Campaign Time Scale",
                     delegate { return CalendarSettingsState.AutoCampaignTimeScale; },
@@ -225,11 +255,42 @@ namespace TwelveMonthCalendar
                     1,
                     delegate { return CalendarSettingsState.FastForwardTimeMultiplier; },
                     delegate(float value) { Apply(fastForwardTimeMultiplier: value); }),
-                new CalendarSelectionOptionData(
-                    "Date Format",
-                    new[] { "Day-Month-Year", "Month-Day-Year", "Year-Month-Day" },
-                    GetDateFormatIndex,
-                    delegate(float value) { Apply(dateFormat: GetDateFormats()[ClampIndex(value, GetDateFormats().Length)]); }),
+                new CalendarActionOptionData("Reset Pacing", "Reset Category", "Restores automatic pacing, 0.15 campaign scale, and 4x fast-forward.", ResetPacingCategory)
+            };
+            List<IOptionData> lightingOptions = new List<IOptionData>
+            {
+                new CalendarBooleanOptionData(
+                    "Synchronize Campaign Lighting",
+                    delegate { return CalendarSettingsState.ClockSynchronizedLighting; },
+                    delegate(bool value) { Apply(clockSynchronizedLighting: value); }),
+                new CalendarNumericOptionData(
+                    "Visual Sunrise Hour",
+                    0f,
+                    23.75f,
+                    false,
+                    2,
+                    delegate { return CalendarSettingsState.VisualSunriseHour; },
+                    delegate(float value) { Apply(visualSunriseHour: value); }),
+                new CalendarNumericOptionData(
+                    "Visual Sunset Hour",
+                    0f,
+                    23.75f,
+                    false,
+                    2,
+                    delegate { return CalendarSettingsState.VisualSunsetHour; },
+                    delegate(float value) { Apply(visualSunsetHour: value); }),
+                new CalendarNumericOptionData(
+                    "Lighting Transition Hours",
+                    0.25f,
+                    4f,
+                    false,
+                    2,
+                    delegate { return CalendarSettingsState.VisualLightingTransitionHours; },
+                    delegate(float value) { Apply(visualLightingTransitionHours: value); }),
+                new CalendarActionOptionData("Reset Lighting", "Reset Category", "Restores clock-synchronized lighting, 05:00 sunrise, 21:00 sunset, and one-hour transitions.", ResetLightingCategory)
+            };
+            List<IOptionData> lifeCycleOptions = new List<IOptionData>
+            {
                 new CalendarBooleanOptionData(
                     "Use Calendar-Month Pregnancy",
                     delegate { return CalendarSettingsState.UseCalendarMonthPregnancy; },
@@ -242,14 +303,6 @@ namespace TwelveMonthCalendar
                     1,
                     delegate { return CalendarSettingsState.PregnancyDurationMonths; },
                     delegate(float value) { Apply(pregnancyDurationMonths: Math.Max(1, (int)value)); }),
-                new CalendarNumericOptionData(
-                    "Fixed Pregnancy Duration (Days)",
-                    0.1f,
-                    10000f,
-                    false,
-                    0,
-                    delegate { return CalendarSettingsState.PregnancyDurationInDays; },
-                    delegate(float value) { Apply(pregnancyDurationInDays: value); }),
                 new CalendarNumericOptionData(
                     "Lord Death Rate Multiplier",
                     0f,
@@ -266,6 +319,14 @@ namespace TwelveMonthCalendar
                     0,
                     delegate { return CalendarSettingsState.RenownGainMultiplier; },
                     delegate(float value) { Apply(renownGainMultiplier: value); }),
+                new CalendarActionOptionData("Reset Life Cycle", "Reset Category", "Restores Life Cycle defaults. Changes apply to future pregnancies, death checks, and renown awards.", ResetLifeCycleCategory)
+            };
+            List<IOptionData> annualBalanceOptions = new List<IOptionData>
+            {
+                new CalendarBooleanOptionData(
+                    "Annual Balance Enabled",
+                    delegate { return CalendarSettingsState.AnnualBalanceEnabled; },
+                    delegate(bool value) { Apply(annualBalanceEnabled: value); }),
                 new CalendarBooleanOptionData(
                     "Balance Party Impairment",
                     delegate { return CalendarSettingsState.BalancePartyImpairment; },
@@ -286,15 +347,37 @@ namespace TwelveMonthCalendar
                     "Balance Quest Deadlines",
                     delegate { return CalendarSettingsState.BalanceQuestDeadlines; },
                     delegate(bool value) { Apply(balanceQuestDeadlines: value); }),
+                new CalendarActionOptionData("Reset Annual Balance", "Reset Category", "Enables annual-rate balancing and restores the category defaults. Existing quest deadlines are unchanged.", ResetAnnualBalanceCategory)
+            };
+            List<IOptionData> diagnosticsOptions = new List<IOptionData>
+            {
                 new CalendarBooleanOptionData(
                     "Annual Balance Diagnostics",
                     delegate { return CalendarSettingsState.AnnualBalanceDiagnosticsEnabled; },
                     delegate(bool value) { Apply(annualBalanceDiagnosticsEnabled: value); })
             };
 
+            List<IOptionData> options = new List<IOptionData>();
+            options.AddRange(calendarOptions);
+            options.AddRange(displayOptions);
+            options.AddRange(pacingOptions);
+            options.AddRange(lightingOptions);
+            options.AddRange(lifeCycleOptions);
+            options.AddRange(annualBalanceOptions);
+            options.AddRange(diagnosticsOptions);
+
             OptionCategory category = new OptionCategory(
                 new List<IOptionData>(),
-                new[] { new OptionGroup(new TextObject("Calendar"), options) });
+                new[]
+                {
+                    new OptionGroup(new TextObject("Calendar"), calendarOptions),
+                    new OptionGroup(new TextObject("Display"), displayOptions),
+                    new OptionGroup(new TextObject("Pacing"), pacingOptions),
+                    new OptionGroup(new TextObject("Lighting"), lightingOptions),
+                    new OptionGroup(new TextObject("Life Cycle"), lifeCycleOptions),
+                    new OptionGroup(new TextObject("Annual Balance"), annualBalanceOptions),
+                    new OptionGroup(new TextObject("Diagnostics"), diagnosticsOptions)
+                });
             _calendarOptions = new GroupedOptionCategoryVM(
                 this,
                 new TextObject("Calendar"),
@@ -302,11 +385,7 @@ namespace TwelveMonthCalendar
                 nativeCalendarSettingsEnabled,
                 true);
 
-            if (!nativeCalendarSettingsEnabled)
-            {
-                Diagnostics.Info("Native Calendar Options tab disabled because MCM settings are active.");
-            }
-
+            AddCalendarSliderButtonViewModels();
             ApplyCalendarOptionLabels(options);
 
             AddCategoryToNativeLists(_calendarOptions);
@@ -573,16 +652,118 @@ namespace TwelveMonthCalendar
                 return;
             }
 
-            OptionGroupVM group = _calendarOptions.Groups[0];
-            for (int i = 0; i < options.Count && i < group.Options.Count; i++)
+            int optionIndex = 0;
+            foreach (OptionGroupVM group in _calendarOptions.Groups)
             {
-                CalendarOptionDataBase calendarOption = options[i] as CalendarOptionDataBase;
-                if (calendarOption != null)
+                for (int i = 0; i < group.Options.Count && optionIndex < options.Count; i++, optionIndex++)
                 {
-                    group.Options[i].Name = calendarOption.Name;
-                    group.Options[i].Description = calendarOption.Description;
+                    CalendarOptionDataBase calendarOption = options[optionIndex] as CalendarOptionDataBase;
+                    if (calendarOption != null)
+                    {
+                        group.Options[i].Name = calendarOption.Name;
+                        group.Options[i].Description = calendarOption.Description;
+                        continue;
+                    }
+
+                    CalendarActionOptionData calendarAction = options[optionIndex] as CalendarActionOptionData;
+                    ActionOptionDataVM actionOption = group.Options[i] as ActionOptionDataVM;
+                    if (calendarAction != null && actionOption != null)
+                    {
+                        actionOption.Name = calendarAction.DisplayName;
+                        actionOption.Description = calendarAction.Description;
+                        actionOption.ActionName = calendarAction.DisplayActionName;
+                    }
                 }
             }
+        }
+
+        private void AddCalendarSliderButtonViewModels()
+        {
+            if (_calendarOptions.Groups == null)
+            {
+                return;
+            }
+
+            foreach (OptionGroupVM group in _calendarOptions.Groups)
+            {
+                for (int index = 0; index < group.Options.Count; index++)
+                {
+                    BooleanOptionDataVM boolean = group.Options[index] as BooleanOptionDataVM;
+                    CalendarBooleanOptionData calendarBoolean = boolean == null
+                        ? null
+                        : boolean.GetOptionData() as CalendarBooleanOptionData;
+                    if (calendarBoolean != null)
+                    {
+                        group.Options[index] = new CalendarBooleanOptionDataVM(
+                            this,
+                            calendarBoolean,
+                            new TextObject(boolean.Name),
+                            new TextObject(boolean.Description),
+                            RefreshCalendarOptionControls);
+                        continue;
+                    }
+
+                    NumericOptionDataVM numeric = group.Options[index] as NumericOptionDataVM;
+                    CalendarNumericOptionData calendarNumeric = numeric == null
+                        ? null
+                        : numeric.GetOptionData() as CalendarNumericOptionData;
+                    if (calendarNumeric == null)
+                    {
+                        continue;
+                    }
+
+                    group.Options[index] = new CalendarNumericOptionDataVM(
+                        this,
+                        calendarNumeric,
+                        new TextObject(numeric.Name),
+                        new TextObject(numeric.Description),
+                        RefreshCalendarOptionControls);
+                }
+            }
+        }
+
+        private void RefreshCalendarOptionControls()
+        {
+            if (_calendarOptions.Groups == null)
+            {
+                return;
+            }
+
+            foreach (OptionGroupVM group in _calendarOptions.Groups)
+            {
+                for (int index = 0; index < group.Options.Count; index++)
+                {
+                    CalendarOptionDataBase option = group.Options[index].GetOptionData() as CalendarOptionDataBase;
+                    if (option == null)
+                    {
+                        continue;
+                    }
+
+                    CalendarBooleanOptionDataVM boolean = group.Options[index] as CalendarBooleanOptionDataVM;
+                    if (boolean != null)
+                    {
+                        boolean.RefreshFromOptionData();
+                        continue;
+                    }
+
+                    CalendarNumericOptionDataVM numeric = group.Options[index] as CalendarNumericOptionDataVM;
+                    if (numeric != null)
+                    {
+                        numeric.RefreshFromOptionData();
+                    }
+                }
+            }
+        }
+
+        private void RefreshCalendarOptions()
+        {
+            if (_calendarOptions == null)
+            {
+                return;
+            }
+
+            _calendarOptions.RefreshValues();
+            RefreshCalendarOptionControls();
         }
 
         private void CopyNativeState(OptionsVM source)
@@ -643,6 +824,7 @@ namespace TwelveMonthCalendar
             bool? showDayLabel = null,
             bool? showYearLabel = null,
             bool? useOrdinalDaySuffixes = null,
+            bool? use24HourClock = null,
             float? campaignTimeScale = null,
             string dateFormat = null,
             bool? autoCampaignTimeScale = null,
@@ -656,16 +838,25 @@ namespace TwelveMonthCalendar
             bool? balanceNpcMarriage = null,
             bool? balanceMapTracks = null,
             bool? balanceQuestDeadlines = null,
+            bool? annualBalanceEnabled = null,
             bool? annualBalanceDiagnosticsEnabled = null,
-            float? fastForwardTimeMultiplier = null)
+            float? fastForwardTimeMultiplier = null,
+            bool? clockSynchronizedLighting = null,
+            float? visualSunriseHour = null,
+            float? visualSunsetHour = null,
+            float? visualLightingTransitionHours = null)
         {
             bool requestedLeapYears = useLeapYears ?? CalendarSettingsState.UseLeapYears;
             bool requestedShowDayLabel = showDayLabel ?? CalendarSettingsState.ShowDayLabel;
             bool requestedShowYearLabel = showYearLabel ?? CalendarSettingsState.ShowYearLabel;
             bool requestedOrdinalDaySuffixes = useOrdinalDaySuffixes ?? CalendarSettingsState.UseOrdinalDaySuffixes;
+            bool requestedUse24HourClock = use24HourClock ?? CalendarSettingsState.Use24HourClock;
             float requestedCampaignTimeScale = campaignTimeScale ?? CalendarSettingsState.CampaignTimeScale;
             string requestedDateFormat = dateFormat ?? CalendarSettingsState.DateFormat;
             bool requestedAutoTimeScale = autoCampaignTimeScale ?? CalendarSettingsState.AutoCampaignTimeScale;
+            // Only the checkbox enables automatic pacing. A slider edit is a
+            // manual choice even when its resulting value is exactly the
+            // automatic 0.15 default.
             float requestedFastForwardTimeMultiplier = fastForwardTimeMultiplier
                 ?? CalendarSettingsState.FastForwardTimeMultiplier;
             bool requestedCalendarMonthPregnancy = useCalendarMonthPregnancy
@@ -690,6 +881,16 @@ namespace TwelveMonthCalendar
                 ?? CalendarSettingsState.BalanceQuestDeadlines;
             bool requestedAnnualBalanceDiagnostics = annualBalanceDiagnosticsEnabled
                 ?? CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
+            bool requestedAnnualBalanceEnabled = annualBalanceEnabled
+                ?? CalendarSettingsState.AnnualBalanceEnabled;
+            bool requestedClockSynchronizedLighting = clockSynchronizedLighting
+                ?? CalendarSettingsState.ClockSynchronizedLighting;
+            float requestedVisualSunriseHour = visualSunriseHour
+                ?? CalendarSettingsState.VisualSunriseHour;
+            float requestedVisualSunsetHour = visualSunsetHour
+                ?? CalendarSettingsState.VisualSunsetHour;
+            float requestedVisualLightingTransitionHours = visualLightingTransitionHours
+                ?? CalendarSettingsState.VisualLightingTransitionHours;
 
             // Bannerlord initializes option controls by writing their current
             // value back to the data source. Do not treat those UI refreshes as
@@ -698,6 +899,7 @@ namespace TwelveMonthCalendar
                 && requestedShowDayLabel == CalendarSettingsState.ShowDayLabel
                 && requestedShowYearLabel == CalendarSettingsState.ShowYearLabel
                 && requestedOrdinalDaySuffixes == CalendarSettingsState.UseOrdinalDaySuffixes
+                && requestedUse24HourClock == CalendarSettingsState.Use24HourClock
                 && NearlyEqual(requestedCampaignTimeScale, CalendarSettingsState.CampaignTimeScale)
                 && string.Equals(requestedDateFormat, CalendarSettingsState.DateFormat, StringComparison.Ordinal)
                 && requestedAutoTimeScale == CalendarSettingsState.AutoCampaignTimeScale
@@ -712,7 +914,12 @@ namespace TwelveMonthCalendar
                 && requestedBalanceNpcMarriage == CalendarSettingsState.BalanceNpcMarriage
                 && requestedBalanceMapTracks == CalendarSettingsState.BalanceMapTracks
                 && requestedBalanceQuestDeadlines == CalendarSettingsState.BalanceQuestDeadlines
-                && requestedAnnualBalanceDiagnostics == CalendarSettingsState.AnnualBalanceDiagnosticsEnabled)
+                && requestedAnnualBalanceEnabled == CalendarSettingsState.AnnualBalanceEnabled
+                && requestedAnnualBalanceDiagnostics == CalendarSettingsState.AnnualBalanceDiagnosticsEnabled
+                && requestedClockSynchronizedLighting == CalendarSettingsState.ClockSynchronizedLighting
+                && NearlyEqual(requestedVisualSunriseHour, CalendarSettingsState.VisualSunriseHour)
+                && NearlyEqual(requestedVisualSunsetHour, CalendarSettingsState.VisualSunsetHour)
+                && NearlyEqual(requestedVisualLightingTransitionHours, CalendarSettingsState.VisualLightingTransitionHours))
             {
                 return;
             }
@@ -732,12 +939,18 @@ namespace TwelveMonthCalendar
                 renownGainMultiplier: requestedRenownMultiplier,
                 lordDeathRateMultiplier: requestedLordDeathRateMultiplier,
                 useOrdinalDaySuffixes: requestedOrdinalDaySuffixes,
+                use24HourClock: requestedUse24HourClock,
                 balancePartyImpairment: requestedBalancePartyImpairment,
                 balancePrisonerRecruitment: requestedBalancePrisonerRecruitment,
                 balanceNpcMarriage: requestedBalanceNpcMarriage,
                 balanceMapTracks: requestedBalanceMapTracks,
                 balanceQuestDeadlines: requestedBalanceQuestDeadlines,
-                annualBalanceDiagnosticsEnabled: requestedAnnualBalanceDiagnostics);
+                annualBalanceEnabled: requestedAnnualBalanceEnabled,
+                annualBalanceDiagnosticsEnabled: requestedAnnualBalanceDiagnostics,
+                clockSynchronizedLighting: requestedClockSynchronizedLighting,
+                visualSunriseHour: requestedVisualSunriseHour,
+                visualSunsetHour: requestedVisualSunsetHour,
+                visualLightingTransitionHours: requestedVisualLightingTransitionHours);
             CalendarSettingsState.Save();
         }
 
@@ -760,6 +973,98 @@ namespace TwelveMonthCalendar
         {
             int index = Array.IndexOf(GetDateFormats(), CalendarSettingsState.DateFormat);
             return index < 0 ? 1f : index;
+        }
+
+        private static bool IsAnnualBalanceEnabled()
+        {
+            return CalendarSettingsState.BalancePartyImpairment
+                && CalendarSettingsState.BalancePrisonerRecruitment
+                && CalendarSettingsState.BalanceNpcMarriage
+                && CalendarSettingsState.BalanceMapTracks
+                && CalendarSettingsState.BalanceQuestDeadlines;
+        }
+
+        private static void SetAnnualBalanceEnabled(bool enabled)
+        {
+            Apply(
+                balancePartyImpairment: enabled,
+                balancePrisonerRecruitment: enabled,
+                balanceNpcMarriage: enabled,
+                balanceMapTracks: enabled,
+                balanceQuestDeadlines: enabled);
+        }
+
+        private void ResetCalendarCategory()
+        {
+            CalendarSettingsState.ResetCalendarCategory();
+            CompleteCategoryReset(
+                "Calendar",
+                CalendarSettingsState.IsCampaignProfileLocked
+                    ? "Calendar names were reset. Month lengths and leap-year rules are locked by this active campaign."
+                    : "Calendar settings were reset.");
+        }
+
+        private void ResetDisplayCategory()
+        {
+            Apply(
+                showDayLabel: false,
+                showYearLabel: false,
+                useOrdinalDaySuffixes: true,
+                use24HourClock: true,
+                dateFormat: "{Month} {Day} {Year}");
+            CompleteCategoryReset("Display", "Display settings were reset.");
+        }
+
+        private void ResetPacingCategory()
+        {
+            Apply(
+                campaignTimeScale: CalendarSettingsState.DefaultCampaignTimeScale,
+                autoCampaignTimeScale: true,
+                fastForwardTimeMultiplier: 4f);
+            CompleteCategoryReset("Pacing", "Pacing was reset to automatic 0.15 scale and 4x fast-forward.");
+        }
+
+        private void ResetLightingCategory()
+        {
+            Apply(
+                clockSynchronizedLighting: CalendarSettingsState.DefaultClockSynchronizedLighting,
+                visualSunriseHour: CalendarSettingsState.DefaultVisualSunriseHour,
+                visualSunsetHour: CalendarSettingsState.DefaultVisualSunsetHour,
+                visualLightingTransitionHours: CalendarSettingsState.DefaultVisualLightingTransitionHours);
+            CompleteCategoryReset("Lighting", "Lighting was reset to the campaign clock with 05:00 sunrise, 21:00 sunset, and one-hour transitions.");
+        }
+
+        private void ResetLifeCycleCategory()
+        {
+            Apply(
+                useCalendarMonthPregnancy: true,
+                pregnancyDurationMonths: 9,
+                lordDeathRateMultiplier: 0.20f,
+                renownGainMultiplier: 0.50f);
+            CompleteCategoryReset("Life Cycle", "Life Cycle settings were reset for future pregnancies, death checks, and renown awards.");
+        }
+
+        private void ResetAnnualBalanceCategory()
+        {
+            Apply(annualBalanceEnabled: true, balancePartyImpairment: true, balancePrisonerRecruitment: true, balanceNpcMarriage: true, balanceMapTracks: true, balanceQuestDeadlines: true);
+            CompleteCategoryReset("Annual Balance", "Annual Balance settings were reset. Existing quest deadlines are unchanged.");
+        }
+
+        private void CompleteCategoryReset(string category, string message)
+        {
+            RefreshCalendarOptions();
+            Diagnostics.Info(category + " category reset action: " + message);
+            InformationManager.DisplayMessage(new InformationMessage(message));
+        }
+
+        private static void ResetDiagnosticsCategory()
+        {
+            Apply(annualBalanceDiagnosticsEnabled: true);
+        }
+
+        private static float GetClockFormatIndex()
+        {
+            return CalendarSettingsState.Use24HourClock ? 0f : 1f;
         }
 
         private static int ClampIndex(float value, int length)
@@ -788,8 +1093,6 @@ namespace TwelveMonthCalendar
             {
                 switch (_name)
                 {
-                    case "Use Leap Years":
-                        return "Adds February 29 in Gregorian leap years and keeps the calendar synchronized with leap-year rules.";
                     case "Show Day Label":
                         return "Displays the word 'Day' before the day number on the campaign map date.";
                     case "Show Year Label":
@@ -797,21 +1100,21 @@ namespace TwelveMonthCalendar
                     case "Use Ordinal Day Suffixes":
                         return "Displays dates as 1st, 2nd, 3rd, and so on. 11th, 12th, and 13th use the correct th suffix.";
                     case "Automatic Campaign Time Scale":
-                        return "Automatically calculates campaign pacing from the configured calendar year length.";
+                        return "Keeps campaign pacing at the fixed default of 0.150. Turning it off lets you choose a different slider value.";
                     case "Campaign Time Scale":
                         return "Controls how quickly campaign time advances when automatic pacing is disabled. Lower values are slower.";
                     case "Fast-Forward Speed Multiplier":
-                        return "Sets Bannerlord's own fast-forward speed while the map is fast-forwarding. Normal map pace remains fixed. 4 is native; 128 is the supported maximum. Safe to change during a campaign.";
+                        return "Sets Bannerlord's built-in fast-forward speed while the map is fast-forwarding. Normal map pace remains fixed. 4 is Bannerlord's supported maximum and avoids AI time-step skips.";
                     case "Date Format":
                         return "Select the order of the month, day, and year. The season is displayed separately to the right of the map clock.";
+                    case "Clock Format":
+                        return "Shows the campaign clock beneath the calendar date as either 24-hour time or 12-hour time with AM/PM.";
                     case "Use Calendar-Month Pregnancy":
                         return "Uses calendar months for pregnancy duration instead of the fixed day value.";
                     case "Pregnancy Duration (Months)":
                         return "Sets how many calendar months a pregnancy lasts when calendar-month pregnancy is enabled.";
-                    case "Fixed Pregnancy Duration (Days)":
-                        return "Sets pregnancy length in days when calendar-month pregnancy is disabled. The default is 273.75 days.";
                     case "Lord Death Rate Multiplier":
-                        return "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged. This campaign setting is locked after the session begins.";
+                        return "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged. Changes affect future checks.";
                     case "Renown Gain Multiplier":
                         return "Scales positive renown rewards. A value of 0.50 gives half the normal positive renown.";
                     case "Balance Party Impairment":
@@ -863,6 +1166,34 @@ namespace TwelveMonthCalendar
             }
 
             return (string.Empty, false);
+        }
+
+    }
+
+    // Action rows refresh through their own VM override, so the generic VM
+    // refresh hook above is not guaranteed to run after a category reset.
+    // Reapply Calendar action labels here to prevent the native fallback
+    // "Start Benchmark" text from resurfacing.
+    [HarmonyPatch(typeof(ActionOptionDataVM), nameof(ActionOptionDataVM.RefreshValues))]
+    internal static class CalendarActionOptionLabelRefreshPatch
+    {
+        [HarmonyPostfix]
+        private static void Postfix(ActionOptionDataVM __instance)
+        {
+            if (__instance == null)
+            {
+                return;
+            }
+
+            CalendarActionOptionData calendarAction = __instance.GetOptionData() as CalendarActionOptionData;
+            if (calendarAction == null)
+            {
+                return;
+            }
+
+            __instance.Name = calendarAction.DisplayName;
+            __instance.Description = calendarAction.Description;
+            __instance.ActionName = calendarAction.DisplayActionName;
         }
     }
 
@@ -976,6 +1307,106 @@ namespace TwelveMonthCalendar
         }
     }
 
+    /// <summary>
+    /// Supplies the command methods used by the Calendar-only previous/next
+    /// slider buttons in the prefab. Native numeric rows keep their untouched
+    /// view model and are not affected by the Calendar UI override.
+    /// </summary>
+    internal sealed class CalendarNumericOptionDataVM : NumericOptionDataVM
+    {
+        private readonly Action _onValueChanged;
+
+        internal CalendarNumericOptionDataVM(
+            OptionsVM options,
+            INumericOptionData optionData,
+            TextObject name,
+            TextObject description,
+            Action onValueChanged)
+            : base(options, optionData, name, description)
+        {
+            _onValueChanged = onValueChanged;
+        }
+
+        public void ExecuteDecrease()
+        {
+            SetButtonValue(OptionValue - GetButtonIncrement());
+        }
+
+        public void ExecuteIncrease()
+        {
+            SetButtonValue(OptionValue + GetButtonIncrement());
+        }
+
+        public override void SetValue(float value)
+        {
+            base.SetValue(value);
+            if (_onValueChanged != null)
+            {
+                _onValueChanged();
+            }
+        }
+
+        internal void RefreshFromOptionData()
+        {
+            OptionValue = GetOptionData().GetValue(false);
+        }
+
+        private float GetButtonIncrement()
+        {
+            return IsDiscrete
+                ? Math.Max(1f, DiscreteIncrementInterval)
+                : Math.Max(0.01f, (Max - Min) / 100f);
+        }
+
+        private void SetButtonValue(float value)
+        {
+            // SetValue writes through to IOptionData. Assigning the bound UI
+            // property can otherwise repaint the handle without persisting a
+            // command-button change on some Bannerlord UI revisions.
+            SetValue(Math.Max(Min, Math.Min(Max, value)));
+        }
+    }
+
+    /// <summary>
+    /// Makes Calendar checkboxes use an explicit command. This avoids relying
+    /// on OptionsItemWidget's native boolean-event routing, which can leave a
+    /// mod-provided checkbox visually clickable but without a state change.
+    /// </summary>
+    internal sealed class CalendarBooleanOptionDataVM : BooleanOptionDataVM
+    {
+        private readonly Action _onValueChanged;
+
+        internal CalendarBooleanOptionDataVM(
+            OptionsVM options,
+            IBooleanOptionData optionData,
+            TextObject name,
+            TextObject description,
+            Action onValueChanged)
+            : base(options, optionData, name, description)
+        {
+            _onValueChanged = onValueChanged;
+        }
+
+        public void ExecuteToggle()
+        {
+            SetValue(OptionValueAsBoolean ? 0f : 1f);
+        }
+
+        public override void SetValue(float value)
+        {
+            base.SetValue(value);
+            if (_onValueChanged != null)
+            {
+                _onValueChanged();
+            }
+        }
+
+        internal void RefreshFromOptionData()
+        {
+            OptionValueAsBoolean = GetOptionData().GetValue(false) >= 0.5f;
+        }
+    }
+
     internal sealed class CalendarSelectionOptionData : CalendarOptionDataBase, ISelectionOptionData
     {
         private readonly string[] _names;
@@ -1036,19 +1467,27 @@ namespace TwelveMonthCalendar
     internal sealed class CalendarActionOptionData : ActionOptionData
     {
         internal CalendarActionOptionData(
-            string name,
+            string displayName,
+            string displayActionName,
             string description,
             Action action)
-            : base(name, action)
+            // Bannerlord resolves action-option localization while building the
+            // row, before module GameText variations are guaranteed to load.
+            // Use a known native ID solely as an internal type token and set
+            // the Calendar-specific visible strings directly in its VM.
+            : base("Benchmark", action)
         {
-            // ActionOptionData uses the supplied name in its native action-row
-            // view model. Keep the description parameter here for API clarity
-            // and future native UI descriptions without relying on private VM
-            // fields in the current game version.
+            DisplayName = displayName;
+            DisplayActionName = displayActionName;
             Description = description;
         }
 
+        internal string DisplayName { get; private set; }
+
+        internal string DisplayActionName { get; private set; }
+
         internal string Description { get; private set; }
+
     }
 
 }

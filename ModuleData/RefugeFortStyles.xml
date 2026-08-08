@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Optional drop-in style manifest. Copy a complete prefab XML into Prefabs,
+  then add one fort entry here. The prefab root must be rct_refuge_fort_* and
+  must carry rct_refuge_layout. Set allow_native_test_fallback="true" only
+  while testing a style before its authored scene/navmesh is complete.
+-->
+<refuge_fort_styles version="1">
+  <fort id="rct_refuge_fort_layout"
+        prefab_file="rct_refuge_fort_layout.xml"
+        linked_prefab_root="rct_refuge_fort_layout"
+        runtime_layout_file="rct_refuge_fort_runtime_layout.xml"
+        display_name="Palisade Ring"
+        description="A round timber palisade with inward-facing wall platforms."
+        scene_suffix="palisade"
+        allow_native_test_fallback="true" />
+  <fort id="rct_refuge_fort_hill"
+        prefab_file="rct_refuge_fort_layout.xml"
+        linked_prefab_root="rct_refuge_fort_layout"
+        display_name="Hill Fort (test)"
+        description="Temporary test style using the Palisade Ring prefab."
+        scene_suffix="hill"
+        allow_native_test_fallback="true" />
+  <fort id="rct_refuge_fort_river"
+        prefab_file="rct_refuge_fort_layout.xml"
+        linked_prefab_root="rct_refuge_fort_layout"
+        display_name="Riverhold (test)"
+        description="Temporary test style using the Palisade Ring prefab."
+        scene_suffix="riverhold"
+        allow_native_test_fallback="true" />
+</refuge_fort_styles>

@@ -24,7 +24,7 @@ namespace TwelveMonthCalendar
         [HarmonyPostfix]
         private static void Postfix(ref int __result)
         {
-            if (!CalendarSettingsState.ExtendedCalendarEnabled
+            if (!CalendarSettingsState.AnnualRateBalanceEnabled
                 || DailyRateBalance.IsFinanceEvaluation)
             {
                 return;

@@ -12,9 +12,14 @@ namespace RealisticCalendarTweaks.MCM
         private bool _showDayLabel = CalendarSettingsState.ShowDayLabel;
         private bool _showYearLabel = CalendarSettingsState.ShowYearLabel;
         private bool _useOrdinalDaySuffixes = CalendarSettingsState.UseOrdinalDaySuffixes;
+        private bool _use24HourClock = CalendarSettingsState.Use24HourClock;
         private float _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
         private bool _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
         private float _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
+        private bool _clockSynchronizedLighting = CalendarSettingsState.ClockSynchronizedLighting;
+        private float _visualSunriseHour = CalendarSettingsState.VisualSunriseHour;
+        private float _visualSunsetHour = CalendarSettingsState.VisualSunsetHour;
+        private float _visualLightingTransitionHours = CalendarSettingsState.VisualLightingTransitionHours;
         private string _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
         private string _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
         private string _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
@@ -29,6 +34,7 @@ namespace RealisticCalendarTweaks.MCM
         private bool _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
         private bool _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
         private bool _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+        private bool _annualBalanceEnabled = CalendarSettingsState.AnnualBalanceEnabled;
         private bool _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
         private bool _synchronizing;
 
@@ -36,20 +42,6 @@ namespace RealisticCalendarTweaks.MCM
         public override string DisplayName => "Realistic Calendar Tweaks";
         public override string FolderName => "RealisticCalendarTweaks";
         public override string FormatType => "json";
-
-        [SettingPropertyBool("Use Leap Years", Order = 0, RequireRestart = true,
-            HintText = "Adds February 29 using the Gregorian leap-year rule.")]
-        [SettingPropertyGroup("Calendar")]
-        public bool UseLeapYears
-        {
-            get { return _useLeapYears; }
-            set
-            {
-                _useLeapYears = value;
-                Apply();
-                OnPropertyChanged();
-            }
-        }
 
         [SettingPropertyText("Month Names", Order = 1, RequireRestart = false,
             HintText = "Twelve names separated by |. Example: January|February|...|December. Each name is limited to 24 characters.")]
@@ -136,7 +128,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Campaign Time Scale", 0.01f, 1.0f, "0.000", Order = 4,
-            RequireRestart = true, HintText = "Controls how quickly campaign time advances. Default is 0.230.")]
+            RequireRestart = false, HintText = "Controls how quickly campaign time advances. Default is 0.150; lower values are slower.")]
         [SettingPropertyGroup("Economy")]
         public float CampaignTimeScale
         {
@@ -144,13 +136,15 @@ namespace RealisticCalendarTweaks.MCM
             set
             {
                 _campaignTimeScale = value;
+                _autoCampaignTimeScale = false;
                 Apply();
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(AutoCampaignTimeScale));
             }
         }
 
-        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 5, RequireRestart = true,
-            HintText = "Derives pacing from the configured native and calendar year lengths.")]
+        [SettingPropertyBool("Automatic Campaign Time Scale", Order = 5, RequireRestart = false,
+            HintText = "Keeps campaign pacing at the fixed default of 0.150. Turning it off enables custom pacing.")]
         [SettingPropertyGroup("Economy")]
         public bool AutoCampaignTimeScale
         {
@@ -158,14 +152,33 @@ namespace RealisticCalendarTweaks.MCM
             set
             {
                 _autoCampaignTimeScale = value;
+                if (value)
+                {
+                    _campaignTimeScale = CalendarSettingsState.DefaultCampaignTimeScale;
+                }
+                Apply();
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CampaignTimeScale));
+            }
+        }
+
+        [SettingPropertyBool("Use 24-Hour Clock", Order = 4, RequireRestart = false,
+            HintText = "Shows the campaign clock below the map-bar date as 24-hour time. Turn off for 12-hour AM/PM time.")]
+        [SettingPropertyGroup("Display")]
+        public bool Use24HourClock
+        {
+            get { return _use24HourClock; }
+            set
+            {
+                _use24HourClock = value;
                 Apply();
                 OnPropertyChanged();
             }
         }
 
-        [SettingPropertyFloatingInteger("Fast-Forward Speed Multiplier", 1f, 128f, "0", Order = 6,
+        [SettingPropertyFloatingInteger("Fast-Forward Speed Multiplier", 1f, 4f, "0", Order = 6,
             RequireRestart = false,
-            HintText = "Uses Bannerlord's built-in fast-forward speed. Normal map pace stays fixed. Native speed is 4x; values from 1x through 128x are safe to change during a campaign.")]
+            HintText = "Uses Bannerlord's built-in fast-forward speed. Normal map pace stays fixed. 4x is Bannerlord's supported maximum and avoids AI time-step skips.")]
         [SettingPropertyGroup("Pacing")]
         public float FastForwardTimeMultiplier
         {
@@ -173,6 +186,62 @@ namespace RealisticCalendarTweaks.MCM
             set
             {
                 _fastForwardTimeMultiplier = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyBool("Synchronize Campaign Lighting", Order = 1, RequireRestart = false,
+            HintText = "Aligns visual sunrise and sunset with the campaign clock without changing native gameplay sunrise/sunset mechanics.")]
+        [SettingPropertyGroup("Lighting")]
+        public bool ClockSynchronizedLighting
+        {
+            get { return _clockSynchronizedLighting; }
+            set
+            {
+                _clockSynchronizedLighting = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyFloatingInteger("Visual Sunrise Hour", 0f, 23.75f, "0.00", Order = 2,
+            RequireRestart = false, HintText = "Visual sunrise hour on the campaign clock. Default: 05:00.")]
+        [SettingPropertyGroup("Lighting")]
+        public float VisualSunriseHour
+        {
+            get { return _visualSunriseHour; }
+            set
+            {
+                _visualSunriseHour = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyFloatingInteger("Visual Sunset Hour", 0f, 23.75f, "0.00", Order = 3,
+            RequireRestart = false, HintText = "Visual sunset hour on the campaign clock. Default: 21:00.")]
+        [SettingPropertyGroup("Lighting")]
+        public float VisualSunsetHour
+        {
+            get { return _visualSunsetHour; }
+            set
+            {
+                _visualSunsetHour = value;
+                Apply();
+                OnPropertyChanged();
+            }
+        }
+
+        [SettingPropertyFloatingInteger("Lighting Transition Hours", 0.25f, 4f, "0.00", Order = 4,
+            RequireRestart = false, HintText = "Length of the gradual dawn and dusk transition. Default: 1 hour.")]
+        [SettingPropertyGroup("Lighting")]
+        public float VisualLightingTransitionHours
+        {
+            get { return _visualLightingTransitionHours; }
+            set
+            {
+                _visualLightingTransitionHours = value;
                 Apply();
                 OnPropertyChanged();
             }
@@ -192,7 +261,7 @@ namespace RealisticCalendarTweaks.MCM
             }
         }
 
-        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = true,
+        [SettingPropertyBool("Use Calendar-Month Pregnancy", Order = 7, RequireRestart = false,
             HintText = "Uses the configured number of calendar months for future pregnancies.")]
         [SettingPropertyGroup("Life Cycle")]
         public bool UseCalendarMonthPregnancy
@@ -207,7 +276,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyInteger("Pregnancy Duration (Months)", 1, 24, "0", Order = 8,
-            RequireRestart = true, HintText = "Calendar months from conception to birth.")]
+            RequireRestart = false, HintText = "Calendar months from conception to birth. Changes affect future pregnancies.")]
         [SettingPropertyGroup("Life Cycle")]
         public int PregnancyDurationMonths
         {
@@ -220,22 +289,8 @@ namespace RealisticCalendarTweaks.MCM
             }
         }
 
-        [SettingPropertyFloatingInteger("Fixed Pregnancy Duration (Days)", 0.1f, 10000f, "0.00", Order = 9,
-            RequireRestart = true, HintText = "Fallback duration when calendar-month pregnancy is disabled.")]
-        [SettingPropertyGroup("Life Cycle")]
-        public float PregnancyDurationInDays
-        {
-            get { return _pregnancyDurationInDays; }
-            set
-            {
-                _pregnancyDurationInDays = value;
-                Apply();
-                OnPropertyChanged();
-            }
-        }
-
         [SettingPropertyFloatingInteger("Lord Death Rate Multiplier", 0f, 1f, "0.00", Order = 10,
-            RequireRestart = true,
+            RequireRestart = false,
             HintText = "Retains this fraction of Bannerlord's ordinary noble-lord old-age and battle death chance. 0.20 keeps 20%; 1.00 is native. Executions and scripted deaths are unchanged.")]
         [SettingPropertyGroup("Life Cycle")]
         public float LordDeathRateMultiplier
@@ -250,7 +305,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Renown Gain Multiplier", 0f, 1f, "0.00", Order = 10,
-            RequireRestart = true, HintText = "Scales positive renown awards. Default is 0.50.")]
+            RequireRestart = false, HintText = "Scales positive renown awards. Default is 0.50.")]
         [SettingPropertyGroup("Progression")]
         public float RenownGainMultiplier
         {
@@ -263,7 +318,16 @@ namespace RealisticCalendarTweaks.MCM
             }
         }
 
-        [SettingPropertyBool("Balance Party Impairment", Order = 20, RequireRestart = true,
+        [SettingPropertyBool("Annual Balance Enabled", Order = 19, RequireRestart = false,
+            HintText = "Master switch for annual-rate balancing. The calendar and display remain active when disabled.")]
+        [SettingPropertyGroup("Annual Balance")]
+        public bool AnnualBalanceEnabled
+        {
+            get { return _annualBalanceEnabled; }
+            set { _annualBalanceEnabled = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Balance Party Impairment", Order = 20, RequireRestart = false,
             HintText = "Scales post-battle disorganization and vulnerability durations to the 365-day year.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalancePartyImpairment
@@ -272,7 +336,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balancePartyImpairment = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance Prisoner Recruitment", Order = 21, RequireRestart = true,
+        [SettingPropertyBool("Balance Prisoner Recruitment", Order = 21, RequireRestart = false,
             HintText = "Scales prisoner conformity gained per campaign hour for player and AI parties.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalancePrisonerRecruitment
@@ -281,7 +345,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balancePrisonerRecruitment = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance NPC Marriage", Order = 22, RequireRestart = true,
+        [SettingPropertyBool("Balance NPC Marriage", Order = 22, RequireRestart = false,
             HintText = "Converts NPC marriage chance to preserve its annual rate across the 365-day year.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalanceNpcMarriage
@@ -290,7 +354,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balanceNpcMarriage = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance Map Tracks", Order = 23, RequireRestart = true,
+        [SettingPropertyBool("Balance Map Tracks", Order = 23, RequireRestart = false,
             HintText = "Scales track lifetime while preserving native track detection and spotting rules.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalanceMapTracks
@@ -299,7 +363,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _balanceMapTracks = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyBool("Balance Quest Deadlines", Order = 24, RequireRestart = true,
+        [SettingPropertyBool("Balance Quest Deadlines", Order = 24, RequireRestart = false,
             HintText = "Extends deadlines only for quests started while this setting is enabled.")]
         [SettingPropertyGroup("Annual Balance")]
         public bool BalanceQuestDeadlines
@@ -386,12 +450,18 @@ namespace RealisticCalendarTweaks.MCM
                 renownGainMultiplier: _renownGainMultiplier,
                 lordDeathRateMultiplier: _lordDeathRateMultiplier,
                 useOrdinalDaySuffixes: _useOrdinalDaySuffixes,
+                use24HourClock: _use24HourClock,
                 balancePartyImpairment: _balancePartyImpairment,
                 balancePrisonerRecruitment: _balancePrisonerRecruitment,
                 balanceNpcMarriage: _balanceNpcMarriage,
                 balanceMapTracks: _balanceMapTracks,
                 balanceQuestDeadlines: _balanceQuestDeadlines,
-                annualBalanceDiagnosticsEnabled: _annualBalanceDiagnosticsEnabled);
+                annualBalanceEnabled: _annualBalanceEnabled,
+                annualBalanceDiagnosticsEnabled: _annualBalanceDiagnosticsEnabled,
+                clockSynchronizedLighting: _clockSynchronizedLighting,
+                visualSunriseHour: _visualSunriseHour,
+                visualSunsetHour: _visualSunsetHour,
+                visualLightingTransitionHours: _visualLightingTransitionHours);
             CalendarSettingsState.Save();
         }
 
@@ -410,9 +480,14 @@ namespace RealisticCalendarTweaks.MCM
                 _showDayLabel = CalendarSettingsState.ShowDayLabel;
                 _showYearLabel = CalendarSettingsState.ShowYearLabel;
                 _useOrdinalDaySuffixes = CalendarSettingsState.UseOrdinalDaySuffixes;
+                _use24HourClock = CalendarSettingsState.Use24HourClock;
                 _campaignTimeScale = CalendarSettingsState.CampaignTimeScale;
                 _autoCampaignTimeScale = CalendarSettingsState.AutoCampaignTimeScale;
                 _fastForwardTimeMultiplier = CalendarSettingsState.FastForwardTimeMultiplier;
+                _clockSynchronizedLighting = CalendarSettingsState.ClockSynchronizedLighting;
+                _visualSunriseHour = CalendarSettingsState.VisualSunriseHour;
+                _visualSunsetHour = CalendarSettingsState.VisualSunsetHour;
+                _visualLightingTransitionHours = CalendarSettingsState.VisualLightingTransitionHours;
                 _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
                 _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
                 _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
@@ -427,6 +502,7 @@ namespace RealisticCalendarTweaks.MCM
                 _balanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage;
                 _balanceMapTracks = CalendarSettingsState.BalanceMapTracks;
                 _balanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines;
+                _annualBalanceEnabled = CalendarSettingsState.AnnualBalanceEnabled;
                 _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
             }
             finally
@@ -443,20 +519,23 @@ namespace RealisticCalendarTweaks.MCM
             }
 
             SyncFromCoreState();
-            OnPropertyChanged(nameof(UseLeapYears));
             OnPropertyChanged(nameof(MonthNamesDelimited));
             OnPropertyChanged(nameof(SeasonNamesDelimited));
             OnPropertyChanged(nameof(MonthLengthsDelimited));
             OnPropertyChanged(nameof(ShowDayLabel));
             OnPropertyChanged(nameof(ShowYearLabel));
             OnPropertyChanged(nameof(UseOrdinalDaySuffixes));
+            OnPropertyChanged(nameof(Use24HourClock));
             OnPropertyChanged(nameof(CampaignTimeScale));
             OnPropertyChanged(nameof(AutoCampaignTimeScale));
             OnPropertyChanged(nameof(FastForwardTimeMultiplier));
+            OnPropertyChanged(nameof(ClockSynchronizedLighting));
+            OnPropertyChanged(nameof(VisualSunriseHour));
+            OnPropertyChanged(nameof(VisualSunsetHour));
+            OnPropertyChanged(nameof(VisualLightingTransitionHours));
             OnPropertyChanged(nameof(DateFormat));
             OnPropertyChanged(nameof(UseCalendarMonthPregnancy));
             OnPropertyChanged(nameof(PregnancyDurationMonths));
-            OnPropertyChanged(nameof(PregnancyDurationInDays));
             OnPropertyChanged(nameof(RenownGainMultiplier));
             OnPropertyChanged(nameof(LordDeathRateMultiplier));
             OnPropertyChanged(nameof(BalancePartyImpairment));
@@ -464,6 +543,7 @@ namespace RealisticCalendarTweaks.MCM
             OnPropertyChanged(nameof(BalanceNpcMarriage));
             OnPropertyChanged(nameof(BalanceMapTracks));
             OnPropertyChanged(nameof(BalanceQuestDeadlines));
+            OnPropertyChanged(nameof(AnnualBalanceEnabled));
             OnPropertyChanged(nameof(AnnualBalanceDiagnosticsEnabled));
         }
     }

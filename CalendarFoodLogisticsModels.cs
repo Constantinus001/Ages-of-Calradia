@@ -30,7 +30,7 @@ namespace TwelveMonthCalendar
             bool includeDescription = false)
         {
             ExplainedNumber result = _native.CalculateDailyBaseFoodConsumptionf(party, includeDescription);
-            if (CalendarSettingsState.ExtendedCalendarEnabled)
+            if (CalendarSettingsState.AnnualRateBalanceEnabled)
             {
                 SettlementBalanceMath.Scale(ref result);
             }
@@ -94,7 +94,7 @@ namespace TwelveMonthCalendar
 
         private static float ScaleReserveDays(float nativeDays)
         {
-            return CalendarSettingsState.ExtendedCalendarEnabled
+            return CalendarSettingsState.AnnualRateBalanceEnabled
                 ? nativeDays / SettlementBalanceMath.DailyRateFactor
                 : nativeDays;
         }
@@ -145,7 +145,7 @@ namespace TwelveMonthCalendar
                 town,
                 includeMarketStocks: false,
                 includeDescriptions);
-            if (!CalendarSettingsState.ExtendedCalendarEnabled)
+            if (!CalendarSettingsState.AnnualRateBalanceEnabled)
             {
                 return includeMarketStocks
                     ? _native.CalculateTownFoodStocksChange(town, includeMarketStocks: true, includeDescriptions)

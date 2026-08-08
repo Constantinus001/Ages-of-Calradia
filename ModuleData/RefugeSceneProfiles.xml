@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The map-profile matrix. `sturgian` is the player-facing climate label;
+  runtime uses the existing snow scene token. Each profile needs its own
+  editor-authored terrain.bin and navmesh.bin before test fallback is disabled.
+-->
+<refuge_scene_profiles version="1">
+  <profile climate="temperate" water="plain" scene_id="rct_refuge_temperate_land" foundation_scene="battle_terrain_001" />
+  <profile climate="temperate" water="river" scene_id="rct_refuge_temperate_river" foundation_scene="river_bt_empirewest_01_4x4km" />
+  <profile climate="temperate" water="coast" scene_id="rct_refuge_temperate_coast" foundation_scene="battle_terrain_coastal_02" />
+  <profile climate="sturgian" water="plain" scene_id="rct_refuge_snow_land" foundation_scene="battle_terrain_006" />
+  <profile climate="sturgian" water="river" scene_id="rct_refuge_snow_river" foundation_scene="river_bt_nord_01_4x4km" />
+  <profile climate="sturgian" water="coast" scene_id="rct_refuge_snow_coast" foundation_scene="coastal_terrain_north_of_the_north_sea_01" />
+  <profile climate="desert" water="plain" scene_id="rct_refuge_desert_land" foundation_scene="battle_terrain_009" />
+  <profile climate="desert" water="river" scene_id="rct_refuge_desert_river" foundation_scene="river_bt_aserai_01_4x4km" />
+  <profile climate="desert" water="coast" scene_id="rct_refuge_desert_coast" foundation_scene="battle_terrain_coastal_01" />
+</refuge_scene_profiles>

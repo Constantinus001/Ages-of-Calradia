@@ -1,0 +1,532 @@
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+      <Children>
+        <Widget Id="WorldEventsFrame" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1190" SuggestedHeight="850" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+            <!-- Inset canvas leaves the frame corners transparent, giving the
+                 entire World Events window a rounded silhouette. -->
+            <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="12" MarginRight="12" MarginTop="12" MarginBottom="12" Sprite="StdAssets\Popup\canvas" />
+            <!-- Native nine-slice gold frame: continuous plated edges and
+                 corner details, deliberately without crowns or animals. -->
+            <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="55" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="16" Brush="Popup.Title.Text" Text="@Title" />
+            <!-- Data-bound tab row: four generous slots are reserved for
+                 future World Events sections without adding filter tabs. -->
+            <ListPanel DataSource="{Tabs}" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="50" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="98" StackLayout.LayoutMethod="HorizontalLeftToRight">
+              <ItemTemplate>
+                <ButtonWidget DoNotPassEventsToChildren="true" ButtonType="Radio" IsSelected="@IsSelected" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="50" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteSelect">
+                  <Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@Label" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children>
+                </ButtonWidget>
+              </ItemTemplate>
+            </ListPanel>
+            <TextWidget IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="700" SuggestedHeight="26" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="48" MarginTop="155" Brush="Popup.Button.Text" Brush.FontSize="14" Text="Every saved world event is retained here. Select a month to expand or collapse it." />
+            <Widget Id="CalendarContentPanel" IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="700" SuggestedHeight="580" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="48" MarginTop="180" Sprite="BlankWhiteSquare" Color="#1A120CE8">
+              <Children>
+                <ScrollablePanel Id="CalendarHistoryScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="392" HorizontalAlignment="Center" VerticalAlignment="Top" MarginLeft="8" MarginRight="22" MarginTop="8" InnerPanel="CalendarHistoryClip\CalendarMonthList" ClipRect="CalendarHistoryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\CalendarHistoryScrollbar\Scrollbar" AutoHideScrollBars="true">
+                  <Children>
+                    <Widget Id="CalendarHistoryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                      <Children>
+                        <ListPanel Id="CalendarMonthList" DataSource="{CalendarMonths}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
+                          <ItemTemplate>
+                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                              <Children>
+                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteToggle">
+                                  <Children>
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="36" HorizontalAlignment="Left" Brush="Popup.Button.Text" Text="@ExpandGlyph" Brush.FontSize="22" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="360" HorizontalAlignment="Left" MarginLeft="42" Brush="Popup.Button.Text" Text="@Title" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" />
+                                  </Children>
+                                </ButtonWidget>
+                                <Widget IsVisible="@IsExpanded" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="382">
+                                  <Children>
+                                    <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="672" SuggestedHeight="25" HorizontalAlignment="Center" VerticalAlignment="Top" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Sun" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Mon" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Tue" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Wed" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Thu" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Fri" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
+                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Sat" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
+                                      </Children>
+                                    </ListPanel>
+                                    <GridWidget DataSource="{Days}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="25" DefaultCellWidth="96" DefaultCellHeight="58" ColumnCount="7" LayoutImp="GridLayout">
+                                      <ItemTemplate>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="1" MarginRight="1" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare" Color="@BackgroundColor">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="25" SuggestedHeight="20" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="6" MarginTop="3" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@DayNumber" />
+                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="78" SuggestedHeight="32" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="3" Brush="Popup.Button.Text" Brush.FontSize="10" Text="@EventSummary" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                          </Children>
+                                        </Widget>
+                                      </ItemTemplate>
+                                    </GridWidget>
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ListPanel>
+                          </ItemTemplate>
+                        </ListPanel>
+                      </Children>
+                    </Widget>
+                  </Children>
+                </ScrollablePanel>
+                <Standard.VerticalScrollbar Id="CalendarHistoryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Top" HeightSizePolicy="Fixed" SuggestedHeight="392" MarginTop="8" />
+                <Widget Id="CalendarSummaryPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="164" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginLeft="8" MarginRight="8" MarginBottom="8" Sprite="BlankWhiteSquare" Color="#241A12E8">
+                  <Children>
+                    <Widget Id="MonthlySummaryPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="334" SuggestedHeight="150" HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="8">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="25" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="4" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@MonthSummaryTitle" Brush.TextHorizontalAlignment="Center" />
+                        <ScrollablePanel Id="MonthSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="315" SuggestedHeight="110" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="4" InnerPanel="MonthSummaryClip\MonthSummaryBody" ClipRect="MonthSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\MonthSummaryScrollbar\Scrollbar" AutoHideScrollBars="true">
+                          <Children>
+                            <Widget Id="MonthSummaryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                              <Children><TextWidget Id="MonthSummaryBody" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="296" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@MonthSummaryText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" /></Children>
+                            </Widget>
+                          </Children>
+                        </ScrollablePanel>
+                        <Standard.VerticalScrollbar Id="MonthSummaryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="110" MarginBottom="4" />
+                        <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+                      </Children>
+                    </Widget>
+                    <Widget Id="YearlySummaryPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="334" SuggestedHeight="150" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="8">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="25" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="4" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@YearSummaryTitle" Brush.TextHorizontalAlignment="Center" />
+                        <ScrollablePanel Id="YearSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="315" SuggestedHeight="110" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="4" InnerPanel="YearSummaryClip\YearSummaryBody" ClipRect="YearSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\YearSummaryScrollbar\Scrollbar" AutoHideScrollBars="true">
+                          <Children>
+                            <Widget Id="YearSummaryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                              <Children><TextWidget Id="YearSummaryBody" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="296" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@YearSummaryText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" /></Children>
+                            </Widget>
+                          </Children>
+                        </ScrollablePanel>
+                        <Standard.VerticalScrollbar Id="YearSummaryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="110" MarginBottom="4" />
+                        <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+                      </Children>
+                    </Widget>
+                    <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+                  </Children>
+                </Widget>
+                <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+              </Children>
+            </Widget>
+            <Widget Id="CalendarNotesPanel" IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="285" SuggestedHeight="600" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="45" MarginTop="156" Sprite="BlankWhiteSquare" Color="#241A12E8">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="5" Brush="Popup.Button.Text" Brush.FontSize="18" Text="NOTES" Brush.TextHorizontalAlignment="Center" />
+                <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="530" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="12" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@NotesText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+              </Children>
+            </Widget>
+            <Widget Id="SavedSummariesPanel" IsVisible="@IsSummariesVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1090" SuggestedHeight="605" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="155" Sprite="BlankWhiteSquare" Color="#1A120CE8">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="8" Brush="Popup.Button.Text" Brush.FontSize="20" Text="SAVED MONTHLY AND YEARLY SUMMARIES" Brush.TextHorizontalAlignment="Center" />
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="24" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="42" Brush="Popup.Button.Text" Brush.FontSize="13" Text="Monthly limits match the month's 28–31 days. Yearly summaries retain up to 10 events per month (120 per year)." Brush.TextHorizontalAlignment="Center" />
+                <ScrollablePanel Id="SavedSummariesScroller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1048" SuggestedHeight="520" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="10" InnerPanel="SavedSummariesClip\SavedSummariesList" ClipRect="SavedSummariesClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\SavedSummariesScrollbar\Scrollbar" AutoHideScrollBars="true">
+                  <Children>
+                    <Widget Id="SavedSummariesClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                      <Children>
+                        <ListPanel Id="SavedSummariesList" DataSource="{SavedSummaries}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
+                          <ItemTemplate>
+                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                              <Children>
+                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteToggle">
+                                  <Children>
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="42" HorizontalAlignment="Left" Brush="Popup.Button.Text" Text="@ExpandGlyph" Brush.FontSize="22" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="940" HorizontalAlignment="Left" MarginLeft="48" Brush="Popup.Button.Text" Text="@Title" Brush.FontSize="16" Brush.TextVerticalAlignment="Center" />
+                                  </Children>
+                                </ButtonWidget>
+                                <Widget IsVisible="@IsExpanded" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@BodyHeight" Sprite="BlankWhiteSquare" Color="#241A12E8">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="995" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="10" MarginBottom="10" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@SummaryText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ListPanel>
+                          </ItemTemplate>
+                        </ListPanel>
+                      </Children>
+                    </Widget>
+                  </Children>
+                </ScrollablePanel>
+                <Standard.VerticalScrollbar Id="SavedSummariesScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="520" MarginRight="7" MarginBottom="10" />
+                <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+              </Children>
+            </Widget>
+            <!-- The base map, faction markers, and labels share this one panning canvas. -->
+            <Widget Id="StrategicMapPanel" IsVisible="@IsStrategicMap" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="810" SuggestedHeight="610" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="35" MarginTop="155" Sprite="BlankWhiteSquare" Color="#18232AFF" Command.HoverBegin="ExecuteStrategicMapHoverBegin" Command.HoverEnd="ExecuteStrategicMapHoverEnd">
+              <Children>
+                <EncyclopediaTroopScrollablePanel Id="StrategicMapScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" InnerPanel="StrategicMapClip\StrategicMapCanvas" ClipRect="StrategicMapClip" HorizontalScrollbar="..\StrategicMapHorizontalScrollbar" VerticalScrollbar="..\StrategicMapVerticalScrollbar" PanWithMouseEnabled="true" AutoHideScrollBars="false" AutoHideScrollBarHandle="false" Command.HoverBegin="ExecuteStrategicMapHoverBegin" Command.HoverEnd="ExecuteStrategicMapHoverEnd">
+                  <Children>
+                    <Widget Id="StrategicMapClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" ClipContents="true" DoNotAcceptEvents="true">
+                      <Children>
+                        <Widget Id="StrategicMapCanvas" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@MapCanvasWidth" SuggestedHeight="@MapCanvasHeight" HorizontalAlignment="Left" VerticalAlignment="Top">
+                          <Children>
+                            <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="CalendarStrategicCampaignAtlasTextureProvider" />
+                            <!-- Legacy individual layers remain in the prefab for rollback only. The composed texture above is the active renderer. -->
+                            <Widget IsVisible="false">
+                              <Children>
+<Widget DataSource="{StrategicProvince001}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_001" Color="@Color" />
+<Widget DataSource="{StrategicProvince002}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_002" Color="@Color" />
+<Widget DataSource="{StrategicProvince003}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_003" Color="@Color" />
+<Widget DataSource="{StrategicProvince004}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_004" Color="@Color" />
+<Widget DataSource="{StrategicProvince005}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_005" Color="@Color" />
+<Widget DataSource="{StrategicProvince006}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_006" Color="@Color" />
+<Widget DataSource="{StrategicProvince007}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_007" Color="@Color" />
+<Widget DataSource="{StrategicProvince008}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_008" Color="@Color" />
+<Widget DataSource="{StrategicProvince009}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_009" Color="@Color" />
+<Widget DataSource="{StrategicProvince010}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_010" Color="@Color" />
+<Widget DataSource="{StrategicProvince011}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_011" Color="@Color" />
+<Widget DataSource="{StrategicProvince012}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_012" Color="@Color" />
+<Widget DataSource="{StrategicProvince013}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_013" Color="@Color" />
+<Widget DataSource="{StrategicProvince014}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_014" Color="@Color" />
+<Widget DataSource="{StrategicProvince015}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_015" Color="@Color" />
+<Widget DataSource="{StrategicProvince016}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_016" Color="@Color" />
+<Widget DataSource="{StrategicProvince017}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_017" Color="@Color" />
+<Widget DataSource="{StrategicProvince018}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_018" Color="@Color" />
+<Widget DataSource="{StrategicProvince019}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_019" Color="@Color" />
+<Widget DataSource="{StrategicProvince020}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_020" Color="@Color" />
+<Widget DataSource="{StrategicProvince021}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_021" Color="@Color" />
+<Widget DataSource="{StrategicProvince022}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_022" Color="@Color" />
+<Widget DataSource="{StrategicProvince023}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_023" Color="@Color" />
+<Widget DataSource="{StrategicProvince024}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_024" Color="@Color" />
+<Widget DataSource="{StrategicProvince025}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_025" Color="@Color" />
+<Widget DataSource="{StrategicProvince026}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_026" Color="@Color" />
+<Widget DataSource="{StrategicProvince027}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_027" Color="@Color" />
+<Widget DataSource="{StrategicProvince028}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_028" Color="@Color" />
+<Widget DataSource="{StrategicProvince029}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_029" Color="@Color" />
+<Widget DataSource="{StrategicProvince030}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_030" Color="@Color" />
+<Widget DataSource="{StrategicProvince031}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_031" Color="@Color" />
+<Widget DataSource="{StrategicProvince032}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_032" Color="@Color" />
+<Widget DataSource="{StrategicProvince033}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_033" Color="@Color" />
+<Widget DataSource="{StrategicProvince034}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_034" Color="@Color" />
+<Widget DataSource="{StrategicProvince035}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_035" Color="@Color" />
+<Widget DataSource="{StrategicProvince036}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_036" Color="@Color" />
+<Widget DataSource="{StrategicProvince037}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_037" Color="@Color" />
+<Widget DataSource="{StrategicProvince038}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_038" Color="@Color" />
+<Widget DataSource="{StrategicProvince039}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_039" Color="@Color" />
+<Widget DataSource="{StrategicProvince040}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_040" Color="@Color" />
+<Widget DataSource="{StrategicProvince041}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_041" Color="@Color" />
+<Widget DataSource="{StrategicProvince042}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_042" Color="@Color" />
+<Widget DataSource="{StrategicProvince043}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_043" Color="@Color" />
+<Widget DataSource="{StrategicProvince044}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_044" Color="@Color" />
+<Widget DataSource="{StrategicProvince045}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_045" Color="@Color" />
+<Widget DataSource="{StrategicProvince046}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_046" Color="@Color" />
+<Widget DataSource="{StrategicProvince047}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_047" Color="@Color" />
+<Widget DataSource="{StrategicProvince048}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_048" Color="@Color" />
+<Widget DataSource="{StrategicProvince049}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_049" Color="@Color" />
+<Widget DataSource="{StrategicProvince050}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_050" Color="@Color" />
+<Widget DataSource="{StrategicProvince051}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_051" Color="@Color" />
+<Widget DataSource="{StrategicProvince052}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_052" Color="@Color" />
+<Widget DataSource="{StrategicProvince053}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_053" Color="@Color" />
+<Widget DataSource="{StrategicProvince054}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_054" Color="@Color" />
+<Widget DataSource="{StrategicProvince055}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_055" Color="@Color" />
+<Widget DataSource="{StrategicProvince056}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_056" Color="@Color" />
+<Widget DataSource="{StrategicProvince057}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_057" Color="@Color" />
+<Widget DataSource="{StrategicProvince058}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_058" Color="@Color" />
+<Widget DataSource="{StrategicProvince059}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_059" Color="@Color" />
+<Widget DataSource="{StrategicProvince060}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_060" Color="@Color" />
+<Widget DataSource="{StrategicProvince061}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_061" Color="@Color" />
+<Widget DataSource="{StrategicProvince062}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_062" Color="@Color" />
+<Widget DataSource="{StrategicProvince063}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_063" Color="@Color" />
+<Widget DataSource="{StrategicProvince064}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_064" Color="@Color" />
+<Widget DataSource="{StrategicProvince065}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_065" Color="@Color" />
+<Widget DataSource="{StrategicProvince066}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_066" Color="@Color" />
+<Widget DataSource="{StrategicProvince067}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_067" Color="@Color" />
+<Widget DataSource="{StrategicProvince068}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_068" Color="@Color" />
+<Widget DataSource="{StrategicProvince069}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_069" Color="@Color" />
+<Widget DataSource="{StrategicProvince070}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_070" Color="@Color" />
+<Widget DataSource="{StrategicProvince071}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_071" Color="@Color" />
+<Widget DataSource="{StrategicProvince072}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_072" Color="@Color" />
+<Widget DataSource="{StrategicProvince073}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_073" Color="@Color" />
+<Widget DataSource="{StrategicProvince074}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_074" Color="@Color" />
+<Widget DataSource="{StrategicProvince075}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_075" Color="@Color" />
+<Widget DataSource="{StrategicProvince076}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_076" Color="@Color" />
+<Widget DataSource="{StrategicProvince077}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_077" Color="@Color" />
+<Widget DataSource="{StrategicProvince078}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_078" Color="@Color" />
+<Widget DataSource="{StrategicProvince079}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_079" Color="@Color" />
+<Widget DataSource="{StrategicProvince080}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_080" Color="@Color" />
+<Widget DataSource="{StrategicProvince081}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_081" Color="@Color" />
+<Widget DataSource="{StrategicProvince082}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_082" Color="@Color" />
+<Widget DataSource="{StrategicProvince083}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_083" Color="@Color" />
+<Widget DataSource="{StrategicProvince084}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_084" Color="@Color" />
+<Widget DataSource="{StrategicProvince085}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_085" Color="@Color" />
+<Widget DataSource="{StrategicProvince086}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_086" Color="@Color" />
+<Widget DataSource="{StrategicProvince087}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_087" Color="@Color" />
+<Widget DataSource="{StrategicProvince088}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_088" Color="@Color" />
+<Widget DataSource="{StrategicProvince089}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_089" Color="@Color" />
+<Widget DataSource="{StrategicProvince090}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_090" Color="@Color" />
+<Widget DataSource="{StrategicProvince091}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_091" Color="@Color" />
+<Widget DataSource="{StrategicProvince092}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_092" Color="@Color" />
+<Widget DataSource="{StrategicProvince093}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_093" Color="@Color" />
+<Widget DataSource="{StrategicProvince094}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_094" Color="@Color" />
+<Widget DataSource="{StrategicProvince095}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_095" Color="@Color" />
+<Widget DataSource="{StrategicProvince096}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_096" Color="@Color" />
+<Widget DataSource="{StrategicProvince097}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_097" Color="@Color" />
+<Widget DataSource="{StrategicProvince098}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_098" Color="@Color" />
+<Widget DataSource="{StrategicProvince099}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_099" Color="@Color" />
+<Widget DataSource="{StrategicProvince100}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_100" Color="@Color" />
+<Widget DataSource="{StrategicProvince101}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_101" Color="@Color" />
+<Widget DataSource="{StrategicProvince102}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_102" Color="@Color" />
+<Widget DataSource="{StrategicProvince103}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_103" Color="@Color" />
+<Widget DataSource="{StrategicProvince104}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_104" Color="@Color" />
+<Widget DataSource="{StrategicProvince105}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_105" Color="@Color" />
+<Widget DataSource="{StrategicProvince106}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_106" Color="@Color" />
+<Widget DataSource="{StrategicProvince107}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_107" Color="@Color" />
+<Widget DataSource="{StrategicProvince108}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_108" Color="@Color" />
+<Widget DataSource="{StrategicProvince109}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_109" Color="@Color" />
+<Widget DataSource="{StrategicProvince110}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_110" Color="@Color" />
+<Widget DataSource="{StrategicProvince111}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_111" Color="@Color" />
+<Widget DataSource="{StrategicProvince112}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_112" Color="@Color" />
+<Widget DataSource="{StrategicProvince113}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_113" Color="@Color" />
+<Widget DataSource="{StrategicProvince114}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_114" Color="@Color" />
+<Widget DataSource="{StrategicProvince115}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_115" Color="@Color" />
+<Widget DataSource="{StrategicProvince116}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_116" Color="@Color" />
+<Widget DataSource="{StrategicProvince117}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_117" Color="@Color" />
+<Widget DataSource="{StrategicProvince118}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_118" Color="@Color" />
+<Widget DataSource="{StrategicProvince119}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_119" Color="@Color" />
+<Widget DataSource="{StrategicProvince120}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_120" Color="@Color" />
+<Widget DataSource="{StrategicProvince121}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_121" Color="@Color" />
+<Widget DataSource="{StrategicProvince122}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_122" Color="@Color" />
+<Widget DataSource="{StrategicProvince123}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_123" Color="@Color" />
+<Widget DataSource="{StrategicProvince124}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_124" Color="@Color" />
+<Widget DataSource="{StrategicProvince125}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_125" Color="@Color" />
+<Widget DataSource="{StrategicProvince126}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_126" Color="@Color" />
+<Widget DataSource="{StrategicProvince127}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_127" Color="@Color" />
+<Widget DataSource="{StrategicProvince128}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_128" Color="@Color" />
+<Widget DataSource="{StrategicProvince129}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_129" Color="@Color" />
+<Widget DataSource="{StrategicProvince130}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_130" Color="@Color" />
+<Widget DataSource="{StrategicProvince131}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_131" Color="@Color" />
+<Widget DataSource="{StrategicProvince132}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_132" Color="@Color" />
+<Widget DataSource="{StrategicProvince133}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_133" Color="@Color" />
+                            <!-- Fixed siege layers. Each is transparent unless Bannerlord reports an active SiegeEvent. -->
+<Widget DataSource="{StrategicContestedProvince001}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_001" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince002}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_002" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince003}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_003" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince004}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_004" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince005}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_005" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince006}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_006" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince007}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_007" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince008}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_008" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince009}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_009" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince010}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_010" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince011}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_011" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince012}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_012" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince013}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_013" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince014}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_014" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince015}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_015" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince016}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_016" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince017}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_017" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince018}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_018" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince019}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_019" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince020}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_020" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince021}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_021" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince022}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_022" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince023}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_023" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince024}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_024" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince025}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_025" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince026}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_026" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince027}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_027" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince028}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_028" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince029}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_029" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince030}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_030" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince031}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_031" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince032}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_032" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince033}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_033" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince034}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_034" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince035}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_035" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince036}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_036" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince037}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_037" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince038}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_038" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince039}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_039" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince040}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_040" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince041}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_041" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince042}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_042" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince043}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_043" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince044}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_044" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince045}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_045" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince046}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_046" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince047}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_047" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince048}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_048" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince049}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_049" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince050}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_050" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince051}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_051" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince052}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_052" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince053}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_053" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince054}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_054" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince055}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_055" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince056}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_056" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince057}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_057" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince058}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_058" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince059}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_059" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince060}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_060" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince061}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_061" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince062}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_062" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince063}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_063" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince064}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_064" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince065}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_065" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince066}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_066" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince067}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_067" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince068}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_068" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince069}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_069" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince070}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_070" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince071}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_071" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince072}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_072" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince073}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_073" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince074}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_074" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince075}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_075" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince076}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_076" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince077}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_077" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince078}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_078" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince079}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_079" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince080}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_080" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince081}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_081" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince082}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_082" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince083}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_083" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince084}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_084" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince085}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_085" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince086}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_086" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince087}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_087" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince088}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_088" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince089}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_089" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince090}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_090" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince091}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_091" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince092}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_092" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince093}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_093" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince094}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_094" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince095}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_095" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince096}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_096" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince097}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_097" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince098}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_098" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince099}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_099" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince100}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_100" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince101}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_101" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince102}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_102" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince103}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_103" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince104}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_104" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince105}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_105" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince106}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_106" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince107}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_107" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince108}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_108" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince109}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_109" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince110}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_110" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince111}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_111" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince112}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_112" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince113}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_113" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince114}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_114" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince115}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_115" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince116}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_116" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince117}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_117" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince118}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_118" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince119}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_119" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince120}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_120" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince121}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_121" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince122}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_122" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince123}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_123" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince124}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_124" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince125}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_125" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince126}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_126" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince127}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_127" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince128}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_128" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince129}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_129" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince130}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_130" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince131}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_131" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince132}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_132" Color="@Color" />
+<Widget DataSource="{StrategicContestedProvince133}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Width" SuggestedHeight="@Height" PositionXOffset="@X" PositionYOffset="@Y" Sprite="strategic_province_133" Color="@Color" />
+                              </Children>
+                            </Widget>
+                            <!-- Transparent province outline artwork sits above owner/siege fills, keeping boundaries readable without white land. -->
+                            <ImageWidget IsVisible="false" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="strategic_province_borders" />
+                            <!-- One live, clickable marker for every town and castle. Its small button hit box captures a click; empty map space is still available for panning. -->
+                            <Widget DataSource="{StrategicMarkers}" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+                              <ItemTemplate>
+                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Size" SuggestedHeight="@Size" PositionXOffset="@X" PositionYOffset="@Y" Command.Click="ExecuteSelect">
+                                  <Children>
+                                    <!-- The visible town/castle symbols are baked into the one composed map texture. This button remains as the reliable click target. -->
+                                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="2" SuggestedHeight="@Size" HorizontalAlignment="Left" VerticalAlignment="Center" Color="@BorderColor" />
+                                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="2" SuggestedHeight="@Size" HorizontalAlignment="Right" VerticalAlignment="Center" Color="@BorderColor" />
+                                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Size" SuggestedHeight="2" HorizontalAlignment="Center" VerticalAlignment="Top" Color="@BorderColor" />
+                                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Size" SuggestedHeight="2" HorizontalAlignment="Center" VerticalAlignment="Bottom" Color="@BorderColor" />
+                                    <!-- The composed Strategic Map texture paints a red crossed-swords badge only while this exact settlement has a live SiegeEvent. -->
+                                  </Children>
+                                </ButtonWidget>
+                              </ItemTemplate>
+                            </Widget>
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </Widget>
+                  </Children>
+                </EncyclopediaTroopScrollablePanel>
+                <ScrollbarWidget Id="StrategicMapVerticalScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="10" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="3" MarginTop="7" MarginBottom="7" AlignmentAxis="Vertical" Handle="StrategicMapVerticalScrollbarHandle" MinValue="0" MaxValue="100">
+                  <Children>
+                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="3" HorizontalAlignment="Center" Sprite="BlankWhiteSquare" Color="#746044AA" />
+                    <Widget Id="StrategicMapVerticalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="10" SuggestedHeight="54" HorizontalAlignment="Center" Sprite="BlankWhiteSquare" Color="#C7A76AFF" />
+                  </Children>
+                </ScrollbarWidget>
+                <ScrollbarWidget Id="StrategicMapHorizontalScrollbar" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginLeft="7" MarginRight="7" MarginBottom="3" AlignmentAxis="Horizontal" Handle="StrategicMapHorizontalScrollbarHandle" MinValue="0" MaxValue="100">
+                  <Children>
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="3" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#746044AA" />
+                    <Widget Id="StrategicMapHorizontalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="54" SuggestedHeight="10" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#C7A76AFF" />
+                  </Children>
+                </ScrollbarWidget>
+                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="26" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginRight="4" MarginBottom="8" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                  <Children>
+                    <ButtonWidget DoNotPassEventsToChildren="true" IsEnabled="@CanZoomOut" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="25" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteZoomOut"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="16" Text="-" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="46" SuggestedHeight="25" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@MapZoomText" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <ButtonWidget DoNotPassEventsToChildren="true" IsEnabled="@CanZoomIn" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="25" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteZoomIn"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="16" Text="+" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="52" SuggestedHeight="25" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteResetMapView"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="10" Text="Reset" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+                  </Children>
+                </ListPanel>
+                <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+              </Children>
+            </Widget>
+            <Widget Id="StrategicSidePanel" IsVisible="@IsStrategicMap" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="270" SuggestedHeight="610" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="35" MarginTop="155" Sprite="BlankWhiteSquare" Color="#241A12E8">
+              <Children>
+                <Widget Id="MapLegendFrame" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="108" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="6">
+                  <Children>
+                    <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+                  </Children>
+                </Widget>
+                <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="238" SuggestedHeight="96" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="12" StackLayout.LayoutMethod="VerticalTopToBottom">
+                  <Children>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="20" Brush="Popup.Button.Text" Brush.FontSize="14" Text="MAP LEGEND" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <!-- Use the same town renderer as the live map marker. -->
+                        <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="30" VerticalAlignment="Center" TextureProviderName="CalendarStrategicTownLegendTextureProvider" />
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="66" SuggestedHeight="32" MarginLeft="3" Brush="Popup.Button.Text" Brush.FontSize="13" Text="Town" Brush.TextVerticalAlignment="Center" />
+                        <!-- Use the same castle renderer as the live map marker. -->
+                        <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="30" MarginLeft="10" VerticalAlignment="Center" TextureProviderName="CalendarStrategicCastleLegendTextureProvider" />
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="74" SuggestedHeight="32" MarginLeft="3" Brush="Popup.Button.Text" Brush.FontSize="13" Text="Castle" Brush.TextVerticalAlignment="Center" />
+                      </Children>
+                    </ListPanel>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22" Brush="Popup.Button.Text" Brush.FontSize="11" Text="Province colour = current owner" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                  </Children>
+                </ListPanel>
+                <Widget Id="KingdomSummaryFrame" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="487" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="6">
+                  <Children>
+                    <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+                  </Children>
+                </Widget>
+                <ScrollablePanel Id="StrategicSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="238" SuggestedHeight="485" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="12" InnerPanel="StrategicSummaryClip\StrategicSummaryText" ClipRect="StrategicSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\StrategicSummaryScrollbar\Scrollbar" AutoHideScrollBars="true">
+                  <Children>
+                    <Widget Id="StrategicSummaryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                      <Children>
+                        <TextWidget Id="StrategicSummaryText" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="220" HorizontalAlignment="Left" VerticalAlignment="Top" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@StrategicText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                      </Children>
+                    </Widget>
+                  </Children>
+                </ScrollablePanel>
+                <Standard.VerticalScrollbar Id="StrategicSummaryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="485" MarginRight="3" MarginBottom="12" />
+                <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+              </Children>
+            </Widget>
+            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="50" HorizontalAlignment="Left" VerticalAlignment="Bottom" MarginLeft="55" MarginBottom="25" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteClose">
+              <Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="Close" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children>
+            </ButtonWidget>
+            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="50" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginRight="55" MarginBottom="25" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteRefresh">
+              <Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="Refresh" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children>
+            </ButtonWidget>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

@@ -1,0 +1,2673 @@
+<?xml version="1.0" encoding="utf-8"?>
+<prefabs>
+  <game_entity name="rct_refuge_fort_layout" old_prefab_name="">
+    <tags>
+      <tag name="rct_refuge_layout" />
+    </tags>
+    <transform position="0.000, 0.000, 0.000" rotation_euler="0.000, 0.000, 0.000" />
+    <children>
+      <game_entity name="tent_vlandia_c" old_prefab_name="tent_vlandia_c">
+        <transform position="23.191, -19.713, -0.146" rotation_euler="0.000, 0.000, -2.053" />
+        <physics shape="bo_tent_vlandia_c" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_c" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform position="0.000, 0.000, -0.424" rotation_euler="0.000, 0.000, 0.000" scale="2.307, 1.000, 1.000" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1" occlusion_body_name="bo_occ_battania_castle_corner_a_l1">
+        <transform position="5.389, -23.235, 1.494" rotation_euler="0.000, 0.000, 0.000" scale="0.347, 0.355, 1.435" />
+        <physics shape="bo_battania_castle_corner_a_l1" />
+        <components>
+          <meta_mesh_component name="battania_castle_corner_a_l1" />
+        </components>
+        <scripts>
+          <script name="WallSegment">
+            <variables>
+              <variable name="_properGroundOutsideNavmeshID" value="-1" />
+              <variable name="_properGroundInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_underDebrisInsideNavmeshID" value="-1" />
+              <variable name="_overDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_overDebrisInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisGenericNavmeshID" value="-1" />
+              <variable name="_overDebrisGenericNavmeshID" value="-1" />
+              <variable name="_onSolidWallGenericNavmeshID" value="-1" />
+              <variable name="SideTag" value="" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="merlon_1" old_prefab_name="merlon_1" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_01" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_01" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.970, -2.431, 7.076" rotation_euler="0.000, 0.000, -1.539" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_2" old_prefab_name="merlon_2" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_02" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_02" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.313, -4.815, 7.289" rotation_euler="0.000, 0.000, -0.141" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_3" old_prefab_name="merlon_3" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_03" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_03" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="0.007, -4.842, 7.066" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_4" old_prefab_name="merlon_4" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_04" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_04" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="2.934, -4.831, 7.078" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_5" old_prefab_name="merlon_5" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_05" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_05" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="4.034, -2.351, 7.078" rotation_euler="0.000, 0.000, 1.575" />
+              </game_entity>
+            </children>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1" occlusion_body_name="bo_occ_battania_castle_corner_a_l1">
+        <transform position="-7.663, 14.794, 0.000" rotation_euler="0.000, 0.000, 3.120" scale="0.347, 0.355, 1.435" />
+        <physics shape="bo_battania_castle_corner_a_l1" />
+        <components>
+          <meta_mesh_component name="battania_castle_corner_a_l1" />
+        </components>
+        <scripts>
+          <script name="WallSegment">
+            <variables>
+              <variable name="_properGroundOutsideNavmeshID" value="-1" />
+              <variable name="_properGroundInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_underDebrisInsideNavmeshID" value="-1" />
+              <variable name="_overDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_overDebrisInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisGenericNavmeshID" value="-1" />
+              <variable name="_overDebrisGenericNavmeshID" value="-1" />
+              <variable name="_onSolidWallGenericNavmeshID" value="-1" />
+              <variable name="SideTag" value="" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="merlon_1" old_prefab_name="merlon_1" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_01" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_01" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.970, -2.431, 7.076" rotation_euler="0.000, 0.000, -1.539" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_2" old_prefab_name="merlon_2" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_02" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_02" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.313, -4.815, 7.289" rotation_euler="0.000, 0.000, -0.141" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_3" old_prefab_name="merlon_3" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_03" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_03" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="0.007, -4.842, 7.066" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_4" old_prefab_name="merlon_4" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_04" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_04" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="2.934, -4.831, 7.078" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_5" old_prefab_name="merlon_5" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_05" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_05" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="4.034, -2.351, 7.078" rotation_euler="0.000, 0.000, 1.575" />
+              </game_entity>
+            </children>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1" occlusion_body_name="bo_occ_battania_castle_corner_a_l1">
+        <transform position="-0.891, 14.648, 0.000" rotation_euler="0.000, 0.000, 3.120" scale="0.347, 0.355, 1.435" />
+        <physics shape="bo_battania_castle_corner_a_l1" />
+        <components>
+          <meta_mesh_component name="battania_castle_corner_a_l1" />
+        </components>
+        <scripts>
+          <script name="WallSegment">
+            <variables>
+              <variable name="_properGroundOutsideNavmeshID" value="-1" />
+              <variable name="_properGroundInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_underDebrisInsideNavmeshID" value="-1" />
+              <variable name="_overDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_overDebrisInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisGenericNavmeshID" value="-1" />
+              <variable name="_overDebrisGenericNavmeshID" value="-1" />
+              <variable name="_onSolidWallGenericNavmeshID" value="-1" />
+              <variable name="SideTag" value="" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="merlon_1" old_prefab_name="merlon_1" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_01" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_01" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.970, -2.431, 7.076" rotation_euler="0.000, 0.000, -1.539" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_2" old_prefab_name="merlon_2" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_02" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_02" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.313, -4.815, 7.289" rotation_euler="0.000, 0.000, -0.141" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_3" old_prefab_name="merlon_3" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_03" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_03" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="0.007, -4.842, 7.066" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_4" old_prefab_name="merlon_4" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_04" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_04" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="2.934, -4.831, 7.078" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_5" old_prefab_name="merlon_5" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_05" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_05" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="4.034, -2.351, 7.078" rotation_euler="0.000, 0.000, 1.575" />
+              </game_entity>
+            </children>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1" occlusion_body_name="bo_occ_battania_castle_corner_a_l1">
+        <transform position="31.520, -3.872, 1.148" rotation_euler="0.000, 0.000, 1.431" scale="0.347, 0.355, 1.435" />
+        <physics shape="bo_battania_castle_corner_a_l1" />
+        <components>
+          <meta_mesh_component name="battania_castle_corner_a_l1" />
+        </components>
+        <scripts>
+          <script name="WallSegment">
+            <variables>
+              <variable name="_properGroundOutsideNavmeshID" value="-1" />
+              <variable name="_properGroundInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_underDebrisInsideNavmeshID" value="-1" />
+              <variable name="_overDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_overDebrisInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisGenericNavmeshID" value="-1" />
+              <variable name="_overDebrisGenericNavmeshID" value="-1" />
+              <variable name="_onSolidWallGenericNavmeshID" value="-1" />
+              <variable name="SideTag" value="" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="merlon_1" old_prefab_name="merlon_1" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_01" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_01" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.970, -2.431, 7.076" rotation_euler="0.000, 0.000, -1.539" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_2" old_prefab_name="merlon_2" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_02" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_02" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.313, -4.815, 7.289" rotation_euler="0.000, 0.000, -0.141" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_3" old_prefab_name="merlon_3" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_03" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_03" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="0.007, -4.842, 7.066" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_4" old_prefab_name="merlon_4" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_04" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_04" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="2.934, -4.831, 7.078" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_5" old_prefab_name="merlon_5" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_05" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_05" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="4.034, -2.351, 7.078" rotation_euler="0.000, 0.000, 1.575" />
+              </game_entity>
+            </children>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1" occlusion_body_name="bo_occ_battania_castle_corner_a_l1">
+        <transform position="31.520, -3.872, 1.148" rotation_euler="0.000, 0.000, 1.421" scale="0.347, 0.355, 1.435" />
+        <physics shape="bo_battania_castle_corner_a_l1" />
+        <components>
+          <meta_mesh_component name="battania_castle_corner_a_l1" />
+        </components>
+        <scripts>
+          <script name="WallSegment">
+            <variables>
+              <variable name="_properGroundOutsideNavmeshID" value="-1" />
+              <variable name="_properGroundInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_underDebrisInsideNavmeshID" value="-1" />
+              <variable name="_overDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_overDebrisInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisGenericNavmeshID" value="-1" />
+              <variable name="_overDebrisGenericNavmeshID" value="-1" />
+              <variable name="_onSolidWallGenericNavmeshID" value="-1" />
+              <variable name="SideTag" value="" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="merlon_1" old_prefab_name="merlon_1" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_01" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_01" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.970, -2.431, 7.076" rotation_euler="0.000, 0.000, -1.539" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_2" old_prefab_name="merlon_2" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_02" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_02" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.313, -4.815, 7.289" rotation_euler="0.000, 0.000, -0.141" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_3" old_prefab_name="merlon_3" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_03" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_03" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="0.007, -4.842, 7.066" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_4" old_prefab_name="merlon_4" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_04" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_04" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="2.934, -4.831, 7.078" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_5" old_prefab_name="merlon_5" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_05" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_05" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="4.034, -2.351, 7.078" rotation_euler="0.000, 0.000, 1.575" />
+              </game_entity>
+            </children>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1" occlusion_body_name="bo_occ_battania_castle_corner_a_l1">
+        <transform position="-18.667, -7.886, 0.000" rotation_euler="0.000, 0.000, -1.573" scale="0.347, 0.355, 1.435" />
+        <physics shape="bo_battania_castle_corner_a_l1" />
+        <components>
+          <meta_mesh_component name="battania_castle_corner_a_l1" />
+        </components>
+        <scripts>
+          <script name="WallSegment">
+            <variables>
+              <variable name="_properGroundOutsideNavmeshID" value="-1" />
+              <variable name="_properGroundInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_underDebrisInsideNavmeshID" value="-1" />
+              <variable name="_overDebrisOutsideNavmeshID" value="-1" />
+              <variable name="_overDebrisInsideNavmeshID" value="-1" />
+              <variable name="_underDebrisGenericNavmeshID" value="-1" />
+              <variable name="_overDebrisGenericNavmeshID" value="-1" />
+              <variable name="_onSolidWallGenericNavmeshID" value="-1" />
+              <variable name="SideTag" value="" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="merlon_1" old_prefab_name="merlon_1" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_01" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_01" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.970, -2.431, 7.076" rotation_euler="0.000, 0.000, -1.539" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_2" old_prefab_name="merlon_2" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_02" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_02" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="-3.313, -4.815, 7.289" rotation_euler="0.000, 0.000, -0.141" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_3" old_prefab_name="merlon_3" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_03" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_03" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="0.007, -4.842, 7.066" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_4" old_prefab_name="merlon_4" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_04" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_04" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="2.934, -4.831, 7.078" />
+              </game_entity>
+            </children>
+          </game_entity>
+          <game_entity name="merlon_5" old_prefab_name="merlon_5" mobility="1">
+            <physics shape="bo_battania_castle_corner_a_l1_05" />
+            <components>
+              <meta_mesh_component name="battania_castle_corner_a_l1_05" />
+            </components>
+            <scripts>
+              <script name="DestructableComponent">
+                <variables>
+                  <variable name="DestructionStates" value="debris_vlandia_l1" />
+                  <variable name="DestroyedByStoneOnly" value="true" />
+                  <variable name="CanBeDestroyedInitially" value="true" />
+                  <variable name="MaxHitPoint" value="1.000" />
+                  <variable name="DestroyOnAnyHit" value="false" />
+                  <variable name="PassHitOnToParent" value="false" />
+                  <variable name="ReferenceEntityTag" value="reference" />
+                  <variable name="HeavyHitParticlesTag" value="" />
+                  <variable name="HeavyHitParticlesThreshold" value="5.000" />
+                  <variable name="ParticleEffectOnDestroy" value="" />
+                  <variable name="SoundEffectOnDestroy" value="" />
+                  <variable name="SoundAndParticleEffectHeightOffset" value="0.000" />
+                  <variable name="SoundAndParticleEffectForwardOffset" value="0.000" />
+                  <variable name="BattleSide" value="None" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+            <children>
+              <game_entity name="debris_holder" old_prefab_name="debris_holder" mobility="1">
+                <tags>
+                  <tag name="reference" />
+                </tags>
+                <transform position="4.034, -2.351, 7.078" rotation_euler="0.000, 0.000, 1.575" />
+              </game_entity>
+            </children>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="blacksmith_flame" old_prefab_name="blacksmith_flame">
+        <transform position="7.268, 14.889, 0.560" rotation_euler="0.000, 0.000, -1.593" />
+        <components>
+          <particle_system_instanced_component>
+            <effect_ref base_effect="{A85B25C0-F07D-4A12-A077-9E2B931BEEC3}" />
+          </particle_system_instanced_component>
+        </components>
+        <children>
+          <game_entity name="light" old_prefab_name="light">
+            <transform position="0.000, -0.094, 0.416" />
+            <components>
+              <light_component color="1.000, 0.596, 0.243" intensity="100.000" radius="10.000" flicker_interval="0.400" flicker_magnitude="0.600" local_frame_rot="10.000000, 0.000000, 0.000000, 0.000000, 10.000000, 0.000000, 0.000000, 0.000000, 10.000000" hotspot_angle="30.000" falloff_angle="45.000" shadow_size_multiplier="1" shadow_radius="8.000" />
+            </components>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="tent_vlandia_a" old_prefab_name="tent_vlandia_a">
+        <transform position="-0.058, -22.800, 0.000" rotation_euler="0.000, 0.000, 3.141" />
+        <physics shape="bo_tent_vlandia_a" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_a" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform rotation_euler="0.000, 0.000, 0.000" scale="3.710, 0.987, 0.408" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="tent_vlandia_a" old_prefab_name="tent_vlandia_a">
+        <transform position="30.313, -12.948, 0.000" rotation_euler="0.000, 0.000, -2.031" />
+        <physics shape="bo_tent_vlandia_a" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_a" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform rotation_euler="0.000, 0.000, 0.000" scale="3.710, 0.987, 0.408" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="tent_vlandia_a" old_prefab_name="tent_vlandia_a">
+        <transform position="-14.093, -17.364, 0.000" rotation_euler="0.000, 0.000, 2.013" />
+        <physics shape="bo_tent_vlandia_a" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_a" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform rotation_euler="0.000, 0.000, 0.000" scale="3.710, 0.987, 0.408" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="tent_vlandia_a" old_prefab_name="tent_vlandia_a">
+        <transform position="-7.850, -22.251, 0.000" rotation_euler="0.000, 0.000, 3.141" />
+        <physics shape="bo_tent_vlandia_a" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_a" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform rotation_euler="0.000, 0.000, 0.000" scale="3.710, 0.987, 0.408" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1">
+        <transform position="5.389, -23.235, 1.494" rotation_euler="0.000, 0.000, 0.000" scale="0.347, 0.355, 1.435" />
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1">
+        <transform position="-7.663, 14.794, 0.000" rotation_euler="0.000, 0.000, 3.120" scale="0.347, 0.355, 1.435" />
+      </game_entity>
+      <game_entity name="envmap_probe" old_prefab_name="" mobility="1">
+        <visibility_masks>
+          <visibility_mask name="no_shadow" value="true" />
+          <visibility_mask name="visible_only_when_editing" value="true" />
+        </visibility_masks>
+        <transform position="15.954, 54.921, 4.000" />
+        <scripts>
+          <script name="ReflectionCapturer">
+            <variables>
+              <variable name="IsGlobal" value="true" />
+              <variable name="IsParallaxCorrected" value="false" />
+              <variable name="AmbientMultiplier" value="1.000" />
+              <variable name="AttenuationCoef" value="20.000" />
+              <variable name="BoxOffset" value="0.000, 0.000, 0.000, 0.000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="arabian_towerdoor_b" old_prefab_name="arabian_towerdoor_b">
+        <tags>
+          <tag name="closable" />
+          <tag name="arabian_towerdoor_a" />
+        </tags>
+        <transform position="-4.152, 15.720, 0.000" rotation_euler="0.000, 0.000, 0.000" scale="0.710, 1.000, 1.000" />
+        <physics shape="bo_arabian_towerdoor_b" override_material="wood" />
+        <components>
+          <meta_mesh_component name="arabian_towerdoor_b" />
+        </components>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1">
+        <transform position="-0.891, 14.648, 0.000" rotation_euler="0.000, 0.000, 3.120" scale="0.347, 0.355, 1.435" />
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="-6.991, 15.711, 8.424" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="8.110, -19.873, 0.000" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="-1.431, 16.118, 8.424" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="tent_aserai_b" old_prefab_name="tent_aserai_b">
+        <transform position="3.672, -3.385, 0.000" rotation_euler="0.000, 0.000, 3.141" />
+        <physics shape="bo_tents_aserai_b" />
+        <components>
+          <meta_mesh_component name="tents_aserai_b" />
+        </components>
+      </game_entity>
+      <game_entity name="log_bench_pine_c_unsittable" old_prefab_name="log_bench_pine_c_unsittable">
+        <transform position="14.906, -8.822, 0.000" />
+        <physics shape="bo_log_bench_default_c" />
+        <components>
+          <meta_mesh_component name="log_bench_pine_c" />
+        </components>
+      </game_entity>
+      <game_entity name="battania_castle_stairs_a_l1" old_prefab_name="battania_castle_stairs_a_l1">
+        <transform position="5.353, -8.012, 2.213" rotation_euler="0.000, 0.000, -1.571" scale="1.391, 1.000, 1.264" />
+        <physics shape="bo_european_castle_stairs_a_l1" />
+        <components>
+          <meta_mesh_component name="european_castle_stairs_a_l1" />
+        </components>
+        <children>
+          <game_entity name="battania_castle_stairs_a_l1_stairs" old_prefab_name="battania_castle_stairs_a_l1_stairs">
+            <physics shape="bo_2_european_castle_stairs_a_l1">
+              <body_flags>
+                <body_flag name="has_steps" />
+              </body_flags>
+            </physics>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="-19.768, -7.021, 8.424" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="tent_vlandia_c" old_prefab_name="tent_vlandia_c">
+        <transform position="17.978, -20.646, 0.000" rotation_euler="0.000, 0.000, -2.511" />
+        <physics shape="bo_tent_vlandia_c" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_c" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform position="0.000, 0.000, -0.424" rotation_euler="0.000, 0.000, 0.000" scale="2.307, 1.000, 1.000" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="siege_barricade_c" old_prefab_name="siege_barricade_c">
+        <transform position="-15.574, 13.917, 1.005" rotation_euler="0.000, 0.000, -2.268" scale="4.400, 4.400, 1.000" />
+        <physics shape="bo_siege_barricade_c" />
+        <components>
+          <meta_mesh_component name="siege_barricade_c" />
+        </components>
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="32.356, -4.722, 9.572" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="tent_vlandia_c" old_prefab_name="tent_vlandia_c">
+        <transform position="13.857, -23.155, -0.118" rotation_euler="0.000, 0.000, -2.745" />
+        <physics shape="bo_tent_vlandia_c" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_c" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform position="0.000, 0.000, -0.424" rotation_euler="0.000, 0.000, 0.000" scale="2.307, 1.000, 1.000" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="empty_object" old_prefab_name="">
+        <transform position="8.398, -15.935, 0.000" />
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="7.724, -15.095, 0.000" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="4.478, -24.457, 9.918" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_stairs_a" old_prefab_name="battania_castle_stairs_a">
+        <transform position="31.789, -6.411, 7.983" rotation_euler="0.000, 0.000, -0.074" scale="0.519, 1.000, 0.308" />
+        <physics shape="bo_european_castle_stairs_b_l1" override_material="wood" />
+        <components>
+          <meta_mesh_component name="european_castle_stairs_b_l1" />
+        </components>
+      </game_entity>
+      <game_entity name="tent_vlandia_c" old_prefab_name="tent_vlandia_c">
+        <transform position="12.696, -17.231, 0.000" rotation_euler="0.000, 0.000, 3.141" />
+        <physics shape="bo_tent_vlandia_c" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_c" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform position="0.000, 0.000, -0.424" rotation_euler="0.000, 0.000, 0.000" scale="2.307, 1.000, 1.000" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="arrow_barrel" old_prefab_name="arrow_barrel" mobility="1">
+        <transform position="-12.544, -5.387, 0.000" />
+        <physics shape="bo_arrow_barrel" />
+        <components>
+          <meta_mesh_component name="arrow_barrel" />
+        </components>
+        <scripts>
+          <script name="ArrowBarrel">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="icon_man" old_prefab_name="icon_man" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <transform position="-0.005, 0.030, 0.008" rotation_euler="0.000, 0.000, 0.065" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="StandingPointWithWeaponRequirement">
+                <variables>
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="log_bench_pine_c_unsittable" old_prefab_name="log_bench_pine_c_unsittable">
+        <transform position="19.948, -9.096, 0.000" />
+        <physics shape="bo_log_bench_default_c" />
+        <components>
+          <meta_mesh_component name="log_bench_pine_c" />
+        </components>
+      </game_entity>
+      <game_entity name="siege_barricade_c" old_prefab_name="siege_barricade_c">
+        <transform position="31.645, 6.868, 0.000" rotation_euler="0.000, 0.000, 1.939" scale="4.400, 4.400, 1.000" />
+        <physics shape="bo_siege_barricade_c" />
+        <components>
+          <meta_mesh_component name="siege_barricade_c" />
+        </components>
+      </game_entity>
+      <game_entity name="siege_barricade_c" old_prefab_name="siege_barricade_c">
+        <transform position="21.497, 16.389, 0.000" rotation_euler="0.000, 0.000, 2.624" scale="4.400, 4.400, 1.000" />
+        <physics shape="bo_siege_barricade_c" />
+        <components>
+          <meta_mesh_component name="siege_barricade_c" />
+        </components>
+      </game_entity>
+      <game_entity name="burning_campfire" old_prefab_name="burning_campfire">
+        <transform position="17.011, -8.764, 0.000" />
+        <physics shape="bo_burned_wood_a" />
+        <components>
+          <meta_mesh_component name="burned_wood_a" />
+        </components>
+        <children>
+          <game_entity name="smoked_fire_with_light" old_prefab_name="smoked_fire_with_light">
+            <transform position="0.327, -0.020, 0.019" rotation_euler="0.000, 0.000, 2.755" />
+            <children>
+              <game_entity name="campfire" old_prefab_name="campfire">
+                <transform position="0.229, 0.140, 0.025" rotation_euler="0.000, 0.000, -1.106" />
+                <components>
+                  <particle_system_instanced_component>
+                    <effect_ref base_effect="{022BD5E3-7A5A-4371-92C7-94E3E33A84C9}" />
+                  </particle_system_instanced_component>
+                </components>
+              </game_entity>
+              <game_entity name="campfire_light" old_prefab_name="campfire_light">
+                <transform position="0.173, 0.187, 0.452" rotation_euler="0.000, 0.000, -0.947" />
+                <components>
+                  <light_component color="1.000, 0.455, 0.094" intensity="150.000" radius="7.000" flicker_interval="0.700" flicker_magnitude="0.700" local_frame_rot="7.000000, 0.000000, 0.000000, 0.000000, 7.000000, 0.000000, 0.000000, 0.000000, 7.000000" hotspot_angle="30.000" falloff_angle="45.000" shadow_size_multiplier="1" shadow_radius="3.000" />
+                </components>
+              </game_entity>
+            </children>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_stairs_a" old_prefab_name="battania_castle_stairs_a">
+        <transform position="3.036, -23.532, 8.207" rotation_euler="0.000, 0.000, -1.460" scale="0.519, 1.000, 0.308" />
+        <physics shape="bo_european_castle_stairs_b_l1" override_material="wood" />
+        <components>
+          <meta_mesh_component name="european_castle_stairs_b_l1" />
+        </components>
+      </game_entity>
+      <game_entity name="battania_castle_stairs_a" old_prefab_name="battania_castle_stairs_a">
+        <transform position="-18.237, -10.475, 7.276" rotation_euler="0.000, 0.000, -0.061" scale="0.519, 1.000, 0.308" />
+        <physics shape="bo_european_castle_stairs_b_l1" override_material="wood" />
+        <components>
+          <meta_mesh_component name="european_castle_stairs_b_l1" />
+        </components>
+      </game_entity>
+      <game_entity name="tent_vlandia_c" old_prefab_name="tent_vlandia_c">
+        <transform position="22.665, -15.371, -0.146" rotation_euler="0.000, 0.000, -2.053" />
+        <physics shape="bo_tent_vlandia_c" />
+        <components>
+          <meta_mesh_component name="tent_vlandia_c" />
+        </components>
+        <children>
+          <game_entity name="ambient_sound_emitter" old_prefab_name="ambient_sound_emitter">
+            <transform position="0.000, 0.000, -0.424" rotation_euler="0.000, 0.000, 0.000" scale="2.307, 1.000, 1.000" />
+            <scripts>
+              <script name="AmbientSoundEmitter">
+                <variables>
+                  <variable name="Event Path" value="event:/mission/ambient/area/interior/generic" />
+                  <variable name="Play On Startup" value="true" />
+                  <variable name="Is Static" value="false" />
+                  <variable name="Override Sound" value="false" />
+                  <variable name="Overrided Volume Multiplier" value="1.000000" />
+                  <variable name="Overrided Max Distance" value="20.000000" />
+                  <variable name="Overrided Min Distance" value="1.000000" />
+                  <variable name="Is Master Sound" value="false" />
+                  <variable name="Is Master Supressor" value="false" />
+                  <variable name="Is Triggered" value="true" />
+                  <variable name="Trigger Shape" value="Sphere" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1">
+        <transform position="31.520, -3.872, 1.148" rotation_euler="0.000, 0.000, 1.431" scale="0.347, 0.355, 1.435" />
+      </game_entity>
+      <game_entity name="battania_castle_stairs_a_l1" old_prefab_name="battania_castle_stairs_a_l1">
+        <transform position="17.260, -2.787, 1.568" rotation_euler="0.000, 0.000, -0.071" scale="1.343, 1.000, 1.264" />
+        <physics shape="bo_european_castle_stairs_a_l1" />
+        <components>
+          <meta_mesh_component name="european_castle_stairs_a_l1" />
+        </components>
+        <children>
+          <game_entity name="battania_castle_stairs_a_l1_stairs" old_prefab_name="battania_castle_stairs_a_l1_stairs">
+            <physics shape="bo_2_european_castle_stairs_a_l1">
+              <body_flags>
+                <body_flag name="has_steps" />
+              </body_flags>
+            </physics>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1">
+        <transform position="31.520, -3.872, 1.148" rotation_euler="0.000, 0.000, 1.421" scale="0.347, 0.355, 1.435" />
+      </game_entity>
+      <game_entity name="battania_castle_stairs_a_l1" old_prefab_name="battania_castle_stairs_a_l1">
+        <transform position="-4.816, -8.171, 0.845" rotation_euler="0.000, 0.000, 3.141" scale="1.248, 1.000, 1.264" />
+        <physics shape="bo_european_castle_stairs_a_l1" />
+        <components>
+          <meta_mesh_component name="european_castle_stairs_a_l1" />
+        </components>
+        <children>
+          <game_entity name="battania_castle_stairs_a_l1_stairs" old_prefab_name="battania_castle_stairs_a_l1_stairs">
+            <physics shape="bo_2_european_castle_stairs_a_l1">
+              <body_flags>
+                <body_flag name="has_steps" />
+              </body_flags>
+            </physics>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="battania_castle_corner_a_l1" old_prefab_name="battania_castle_corner_a_l1">
+        <transform position="-18.667, -7.886, 0.000" rotation_euler="0.000, 0.000, -1.573" scale="0.347, 0.355, 1.435" />
+      </game_entity>
+      <game_entity name="empty_object" old_prefab_name="">
+        <transform position="-6.118, -0.685, 0.000" />
+      </game_entity>
+      <game_entity name="sp_blacksmith_with_smithing_machine" old_prefab_name="sp_blacksmith_with_smithing_machine" mobility="1">
+        <flags>
+          <flag name="record_to_scene_replay" value="true" />
+        </flags>
+        <tags>
+          <tag name="sp_blacksmith" />
+        </tags>
+        <transform position="6.778, 14.560, 0.000" />
+        <physics shape="bo_shop_pr_animated" />
+        <skeleton skeleton_model="merchant_smithing_machine_skeleton">
+          <components>
+            <meta_mesh_component name="shop_prop_animated" />
+          </components>
+        </skeleton>
+        <scripts>
+          <script name="SmithingMachine">
+            <variables>
+              <variable name="PilotStandingPointTag" value="Pilot" />
+              <variable name="AmmoPickUpTag" value="ammopickup" />
+              <variable name="WaitStandingPointTag" value="Wait" />
+              <variable name="NavMeshPrefabName" value="" />
+            </variables>
+          </script>
+        </scripts>
+        <children>
+          <game_entity name="ai_user_position" old_prefab_name="ai_user_position" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <tags>
+              <tag name="pilot" />
+            </tags>
+            <transform position="-0.870, -0.590, 0.000" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="AnimationPoint">
+                <variables>
+                  <variable name="ArriveAction" value="" />
+                  <variable name="LoopStartAction" value="" />
+                  <variable name="PairLoopStartAction" value="" />
+                  <variable name="LeaveAction" value="act_use_smithing_machine_leave" />
+                  <variable name="GroupId" value="-1" />
+                  <variable name="RightHandItem" value="" />
+                  <variable name="RightHandItemBone" value="ItemR" />
+                  <variable name="LeftHandItem" value="" />
+                  <variable name="LeftHandItemBone" value="ItemL" />
+                  <variable name="MinUserToStartInteraction" value="1" />
+                  <variable name="ActivatePairs" value="false" />
+                  <variable name="MinWaitinSeconds" value="30.000" />
+                  <variable name="MaxWaitInSeconds" value="120.000" />
+                  <variable name="ForwardDistanceToPivotPoint" value="0.000" />
+                  <variable name="SideDistanceToPivotPoint" value="0.000" />
+                  <variable name="KeepOldVisibility" value="false" />
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+          <game_entity name="anvil_user_position" old_prefab_name="anvil_user_position" mobility="1">
+            <flags>
+              <flag name="record_to_scene_replay" value="true" />
+            </flags>
+            <visibility_masks>
+              <visibility_mask name="visible_only_when_editing" value="true" />
+            </visibility_masks>
+            <tags>
+              <tag name="rotate" />
+              <tag name="left" />
+            </tags>
+            <transform position="1.420, -0.745, 0.000" rotation_euler="0.000, 0.000, -0.427" />
+            <components>
+              <meta_mesh_component name="icon_man" />
+            </components>
+            <scripts>
+              <script name="AnimationPoint">
+                <variables>
+                  <variable name="ArriveAction" value="" />
+                  <variable name="LoopStartAction" value="act_smithing_machine_anvil_start" />
+                  <variable name="PairLoopStartAction" value="" />
+                  <variable name="LeaveAction" value="" />
+                  <variable name="GroupId" value="-1" />
+                  <variable name="RightHandItem" value="blacksmith_hammer" />
+                  <variable name="RightHandItemBone" value="ItemR" />
+                  <variable name="LeftHandItem" value="blacksmith_sword" />
+                  <variable name="LeftHandItemBone" value="ItemL" />
+                  <variable name="MinUserToStartInteraction" value="1" />
+                  <variable name="ActivatePairs" value="false" />
+                  <variable name="MinWaitinSeconds" value="30.000" />
+                  <variable name="MaxWaitInSeconds" value="120.000" />
+                  <variable name="ForwardDistanceToPivotPoint" value="0.000" />
+                  <variable name="SideDistanceToPivotPoint" value="0.000" />
+                  <variable name="KeepOldVisibility" value="false" />
+                  <variable name="AutoSheathWeapons" value="false" />
+                  <variable name="AutoEquipWeaponsOnUseStopped" value="false" />
+                  <variable name="AutoWieldWeapons" value="false" />
+                  <variable name="TranslateUser" value="true" />
+                  <variable name="HasRecentlyBeenRechecked" value="false" />
+                  <variable name="_useOwnPositionInsteadOfWorldPosition" value="false" />
+                  <variable name="_customPlayerInteractionDistance" value="0.000" />
+                  <variable name="NavMeshPrefabName" value="" />
+                </variables>
+              </script>
+            </scripts>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="blacksmith_props" old_prefab_name="blacksmith_props">
+        <transform position="4.564, 15.286, 0.000" />
+        <physics shape="bo_bd_barrel_b" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_b" />
+        </components>
+        <children>
+          <game_entity name="bd_straw_d" old_prefab_name="bd_straw_d">
+            <transform position="-0.023, 0.004, 0.743" rotation_euler="0.000, 0.000, 0.000" scale="0.154, 0.149, 0.567" />
+            <physics override_material="straw" />
+            <components>
+              <meta_mesh_component name="bd_straw_d">
+                <mesh name="bd_straw_d" factor="4287137928" />
+              </meta_mesh_component>
+            </components>
+          </game_entity>
+          <game_entity name="kitchen_pan_a" old_prefab_name="kitchen_pan_a">
+            <transform position="0.260, 0.248, 1.145" rotation_euler="-0.297, -0.124, 2.107" />
+            <components>
+              <meta_mesh_component name="kitchen_pan_a" />
+            </components>
+          </game_entity>
+          <game_entity name="kitchen_pan_a" old_prefab_name="kitchen_pan_a">
+            <transform position="0.119, 0.340, 1.159" rotation_euler="-0.281, 0.000, 2.810" />
+            <components>
+              <meta_mesh_component name="kitchen_pan_a" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_horseshoe" old_prefab_name="merchandise_ironware_horseshoe">
+            <transform position="-0.220, -0.248, 1.084" rotation_euler="-1.414, 1.998, 2.853" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_horseshoe" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_horseshoe" old_prefab_name="merchandise_ironware_horseshoe">
+            <transform position="0.040, -0.320, 1.084" rotation_euler="-1.400, 1.270, 2.881" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_horseshoe" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_horseshoe" old_prefab_name="merchandise_ironware_horseshoe">
+            <transform position="-0.220, 0.207, 1.084" rotation_euler="-1.220, 0.046, -0.354" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_horseshoe" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_horseshoe" old_prefab_name="merchandise_ironware_horseshoe">
+            <transform position="-0.318, 0.118, 1.084" rotation_euler="-1.492, -0.312, -0.795" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_horseshoe" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_horseshoe" old_prefab_name="merchandise_ironware_horseshoe">
+            <transform position="0.131, -0.320, 1.084" rotation_euler="-1.370, -2.772, -1.071" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_horseshoe" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_pitchfork" old_prefab_name="merchandise_ironware_pitchfork">
+            <transform position="0.071, 0.165, 0.144" rotation_euler="0.109, 0.065, 1.523" />
+            <physics shape="bo_merchandise_ironware_pitchfork" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_pitchfork" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_scythe" old_prefab_name="merchandise_ironware_scythe">
+            <transform position="0.187, -0.133, 0.263" rotation_euler="0.134, 0.018, 0.074" />
+            <physics shape="bo_merchandise_ironware_scythe" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_scythe" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_pitchfork" old_prefab_name="merchandise_ironware_pitchfork">
+            <transform position="-0.108, 0.173, 0.164" rotation_euler="0.071, -0.026, -2.362" />
+            <physics shape="bo_merchandise_ironware_pitchfork" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_pitchfork" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware_scythe" old_prefab_name="merchandise_ironware_scythe">
+            <transform position="-0.159, -0.001, 0.323" rotation_euler="0.174, 0.097, -1.659" />
+            <physics shape="bo_merchandise_ironware_scythe" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware_scythe" />
+            </components>
+          </game_entity>
+          <game_entity name="kitchen_pot_h" old_prefab_name="kitchen_pot_h">
+            <transform position="0.423, 0.111, 1.006" rotation_euler="-1.247, 1.387, -1.274" />
+            <physics shape="bo_kitchen_pot_h" />
+            <components>
+              <meta_mesh_component name="kitchen_pot_h" />
+            </components>
+          </game_entity>
+          <game_entity name="merchandise_ironware" old_prefab_name="merchandise_ironware">
+            <transform position="-0.095, 0.013, 0.210" rotation_euler="0.195, 0.046, -0.009" />
+            <physics shape="bo_merchandise_ironware" />
+            <components>
+              <meta_mesh_component name="merchandise_ironware" />
+            </components>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="bd_barrel_heap_b" old_prefab_name="bd_barrel_heap_b">
+        <transform position="1.043, 15.699, 0.000" />
+        <physics shape="bo_rock_001" override_material="stone" />
+        <components>
+          <meta_mesh_component name="rock_001" />
+        </components>
+        <children>
+          <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+            <transform position="1.358, 0.512, 0.387" rotation_euler="1.560, 3.077, 3.136" />
+            <physics shape="bo_bd_barrel_a" override_material="wood" />
+            <components>
+              <meta_mesh_component name="bd_barrel_a" />
+            </components>
+          </game_entity>
+          <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+            <transform position="0.889, 0.658, 1.051" rotation_euler="1.512, -1.475, 1.441" />
+            <physics shape="bo_bd_barrel_a" override_material="wood" />
+            <components>
+              <meta_mesh_component name="bd_barrel_a" />
+            </components>
+          </game_entity>
+          <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+            <transform position="0.427, 0.628, 0.377" rotation_euler="1.527, -1.066, 1.071" />
+            <physics shape="bo_bd_barrel_a" override_material="wood" />
+            <components>
+              <meta_mesh_component name="bd_barrel_a" />
+            </components>
+          </game_entity>
+          <game_entity name="rock_001" old_prefab_name="rock_001">
+            <transform position="1.776, -0.005, 0.000" rotation_euler="0.000, 0.000, 1.677" />
+            <physics shape="bo_rock_001" override_material="stone" />
+            <components>
+              <meta_mesh_component name="rock_001" />
+            </components>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="bd_barrel_d" old_prefab_name="bd_barrel_d">
+        <transform position="-0.170, 13.221, 0.000" />
+        <physics shape="bo_bd_barrel_d" />
+        <components>
+          <meta_mesh_component name="bd_barrel_d" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-15.046, -7.664, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-14.729, -7.522, 1.089" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-14.878, -8.326, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-17.285, -7.502, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-13.675, -8.434, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="29.357, -6.440, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="31.381, -1.786, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="30.720, -0.631, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="29.768, 0.812, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="28.095, -0.512, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="28.847, 0.871, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="27.840, -0.530, 1.158" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-20.778, -3.040, 7.204" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-18.506, 5.189, 7.244" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-18.232, 5.696, 7.244" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_barrel_a" old_prefab_name="bd_barrel_a">
+        <transform position="-10.485, 13.999, 0.000" />
+        <physics shape="bo_bd_barrel_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_barrel_a" />
+        </components>
+      </game_entity>
+      <game_entity name="bd_cart_heap_b" old_prefab_name="bd_cart_heap_b">
+        <transform position="26.677, 1.162, 0.000" />
+        <physics shape="bo_bd_cart_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_cart_a" />
+        </components>
+        <children>
+          <game_entity name="bd_sack_a" old_prefab_name="bd_sack_a">
+            <transform position="-1.329, -0.358, 0.910" rotation_euler="1.290, 0.575, 1.624" />
+            <physics shape="bo_bd_sack_a" override_material="straw" />
+            <components>
+              <meta_mesh_component name="bd_sack_a" />
+            </components>
+          </game_entity>
+          <game_entity name="bd_sack_a" old_prefab_name="bd_sack_a">
+            <transform position="0.212, -0.583, 1.328" rotation_euler="1.285, 1.682, 1.437" />
+            <physics shape="bo_bd_sack_a" override_material="straw" />
+            <components>
+              <meta_mesh_component name="bd_sack_a" />
+            </components>
+          </game_entity>
+          <game_entity name="bd_sack_a" old_prefab_name="bd_sack_a">
+            <transform position="-0.227, 0.222, 1.615" rotation_euler="1.245, 0.941, 0.636" />
+            <physics shape="bo_bd_sack_a" override_material="straw" />
+            <components>
+              <meta_mesh_component name="bd_sack_a" />
+            </components>
+          </game_entity>
+          <game_entity name="bd_sack_b" old_prefab_name="bd_sack_b">
+            <transform position="-0.560, -0.230, 1.217" rotation_euler="0.338, 0.496, 0.108" />
+            <physics shape="bo_bd_sack_b" override_material="straw" />
+            <components>
+              <meta_mesh_component name="bd_sack_b" />
+            </components>
+          </game_entity>
+          <game_entity name="bd_sack_b" old_prefab_name="bd_sack_b">
+            <transform position="-0.842, 0.182, 1.198" rotation_euler="0.429, -0.162, 3.042" />
+            <physics shape="bo_bd_sack_b" override_material="straw" />
+            <components>
+              <meta_mesh_component name="bd_sack_b" />
+            </components>
+          </game_entity>
+        </children>
+      </game_entity>
+      <game_entity name="bd_cart_a" old_prefab_name="bd_cart_a">
+        <transform position="24.921, -6.624, 0.000" />
+        <physics shape="bo_bd_cart_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="bd_cart_a" />
+        </components>
+      </game_entity>
+      <game_entity name="sturgia_village_house_c" old_prefab_name="sturgia_village_house_c" occlusion_body_name="bo_occ_sturgia_village_house_c">
+        <transform position="-13.870, 3.181, 0.000" rotation_euler="0.000, 0.000, 1.025" />
+        <physics shape="bo_sturgia_village_house_c" />
+        <components>
+          <meta_mesh_component name="sturgia_village_house_c" />
+        </components>
+      </game_entity>
+      <game_entity name="sturgia_village_house_c" old_prefab_name="sturgia_village_house_c" occlusion_body_name="bo_occ_sturgia_village_house_c">
+        <transform position="17.826, 8.624, 0.000" rotation_euler="0.000, 0.000, -0.354" />
+        <physics shape="bo_sturgia_village_house_c" />
+        <components>
+          <meta_mesh_component name="sturgia_village_house_c" />
+        </components>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="0.535, -25.595, 0.839" rotation_euler="0.000, 0.000, 3.142" scale="2.166, 1.000, 0.576" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-10.000000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="26.861, -19.289, 0.839" rotation_euler="0.000, 0.000, -2.356" scale="1.999, 1.000, 0.576" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-17.500000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="-15.236, -19.424, 0.839" rotation_euler="0.000, 0.000, 2.357" scale="2.000, 1.000, 0.580" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-17.500000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="10.528, 16.266, 0.839" rotation_euler="0.000, 0.000, -0.085" scale="2.166, 1.000, 0.576" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-10.000000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="14.942, -24.508, 0.839" rotation_euler="0.000, 0.000, -3.030" scale="1.207, 1.000, 0.576" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="0.000000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="33.369, -4.065, 0.799" rotation_euler="0.000, 0.000, -1.570" scale="1.999, 1.000, 0.576" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-17.500000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="26.443, 10.665, 0.839" rotation_euler="0.000, 0.000, -0.706" scale="2.000, 1.000, 0.580" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-17.500000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="-15.218, 10.603, 0.839" rotation_euler="0.000, 0.000, 0.857" scale="2.000, 1.000, 0.580" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-17.500000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="castle_plank_wall_a" old_prefab_name="castle_plank_wall_a">
+        <transform position="-20.955, -4.943, 0.799" rotation_euler="0.000, 0.000, 1.571" scale="2.000, 1.000, 0.580" />
+        <physics shape="bo_castle_plank_wall_a" override_material="wood" />
+        <components>
+          <meta_mesh_component name="castle_plank_wall_a">
+            <mesh name="castle_plank_wall_a" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod3" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+            <mesh name="castle_plank_wall_a.lod5" material="plank_stake_a" argument2="-4.453, 4.598, 0.072, 0.781" />
+          </meta_mesh_component>
+        </components>
+        <scripts>
+          <script name="mesh_bender">
+            <variables>
+              <variable name="Bend Amount" value="-17.500000" />
+              <variable name="Bend Center Ratio" value="0.500000" />
+            </variables>
+          </script>
+        </scripts>
+      </game_entity>
+      <game_entity name="empire_street_tent_03" old_prefab_name="empire_street_tent_03">
+        <transform position="27.930, -5.990, 0.000" />
+        <physics shape="bo_empire_street_tent_02" />
+        <components>
+          <cloth_simulator>
+            <meta_mesh_component name="empire_street_tent_03" />
+          </cloth_simulator>
+        </components>
+      </game_entity>
+      <game_entity prefab="empire_street_tent_04" _index_="81">
+        <transform position="6.849, 13.503, 0.000" />
+        <components>
+          <cloth_simulator />
+        </components>
+      </game_entity>
+    </children>
+  </game_entity>
+</prefabs>

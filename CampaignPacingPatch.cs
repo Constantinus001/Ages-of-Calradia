@@ -51,7 +51,7 @@ namespace TwelveMonthCalendar
             {
                 // Campaign.TickMapTime already applies SpeedUpMultiplier to its
                 // fast-forward path. Updating this built-in property gives the
-                // requested 1-128x speed without multiplying realDt again.
+                // requested 1-4x speed without multiplying realDt again.
                 __instance.SpeedUpMultiplier = requestedSpeed;
             }
         }

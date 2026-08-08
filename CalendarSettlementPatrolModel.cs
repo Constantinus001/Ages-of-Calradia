@@ -22,7 +22,7 @@ namespace TwelveMonthCalendar
         public override CampaignTime GetPatrolPartySpawnDuration(Settlement settlement, bool naval)
         {
             CampaignTime nativeDuration = _native.GetPatrolPartySpawnDuration(settlement, naval);
-            if (!CalendarSettingsState.ExtendedCalendarEnabled || nativeDuration == CampaignTime.Never)
+            if (!CalendarSettingsState.AnnualRateBalanceEnabled || nativeDuration == CampaignTime.Never)
             {
                 return nativeDuration;
             }

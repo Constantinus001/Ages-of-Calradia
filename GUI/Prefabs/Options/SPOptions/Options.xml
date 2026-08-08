@@ -29,7 +29,7 @@
                             <OptionsGroupedPage Id="PerformanceOptionsPage" DataSource="{PerformanceOptions}" Parameter.ResetButtonScopeID="PerformanceResetButtonScope" />
                             <OptionsGroupedPage Id="AudioOptionsPage" DataSource="{AudioOptions}" Parameter.ResetButtonScopeID="AudioResetButtonScope" Parameter.HasCircularNavigation="true" />
                             <OptionsGroupedPage Id="GameplayOptionsPage" DataSource="{GameplayOptions}" Parameter.ResetButtonScopeID="GameplayResetButtonScope" />
-                            <OptionsGroupedPage Id="CalendarOptionsPage" DataSource="{CalendarOptions}" Parameter.ResetButtonScopeID="CalendarResetButtonScope" IsEnabled="@IsEnabled" />
+                            <CalendarOptionsGroupedPage Id="CalendarOptionsPage" DataSource="{CalendarOptions}" Parameter.ResetButtonScopeID="CalendarResetButtonScope" IsEnabled="@IsEnabled" />
                             <OptionsGameKeyPage Id="GameKeyOptionGroupsPage" DataSource="{GameKeyOptionGroups}" />
                             <OptionsGamepadPage Id="GamepadOptionsPage" DataSource="{GamepadOptions}" />
                           </Children>

@@ -1,123 +1,162 @@
-# Realistic Calendar Tweaks - Handoff
+# Realistic Calendar Tweaks - Refuge System Handoff
 
-## Current release
+Updated: 2026-08-07
 
-- Repository: `https://github.com/Constantinus001/Realistic-Calendar-Tweaks`
-- Current public release: `v1.4.6`
-- Release page: `https://github.com/Constantinus001/Realistic-Calendar-Tweaks/releases/tag/v1.4.6`
-- Release commit: `18c2bb2f569fd27c2983042b2418e413af60d272`
-- Bannerlord target: Native `v1.4.7`
-- Release ZIP SHA-256:
-  `FE47E34FA78E03C7D515284E7CE366F85BEFD36D00FEF0047BEF9EECA0C69275`
+## Immediate objective
 
-## Live installation
+Load the player's authored refuge fort on the exact open-plains terrain shown in the reference screenshot with the Refuge Builder visible. Do not replace the terrain based on appearance or timestamp guesses.
 
-The current live module is installed at:
+The confirmed working terrain configuration is:
 
-```text
-C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\Modules\RealisticCalendarTweaks
+- Scene: `battle_terrain_biome_130`
+- `NeedsRandomTerrain = true`
+- `RandomTerrainSeed = 10840415`
+- `TerrainType = TerrainType.Plain`
+- Calibrated layout center from successful logs: approximately `1622.88, 765.07`
+
+The screenshot target is the broad tan-green clearing with sparse trees around the outer area. It is not the dense forest, water/editor plane, or biome-015 scene.
+
+## Project locations
+
+- Source: `D:\AI-Related Apllications & Modding\Modding\Bannerlord Modding Stuff\_TwelveMonthCalendar`
+- Installed module: `C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\Modules\RealisticCalendarTweaks`
+- Runtime log: `C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\Modules\RealisticCalendarTweaks\Logs\RealisticCalendarTweaks.log`
+- Main project: `TwelveMonthCalendar.csproj`
+- Built DLL: `bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll`
+
+## Current deployed build
+
+The v1.5.2 release was compiled and deployed while Bannerlord was closed.
+
+- Build result: 0 warnings, 0 errors
+- Deployed main DLL SHA-256: `8D8AAE63416180A7894570A9E7980EC8818BC7F5D25AE3DE123088F7AF6B1476`
+- Deployed MCM DLL SHA-256: `C326405EEAC277CE1E4F5D385745B06FF94B55E7226F3E4A14F73875CFC512AE`
+- The module-root and `bin\Win64_Shipping_Client` main DLLs match the verified release payload.
+- 166 release files were synchronized from `artifacts\RealisticCalendarTweaks-v1.5.2.zip`.
+- Rollback copy: `Backups\Deploy-20260807-163000`
+- Release verification and Defender cloud-verdict hold completed successfully.
+
+The deployment still needs in-game campaign verification for the clock,
+economy recovery, caravan routing, and strategy-map display.
+
+## Why the forest kept appearing
+
+Changing only the scene ID was not enough. `ApplyCampaignEnvironment` copied the terrain type from the party's campaign-map face. If the party stood on a forest face, Bannerlord could generate the biome-130 mission as forest terrain.
+
+`CalendarRefugeMission.TryOpen` now applies campaign atmosphere first and then overrides generated refuge terrain with:
+
+```csharp
+initializer.TerrainType = (int)TerrainType.Plain;
 ```
 
-It contains one module only:
+That override is applied only when the selected scene needs generated biome terrain. Do not remove it while reproducing the reference screenshot.
 
-```text
-Id: RealisticCalendarTweaks
-Name: Realistic Calendar Tweaks
-Version: v1.4.6
-```
+## Scene routing
 
-`_TwelveMonthCalendar` is intentionally absent from the v1.4.6 live layout and
-release archive. Prior live layouts were moved recoverably to:
+`CalendarRefugeBehavior.GetSceneId` currently sends every refuge climate/water profile to the proven temperate plains foundation:
 
-```text
-C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\ModBackups
-```
+`battle_terrain_biome_130`
 
-## Compatibility
+This is temporary while the base refuge is stabilized. Water access still remains campaign data and controls ship storage eligibility.
 
-New saves use a primitive soft campaign profile; the calendar no longer writes
-its previous hard module-lock marker.
+Existing refuges are also redirected at entry time. `TryEnterCompletedRefuge` reads the saved climate but calls `GetSceneId` again before opening the mission, so an old saved forest scene ID should not force the old scene.
 
-v1.4.6 intentionally does not ship a legacy `_TwelveMonthCalendar` bridge. If
-an older calendar save needs its one-time migration path, retain/download v1.4.5,
-load and re-save with its bridge, then move to v1.4.6. Do not add the old module
-folder to the v1.4.6 release ZIP.
+Do not substitute:
 
-## Main gameplay/settings behavior
+- `battle_terrain_001`: produced the unwanted forest test.
+- `battle_terrain_015`: used a different calibrated anchor and is not the reference screenshot.
+- `rct_refuge_fort`: editor workspace with test ground/water, not the playable refuge terrain.
+- `forest_hideout_003`: legacy forest hideout scene.
 
-- Calendar: fixed Gregorian 365-day year, configurable month/season names and
-  month lengths totaling 365, optional Gregorian leap years.
-- Normal map pace: fixed at the Gregorian base cadence.
-- Fast forward: one live-safe `FastForwardSpeedMultiplier` setting, 1x-128x,
-  default 4x. It updates Bannerlord's own `Campaign.SpeedUpMultiplier`; do not
-  add a second `TickMapTime` multiplier.
-- Lord mortality: `LordDeathRateMultiplier` defaults to `0.20`. It affects only
-  eligible AI noble lords' ordinary old-age and battle mortality. Executions,
-  scripted deaths, and the player are unchanged.
-- MCM is optional. When MCM registers successfully, the native Calendar tab is
-  intentionally disabled to avoid duplicate settings surfaces. Without MCM,
-  the native Calendar tab remains active.
-- Standalone XML settings live at:
+## Authored fort prefab
 
-```text
-Documents\Mount and Blade II Bannerlord\Configs\RealisticCalendarTweaks\settings.xml
-```
+The intended fort is:
 
-Campaign-start simulation settings are locked after a campaign session starts;
-display settings and fast-forward speed remain live-safe.
+`Prefabs\rct_refuge_fort_layout.xml`
 
-## Diagnostics
+Known properties:
 
-Primary log:
+- Prefab ID: `rct_refuge_fort_layout`
+- Size: 143,951 bytes
+- SHA-256: `BD0062D06795802CFF39321917373C6C5F7CD3128B9AF25D9474AF03969B39DE`
+- 192 game entities
+- 120 embedded physics definitions
+- No `editor_plane_low` or `bo_editor_plane`
+- Original exported copy: `C:\Users\fpicc\Desktop\rct_refuge_fort_layout.xml`
 
-```text
-<Bannerlord>\Modules\RealisticCalendarTweaks\Logs\RealisticCalendarTweaks.log
-```
+The prefab is instantiated as one hierarchy at the calibrated biome-130 anchor so its authored spacing and rotations remain intact.
 
-If the game cannot write in its install directory, diagnostics fall back to:
+## Native crash history and current safety measure
 
-```text
-Documents\Mount and Blade II Bannerlord\Configs\ModLogs
-```
+The authored prefab previously caused `System.AccessViolationException` inside Bannerlord's native prefab creation calls. Both the initial-frame prefab overload and creation of all embedded physics bodies at once were unstable.
 
-Crash snapshots are retained under the log directory's `CrashReports` folder.
+The current `InstantiateRefugePrefab` path creates this large authored fort with embedded physics disabled, then sets its global frame after creation. Do not restore the unsafe initial-frame overload or enable all 120 physics bodies together.
 
-## Build and release workflow
+This means the fort may initially be visual-only. Add collision later through a small number of verified native collision proxies or individually validated collision-bearing props. Stability takes priority.
 
-From this repository root:
+## Relevant implementation files
+
+- Campaign state, construction, scene selection, and entry: `CalendarRefugeBehavior.cs`
+- Mission initialization, terrain generation, spawn anchor, fort placement, staff, and exit handling: `CalendarRefugeMission.cs`
+- Runtime layout builder: `CalendarRefugeLayoutBuilderBehavior.cs`
+- Builder HUD logic: `CalendarRefugeBuilderHudView.cs`
+- Builder HUD XML: `GUI\Prefabs\RefugeBuilderHud.xml`
+- Placeable asset catalog: `RefugeBuildingCatalog.cs`
+- Steward interaction: `CalendarRefugeStewardInteraction.cs`
+- Upgrade state: `RefugeUpgrade.cs`
+
+## Immediate test procedure
+
+1. Start Bannerlord after confirming no old game instance remains in memory.
+2. Enable Realistic Calendar Tweaks and load the existing campaign.
+3. Move the player party within interaction range of the completed refuge.
+4. Enter the refuge.
+5. Confirm the open tan-green plains from the reference screenshot loads.
+6. Confirm the authored fort appears near the calibrated center.
+7. Wait at least 20 seconds and confirm the mission does not return automatically to the campaign map.
+8. Confirm player movement and Tab exit.
+9. Record which props have collision and which remain visual-only.
+
+If the result is wrong, do not change scenes again. First inspect the newest log entries for:
+
+- `Scene=battle_terrain_biome_130`
+- `NeedsRandomTerrain=True`
+- `RandomTerrainSeed=10840415`
+- `Using calibrated open-plains refuge layout anchor`
+- `Placed player-authored refuge fort`
+- `Refuge scene initialization completed`
+- `AccessViolationException`
+- `Refuge scene initialization timed out`
+
+The log must establish whether the error is terrain generation, anchor selection, prefab creation, or mission initialization before another change.
+
+## Build and deployment
+
+Build command:
 
 ```powershell
-dotnet msbuild TwelveMonthCalendar.csproj /t:Rebuild /p:Configuration=Release
-dotnet msbuild TwelveMonthCalendar.MCM.csproj /t:Rebuild /p:Configuration=Release
-.\Tests\Verify-CalendarMath.ps1
+dotnet build "D:\AI-Related Apllications & Modding\Modding\Bannerlord Modding Stuff\_TwelveMonthCalendar\TwelveMonthCalendar.csproj" -c Release
 ```
 
-Before publishing, commit the exact source and run the release gate from a
-clean worktree:
+Never deploy while Bannerlord or a TaleWorlds process is running. Copy the resulting DLL to both:
 
-```powershell
-.\Tests\Verify-Release.ps1
-```
+- Installed module root: `RealisticCalendarTweaks.dll`
+- Installed `bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll`
 
-The release gate builds both DLLs, checks calendar/profile math, verifies the
-exact single-module ZIP file list, rejects Better Time and legacy bridge files,
-and scans the final ZIP with Microsoft Defender. Do not upload a release unless
-the script reports `PASS`. For a quick manual check, use
-`-CloudVerdictHoldMinutes 1`; use the default 10-minute hold for a normal public
-release.
+Also synchronize the changed `GUI`, `ModuleData`, `Prefabs`, and `SceneObj` content. Compare SHA-256 hashes after deployment.
 
-Release artifacts are written beneath `artifacts`. Upload the exact scanned ZIP
-and include its SHA-256 in GitHub release notes.
+## Preserved files
 
-## Important source-layout note
+- Editor backups: `EditorBackups`
+- Experimental prefab backups: `EditorBackups\ExperimentalPrefabs`
+- Authored editor scene: `SceneObj\rct_refuge_fort`
+- Builder draft: `C:\Users\fpicc\Documents\Mount and Blade II Bannerlord\Configs\RealisticCalendarTweaks\RefugeLayoutDraft.xml`
+- Combined builder exports: `C:\Users\fpicc\Documents\Mount and Blade II Bannerlord\Configs\RealisticCalendarTweaks\CombinedPrefab`
 
-The project file remains named `TwelveMonthCalendar.csproj` for development
-continuity, but the compiled runtime assemblies are:
+Do not delete, reset, or replace these while stabilizing the runtime fort.
 
-```text
-RealisticCalendarTweaks.dll
-RealisticCalendarTweaks.MCM.dll
-```
+## Planned refuge architecture
 
-The public module ID and display name must remain `RealisticCalendarTweaks` and
-`Realistic Calendar Tweaks` unless a deliberate save-compatibility plan is made.
+The current refuge is an isolated mission and campaign landmark, not yet a genuine settlement. The longer-term plan is an original `RefugeSettlementComponent` with proximity interaction, garrison, AI raids, reduced garrison upkeep, staff, upgrades, stash, and ship storage restricted to river/coast sites.
+
+Do not begin that settlement conversion until the plains mission, authored fort, movement, exit behavior, and stable collision strategy are verified.
