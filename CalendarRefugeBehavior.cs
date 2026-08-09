@@ -39,14 +39,14 @@ namespace TwelveMonthCalendar
 
         // V2 intentionally starts from a clean refuge record. It does not
         // import experimental V1 sites, menu state, or inventory payloads.
-        private const string SerializedStateKey = "RealisticCalendarTweaks.RefugeV2";
-        private const string SerializedStashKey = "RealisticCalendarTweaks.RefugeStashV2";
-        private const string SerializedStewardKey = "RealisticCalendarTweaks.RefugeStewardV2";
-        private const string SerializedCookKey = "RealisticCalendarTweaks.RefugeCookV2";
-        private const string SerializedGuardCaptainKey = "RealisticCalendarTweaks.RefugeGuardCaptainV2";
-        private const string SerializedHealerKey = "RealisticCalendarTweaks.RefugeHealerV2";
-        private const string SerializedGarrisonKey = "RealisticCalendarTweaks.RefugeGarrisonV2";
-        private const string VisitedTerrainProfilesKey = "RealisticCalendarTweaks.RefugeVisitedTerrainsV1";
+        private const string SerializedStateKey = "AgesOfCalradia.RefugeV2";
+        private const string SerializedStashKey = "AgesOfCalradia.RefugeStashV2";
+        private const string SerializedStewardKey = "AgesOfCalradia.RefugeStewardV2";
+        private const string SerializedCookKey = "AgesOfCalradia.RefugeCookV2";
+        private const string SerializedGuardCaptainKey = "AgesOfCalradia.RefugeGuardCaptainV2";
+        private const string SerializedHealerKey = "AgesOfCalradia.RefugeHealerV2";
+        private const string SerializedGarrisonKey = "AgesOfCalradia.RefugeGarrisonV2";
+        private const string VisitedTerrainProfilesKey = "AgesOfCalradia.RefugeVisitedTerrainsV1";
         private const int StateSchemaVersion = 5;
         private const int MaximumSerializedStateLength = 1024;
         private const string AuthoredRefugeSceneId = "rct_refuge_fort";

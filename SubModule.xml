@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
   <Name value="Ages of Calradia" />
-  <Id value="RealisticCalendarTweaks" />
-  <Version value="v1.5.8" />
+  <Id value="AgesOfCalradia" />
+  <Version value="v1.5.9" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <Official value="false" />
@@ -39,11 +39,11 @@
   <SubModules>
     <SubModule>
       <Name value="Ages of Calradia" />
-      <DLLName value="RealisticCalendarTweaks.dll" />
-      <SubModuleClassType value="RealisticCalendarTweaks.MySubModule" />
+      <DLLName value="AgesOfCalradia.dll" />
+      <SubModuleClassType value="AgesOfCalradia.MySubModule" />
       <Assemblies>
         <Assembly value="MCMv5.dll" />
-        <Assembly value="RealisticCalendarTweaks.MCM.dll" />
+        <Assembly value="AgesOfCalradia.MCM.dll" />
       </Assemblies>
       <Tags>
         <Tag key="DedicatedServerType" value="none" />

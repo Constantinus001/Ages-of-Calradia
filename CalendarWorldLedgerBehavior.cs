@@ -14,8 +14,8 @@ namespace TwelveMonthCalendar
     /// </summary>
     internal sealed class CalendarWorldLedgerBehavior : CampaignBehaviorBase
     {
-        private const string LedgerKey = "RealisticCalendarTweaks.WorldLedgerV1";
-        private const string SettlementOwnershipKey = "RealisticCalendarTweaks.SettlementOwnershipV1";
+        private const string LedgerKey = "AgesOfCalradia.WorldLedgerV1";
+        private const string SettlementOwnershipKey = "AgesOfCalradia.SettlementOwnershipV1";
         private List<string> _entries = new List<string>();
         // Primitive, ID-keyed snapshot: settlementId, settlementName, factionId, factionName.
         // Keeping this as strings avoids a custom save type and remains compatible with saves.

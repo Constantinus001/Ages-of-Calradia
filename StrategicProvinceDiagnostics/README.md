@@ -2,7 +2,7 @@
 
 This is an independent Bannerlord module/build for investigating the 133-region
 strategic map. It does not compile, load, patch, or depend on the refuge-system
-code in `RealisticCalendarTweaks`.
+code in `AgesOfCalradia`.
 
 Build it from this directory:
 

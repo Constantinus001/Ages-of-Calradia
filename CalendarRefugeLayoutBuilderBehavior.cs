@@ -1368,7 +1368,7 @@ namespace TwelveMonthCalendar
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "Mount and Blade II Bannerlord",
                 "Configs",
-                "RealisticCalendarTweaks",
+                "AgesOfCalradia",
                 "RefugeLayoutDraft.xml");
         }
 
@@ -1378,7 +1378,7 @@ namespace TwelveMonthCalendar
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "Mount and Blade II Bannerlord",
                 "Configs",
-                "RealisticCalendarTweaks",
+                "AgesOfCalradia",
                 "CombinedPrefab",
                 "rct_refuge_fort_combined.xml");
         }

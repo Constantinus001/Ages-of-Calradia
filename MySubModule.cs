@@ -191,6 +191,7 @@ namespace TwelveMonthCalendar
                 campaignStarter.AddBehavior(new CalendarCampaignProfileBehavior());
                 campaignStarter.AddBehavior(new CalendarTreatyMigrationBehavior());
                 campaignStarter.AddBehavior(new CalendarWorldLedgerBehavior());
+                campaignStarter.AddBehavior(new CampaignKingdomBorderBehavior());
 #if STRATEGIC_PROVINCE_DIAGNOSTICS
                 campaignStarter.AddBehavior(new CalendarRefugeBehavior());
                 campaignStarter.AddBehavior(new CalendarCampBehavior());

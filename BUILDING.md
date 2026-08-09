@@ -8,7 +8,7 @@ dotnet msbuild TwelveMonthCalendar.MCM.csproj /t:Rebuild /p:Configuration=Releas
 ```
 
 Build the main project first because the MCM adapter references its output. The
-MCM build copies `MCMv5.dll` beside `RealisticCalendarTweaks.MCM.dll`; both are
+MCM build copies `MCMv5.dll` beside `AgesOfCalradia.MCM.dll`; both are
 declared in `SubModule.xml` and belong in the runtime package. The standalone
 MCM UI module remains optional.
 

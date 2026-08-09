@@ -45,7 +45,7 @@ namespace TwelveMonthCalendar
                     typeof(MySubModule).Assembly.Location);
                 string adapterPath = Path.Combine(
                     moduleDirectory,
-                    "RealisticCalendarTweaks.MCM.dll");
+                    "AgesOfCalradia.MCM.dll");
 
                 if (!File.Exists(adapterPath))
                 {
@@ -53,10 +53,10 @@ namespace TwelveMonthCalendar
                     return;
                 }
 
-                Assembly adapter = FindLoadedAssembly("RealisticCalendarTweaks.MCM") ??
+                Assembly adapter = FindLoadedAssembly("AgesOfCalradia.MCM") ??
                     Assembly.LoadFrom(adapterPath);
                 Type settingsType = adapter.GetType(
-                    "RealisticCalendarTweaks.MCM.CalendarMcmSettings");
+                    "AgesOfCalradia.MCM.CalendarMcmSettings");
                 MethodInfo registerMethod = settingsType?.GetMethod(
                     "RegisterSettings",
                     BindingFlags.Public | BindingFlags.Static);

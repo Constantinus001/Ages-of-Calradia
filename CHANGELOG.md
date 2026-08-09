@@ -2,6 +2,20 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## v1.5.9 - Complete identity migration and campaign borders
+
+- Completed the internal migration to the `AgesOfCalradia` module ID,
+  installation folder, assemblies, MCM adapter, settings file, diagnostics,
+  save keys, and release archive layout.
+- Fixed the blank Strategic Map caused by the deployed World Calendar prefab
+  requesting the retired texture-provider name after the assembly rename.
+- Added live kingdom borders to the campaign map using settlement Voronoi
+  cells projected onto terrain and refreshed after ownership changes.
+- Improved Strategic Map readability with visible province borders, enforced
+  marker separation, and a selection glow around the active settlement.
+- Updated release verification for the new module identity, map provider,
+  kingdom-border feature, and packaged runtime file list.
+
 ## v1.5.8 - Ages of Calradia rename
 
 - Renamed all public-facing launcher, MCM, diagnostics, documentation, and

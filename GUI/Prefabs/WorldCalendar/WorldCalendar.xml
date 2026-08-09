@@ -123,7 +123,7 @@
                       <Children>
                         <Widget Id="StrategicMapCanvas" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@MapCanvasWidth" SuggestedHeight="@MapCanvasHeight" HorizontalAlignment="Left" VerticalAlignment="Top">
                           <Children>
-                            <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="RealisticCalendarStrategicMapAtlasTextureProvider" />
+                            <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="CalendarStrategicCampaignAtlasTextureProvider" />
                             <!-- Legacy individual layers remain in the prefab for rollback only. The composed texture above is the active renderer. -->
                             <Widget IsVisible="false">
                               <Children>
@@ -397,12 +397,17 @@
                               </Children>
                             </Widget>
                             <!-- Transparent province outline artwork sits above owner/siege fills, keeping boundaries readable without white land. -->
-                            <ImageWidget IsVisible="false" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="strategic_province_borders" />
+                            <ImageWidget IsVisible="true" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="strategic_province_borders" />
                             <!-- One live, clickable marker for every town and castle. Its small button hit box captures a click; empty map space is still available for panning. -->
                             <Widget DataSource="{StrategicMarkers}" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                               <ItemTemplate>
                                 <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Size" SuggestedHeight="@Size" PositionXOffset="@X" PositionYOffset="@Y" Command.Click="ExecuteSelect">
                                   <Children>
+                                    <!-- Layered translucent bars give the clicked settlement a soft glow while retaining the compact hit target. -->
+                                    <Widget IsVisible="@IsSelected" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="4" SuggestedHeight="@Size" HorizontalAlignment="Left" VerticalAlignment="Center" Color="@GlowColor" />
+                                    <Widget IsVisible="@IsSelected" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="4" SuggestedHeight="@Size" HorizontalAlignment="Right" VerticalAlignment="Center" Color="@GlowColor" />
+                                    <Widget IsVisible="@IsSelected" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Size" SuggestedHeight="4" HorizontalAlignment="Center" VerticalAlignment="Top" Color="@GlowColor" />
+                                    <Widget IsVisible="@IsSelected" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@Size" SuggestedHeight="4" HorizontalAlignment="Center" VerticalAlignment="Bottom" Color="@GlowColor" />
                                     <!-- The visible town/castle symbols are baked into the one composed map texture. This button remains as the reliable click target. -->
                                     <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="2" SuggestedHeight="@Size" HorizontalAlignment="Left" VerticalAlignment="Center" Color="@BorderColor" />
                                     <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="2" SuggestedHeight="@Size" HorizontalAlignment="Right" VerticalAlignment="Center" Color="@BorderColor" />

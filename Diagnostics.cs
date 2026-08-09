@@ -76,7 +76,7 @@ namespace TwelveMonthCalendar
             try
             {
                 Directory.CreateDirectory(directory);
-                string candidate = Path.Combine(directory, "RealisticCalendarTweaks.log");
+                string candidate = Path.Combine(directory, "AgesOfCalradia.log");
                 RotateLogIfNeeded(candidate);
                 File.AppendAllText(candidate, string.Empty, Encoding.UTF8);
                 _logPath = candidate;
@@ -112,7 +112,7 @@ namespace TwelveMonthCalendar
                 Directory.CreateDirectory(directory);
                 string path = Path.Combine(
                     directory,
-                    "RealisticCalendarTweaks-crash-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + ".log");
+                    "AgesOfCalradia-crash-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + ".log");
                 File.WriteAllText(path, contents, Encoding.UTF8);
                 PruneCrashReports(Path.GetDirectoryName(_logPath));
             }
@@ -185,7 +185,7 @@ namespace TwelveMonthCalendar
                 }
 
                 FileInfo[] staleReports = new DirectoryInfo(crashDirectory)
-                    .GetFiles("RealisticCalendarTweaks-crash-*.log")
+                    .GetFiles("AgesOfCalradia-crash-*.log")
                     .OrderByDescending(file => file.CreationTimeUtc)
                     .Skip(MaximumCrashReports)
                     .ToArray();
