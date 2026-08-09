@@ -2,15 +2,8 @@
 
 All versions target Bannerlord Native v1.4.7.
 
-## v1.5.6 - Calendar navigation and strategic-map refinement
+## v1.5.7 - Existing-save and story-quest compatibility
 
-- Added an interactive month calendar with previous/next navigation, event summaries, and quest-deadline markers.
-- Added strategic-map settlement tracking, selected-settlement village details, and configurable legend, marker, and label presentation.
-- Refined strategic-map zoom, panning, custom atlas rendering, and town/castle legend artwork.
-- Improved campaign-map visual-clock, weather, atmosphere, and colour-grade synchronization diagnostics.
-- Completed the MCM/native Calendar Options fallback split so each settings surface loads only when appropriate.
-- Packaged the optional MCM v5 core and adapter, with JSON settings registration
-  so the MCM page is discovered and persists its configuration correctly.
 - Fixed story quests that use `CampaignTime.Never` being timed out by annual
   deadline balancing, including `Inquire at Ostican`, `Establish your Clan`,
   and `Villagers in Need`.
@@ -34,6 +27,16 @@ All versions target Bannerlord Native v1.4.7.
   Calendar events and quest deadlines use the same mapped day basis.
 - Kept elapsed durations separate from absolute-date epoch conversion so age,
   season, and year spans cannot inherit the native-save calendar offset.
+
+## v1.5.6 - Calendar navigation and strategic-map refinement
+
+- Added an interactive month calendar with previous/next navigation, event summaries, and quest-deadline markers.
+- Added strategic-map settlement tracking, selected-settlement village details, and configurable legend, marker, and label presentation.
+- Refined strategic-map zoom, panning, custom atlas rendering, and town/castle legend artwork.
+- Improved campaign-map visual-clock, weather, atmosphere, and colour-grade synchronization diagnostics.
+- Completed the MCM/native Calendar Options fallback split so each settings surface loads only when appropriate.
+- Packaged the optional MCM v5 core and adapter, with JSON settings registration
+  so the MCM page is discovered and persists its configuration correctly.
 
 ## v1.5.5 - GitHub-ready refuge and strategic-map release
 

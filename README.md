@@ -1,6 +1,6 @@
 # Realistic Calendar Tweaks
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.6.
+See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.7.
 
 ## Documentation location
 
@@ -85,13 +85,13 @@ Defender scan. It also refuses uncommitted sources and rejects an invalid
 Bannerlord module-version format. Only upload an archive after it reports
 `PASS`.
 
-For the diagnostics-enabled **v1.5.6 Test** archive, run:
+For the diagnostics-enabled **v1.5.7 Test** archive, run:
 
 ```powershell
 & .\Tests\Verify-Release.ps1 -IncludeStrategicProvinceDiagnostics
 ```
 
-This produces `artifacts\RealisticCalendarTweaks-v1.5.6-Test.zip`. It is for
+This produces `artifacts\RealisticCalendarTweaks-v1.5.7-Test.zip`. It is for
 testers and includes strategic-province snapshot diagnostics plus every
 module-owned refuge/editor scene. Camps and refuges are enabled only in this
 Test archive; their behaviors and map-bar button are disabled in the normal
