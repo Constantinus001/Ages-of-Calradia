@@ -48,7 +48,7 @@ namespace RealisticCalendarTweaks.MCM
         private bool _synchronizing;
 
         public override string Id => "RealisticCalendarTweaks_MCM";
-        public override string DisplayName => "Realistic Calendar Tweaks";
+        public override string DisplayName => "Ages of Calradia";
         public override string FolderName => "RealisticCalendarTweaks";
         public override string FormatType => "json";
 

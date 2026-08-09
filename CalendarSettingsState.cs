@@ -722,7 +722,7 @@ namespace TwelveMonthCalendar
                 {
                     Diagnostics.Info(
                         "Ignoring legacy calendar-system setting '" + calendarSystem
-                        + "'; Realistic Calendar Tweaks is always Gregorian12Month.");
+                        + "'; Ages of Calradia is always Gregorian12Month.");
                 }
                 _showDayLabel = showDayLabel;
                 _showYearLabel = showYearLabel;
@@ -1129,7 +1129,7 @@ namespace TwelveMonthCalendar
                         "Standalone settings loaded from {0}.{1}",
                         settingsPath,
                         migratedLegacyPath
-                            ? " Values will be copied to the RealisticCalendarTweaks settings path"
+                            ? " Values will be copied to the legacy internal settings path"
                             : string.Empty));
                 // Rewrite the file after loading so newly added configurable
                 // fields and the renamed settings path are added automatically.
@@ -1540,7 +1540,7 @@ namespace TwelveMonthCalendar
             {
                 Diagnostics.Info(
                     "Ignoring custom month lengths totaling " + totalDays
-                    + " days; Realistic Calendar Tweaks requires exactly "
+                    + " days; Ages of Calradia requires exactly "
                     + RequiredCommonDaysInYear + " common-year days.");
                 return;
             }

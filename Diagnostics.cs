@@ -58,7 +58,7 @@ namespace TwelveMonthCalendar
                     Write("INFO  Module log directory was not writable; using the Documents fallback.");
                 }
 
-                Write("=== Realistic Calendar Tweaks diagnostics started " + DateTime.Now.ToString("O") + " ===");
+                Write("=== Ages of Calradia diagnostics started " + DateTime.Now.ToString("O") + " ===");
             }
             catch
             {

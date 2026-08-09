@@ -74,7 +74,7 @@ namespace TwelveMonthCalendar
             try
             {
                 StringBuilder report = new StringBuilder();
-                report.AppendLine("Realistic Calendar Tweaks crash flight recorder");
+                report.AppendLine("Ages of Calradia crash flight recorder");
                 report.AppendLine("CapturedUtc=" + DateTime.UtcNow.ToString("O"));
                 report.AppendLine("Reason=" + (reason ?? "Unknown"));
                 if (exception != null)

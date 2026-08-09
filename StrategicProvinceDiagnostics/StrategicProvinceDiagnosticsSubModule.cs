@@ -11,7 +11,7 @@ namespace TwelveMonthCalendar
         {
             base.OnSubModuleLoad();
             StrategicProvinceDiagnosticsLog.Initialize();
-            StrategicProvinceDiagnosticsLog.Info("Strategic Province Diagnostics loaded. This module does not patch or reference the refuge system.");
+            StrategicProvinceDiagnosticsLog.Info("Ages of Calradia Diagnostics loaded. This module does not patch or reference the refuge system.");
         }
 
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
@@ -28,7 +28,7 @@ namespace TwelveMonthCalendar
 
         protected override void OnSubModuleUnloaded()
         {
-            StrategicProvinceDiagnosticsLog.Info("Strategic Province Diagnostics unloaded.");
+            StrategicProvinceDiagnosticsLog.Info("Ages of Calradia Diagnostics unloaded.");
             base.OnSubModuleUnloaded();
         }
     }

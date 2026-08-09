@@ -1,4 +1,4 @@
-# Realistic Calendar Tweaks - Refuge System Handoff
+# Ages of Calradia - Refuge System Handoff
 
 Updated: 2026-08-07
 
@@ -108,7 +108,7 @@ This means the fort may initially be visual-only. Add collision later through a 
 ## Immediate test procedure
 
 1. Start Bannerlord after confirming no old game instance remains in memory.
-2. Enable Realistic Calendar Tweaks and load the existing campaign.
+2. Enable Ages of Calradia and load the existing campaign.
 3. Move the player party within interaction range of the completed refuge.
 4. Enter the refuge.
 5. Confirm the open tan-green plains from the reference screenshot loads.

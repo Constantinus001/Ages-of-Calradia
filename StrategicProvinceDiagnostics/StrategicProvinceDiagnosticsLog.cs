@@ -27,7 +27,7 @@ namespace TwelveMonthCalendar
                     TrySetDirectory(Path.Combine(documentsPath, "Mount and Blade II Bannerlord", "Configs", "ModLogs"));
                 }
 
-                Write("=== Strategic Province Diagnostics started " + DateTime.Now.ToString("O") + " ===");
+                Write("=== Ages of Calradia Diagnostics started " + DateTime.Now.ToString("O") + " ===");
             }
             catch (Exception exception)
             {

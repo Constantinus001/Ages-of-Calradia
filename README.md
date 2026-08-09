@@ -1,6 +1,6 @@
-# Realistic Calendar Tweaks
+# Ages of Calradia
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.7.
+See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.8.
 
 ## Documentation location
 
@@ -85,13 +85,13 @@ Defender scan. It also refuses uncommitted sources and rejects an invalid
 Bannerlord module-version format. Only upload an archive after it reports
 `PASS`.
 
-For the diagnostics-enabled **v1.5.7 Test** archive, run:
+For the diagnostics-enabled **v1.5.8 Test** archive, run:
 
 ```powershell
 & .\Tests\Verify-Release.ps1 -IncludeStrategicProvinceDiagnostics
 ```
 
-This produces `artifacts\RealisticCalendarTweaks-v1.5.7-Test.zip`. It is for
+This produces `artifacts\AgesOfCalradia-v1.5.8-Test.zip`. It is for
 testers and includes strategic-province snapshot diagnostics plus every
 module-owned refuge/editor scene. Camps and refuges are enabled only in this
 Test archive; their behaviors and map-bar button are disabled in the normal
@@ -99,13 +99,15 @@ player archive. Use the normal archive for players.
 
 The build output is written to `bin\Win64_Shipping_Client`. Install the
 `RealisticCalendarTweaks` module folder in the game's `Modules` directory, then
-enable **Realistic Calendar Tweaks** in the Bannerlord launcher.
+enable **Ages of Calradia** in the Bannerlord launcher. The legacy internal
+folder and module ID intentionally remain unchanged so existing saves and
+in-place upgrades continue to work.
 
 This changes the underlying campaign-time interpretation so hero aging, native
 four-season calculations, and campaign events created with
 `CampaignTime.Years()` follow the 365-day year. Day-based timers remain
 day-based. New campaigns can be started normally, and existing vanilla or
-older Realistic Calendar Tweaks saves are supported.
+older releases' saves are supported.
 
 ## Save compatibility
 
