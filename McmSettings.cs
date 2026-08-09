@@ -4,7 +4,7 @@ using MCM.Abstractions.Attributes.v2;
 using MCM.Abstractions.Base.Global;
 using TwelveMonthCalendar;
 
-namespace RealisticCalendarTweaks.MCM
+namespace AgesOfCalradia.MCM
 {
     public sealed class CalendarMcmSettings : AttributeGlobalSettings<CalendarMcmSettings>
     {
@@ -47,9 +47,9 @@ namespace RealisticCalendarTweaks.MCM
         private bool _annualBalanceDiagnosticsEnabled = CalendarSettingsState.AnnualBalanceDiagnosticsEnabled;
         private bool _synchronizing;
 
-        public override string Id => "RealisticCalendarTweaks_MCM";
+        public override string Id => "AgesOfCalradia_MCM";
         public override string DisplayName => "Ages of Calradia";
-        public override string FolderName => "RealisticCalendarTweaks";
+        public override string FolderName => "AgesOfCalradia";
         public override string FormatType => "json";
 
         [SettingPropertyText("Month Names", Order = 1, RequireRestart = false,
@@ -381,7 +381,7 @@ namespace RealisticCalendarTweaks.MCM
             set { _strategicMapLegendFontSize = value; Apply(); OnPropertyChanged(); }
         }
 
-        [SettingPropertyFloatingInteger("Marker Spacing", 20f, 200f, "0.0", Order = 7, RequireRestart = false,
+        [SettingPropertyFloatingInteger("Marker Spacing", 52f, 200f, "0.0", Order = 7, RequireRestart = false,
             HintText = "Minimum source-map spacing between settlement markers. Increase it when icons overlap.")]
         [SettingPropertyGroup("Strategic Map")]
         public float StrategicMapMarkerSpacing

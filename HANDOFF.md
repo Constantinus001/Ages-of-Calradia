@@ -19,10 +19,10 @@ The screenshot target is the broad tan-green clearing with sparse trees around t
 ## Project locations
 
 - Source: `D:\AI-Related Apllications & Modding\Modding\Bannerlord Modding Stuff\_TwelveMonthCalendar`
-- Installed module: `C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\Modules\RealisticCalendarTweaks`
-- Runtime log: `C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\Modules\RealisticCalendarTweaks\Logs\RealisticCalendarTweaks.log`
+- Installed module: `C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\Modules\AgesOfCalradia`
+- Runtime log: `C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord\Modules\AgesOfCalradia\Logs\AgesOfCalradia.log`
 - Main project: `TwelveMonthCalendar.csproj`
-- Built DLL: `bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll`
+- Built DLL: `bin\Win64_Shipping_Client\AgesOfCalradia.dll`
 
 ## Current deployed build
 
@@ -32,7 +32,7 @@ The v1.5.2 release was compiled and deployed while Bannerlord was closed.
 - Deployed main DLL SHA-256: `8D8AAE63416180A7894570A9E7980EC8818BC7F5D25AE3DE123088F7AF6B1476`
 - Deployed MCM DLL SHA-256: `C326405EEAC277CE1E4F5D385745B06FF94B55E7226F3E4A14F73875CFC512AE`
 - The module-root and `bin\Win64_Shipping_Client` main DLLs match the verified release payload.
-- 166 release files were synchronized from `artifacts\RealisticCalendarTweaks-v1.5.2.zip`.
+- 166 release files were synchronized from `artifacts\AgesOfCalradia-v1.5.2.zip`.
 - Rollback copy: `Backups\Deploy-20260807-163000`
 - Release verification and Defender cloud-verdict hold completed successfully.
 
@@ -140,8 +140,8 @@ dotnet build "D:\AI-Related Apllications & Modding\Modding\Bannerlord Modding St
 
 Never deploy while Bannerlord or a TaleWorlds process is running. Copy the resulting DLL to both:
 
-- Installed module root: `RealisticCalendarTweaks.dll`
-- Installed `bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll`
+- Installed module root: `AgesOfCalradia.dll`
+- Installed `bin\Win64_Shipping_Client\AgesOfCalradia.dll`
 
 Also synchronize the changed `GUI`, `ModuleData`, `Prefabs`, and `SceneObj` content. Compare SHA-256 hashes after deployment.
 
@@ -150,8 +150,8 @@ Also synchronize the changed `GUI`, `ModuleData`, `Prefabs`, and `SceneObj` cont
 - Editor backups: `EditorBackups`
 - Experimental prefab backups: `EditorBackups\ExperimentalPrefabs`
 - Authored editor scene: `SceneObj\rct_refuge_fort`
-- Builder draft: `C:\Users\fpicc\Documents\Mount and Blade II Bannerlord\Configs\RealisticCalendarTweaks\RefugeLayoutDraft.xml`
-- Combined builder exports: `C:\Users\fpicc\Documents\Mount and Blade II Bannerlord\Configs\RealisticCalendarTweaks\CombinedPrefab`
+- Builder draft: `C:\Users\fpicc\Documents\Mount and Blade II Bannerlord\Configs\AgesOfCalradia\RefugeLayoutDraft.xml`
+- Combined builder exports: `C:\Users\fpicc\Documents\Mount and Blade II Bannerlord\Configs\AgesOfCalradia\CombinedPrefab`
 
 Do not delete, reset, or replace these while stabilizing the runtime fort.
 

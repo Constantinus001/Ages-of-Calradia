@@ -29,7 +29,7 @@ else {
 if ($LASTEXITCODE -ne 0) {
     throw "Main Release build failed with exit code $LASTEXITCODE."
 }
-$mainDll = Join-Path $runtimeBinDirectory 'RealisticCalendarTweaks.dll'
+$mainDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.dll'
 $harmonyPackageDll = Join-Path $env:USERPROFILE '.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll'
 $harmonyDll = Join-Path $runtimeBinDirectory '0Harmony.dll'
 if (-not (Test-Path -LiteralPath $harmonyPackageDll -PathType Leaf)) {
@@ -47,7 +47,7 @@ if ($LASTEXITCODE -ne 0) {
 # The MCM rebuild can clean the shared diagnostic output directory. Normalize
 # Harmony after both builds, before reflection checks and archive staging.
 Copy-Item -LiteralPath $harmonyPackageDll -Destination $harmonyDll -Force
-$mcmDll = Join-Path $runtimeBinDirectory 'RealisticCalendarTweaks.MCM.dll'
+$mcmDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.MCM.dll'
 $mcmCoreDll = Join-Path $runtimeBinDirectory 'MCMv5.dll'
 $calendarMathVerifier = Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1'
 if ($IncludeStrategicProvinceDiagnostics) {
@@ -202,7 +202,7 @@ $campaignTimePatchesSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoo
 $worldLedgerViewModelSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarWorldLedgerVM.cs')
 if ($saveProfileSource -notmatch 'CalendarCampaignProfileBehavior' -or
     $saveProfileSource -notmatch 'primitive payload only; no module-load marker written' -or
-    $saveProfileSource -notmatch 'RealisticCalendarTweaks\.CampaignProfileV3' -or
+    $saveProfileSource -notmatch 'AgesOfCalradia\.CampaignProfileV3' -or
     $saveProfileSource -match ':\s*SaveableTypeDefiner|using\s+TaleWorlds\.SaveSystem|\[Saveable(Field|Property)') {
     throw 'New saves must use the primitive soft campaign profile rather than a hard module-lock marker.'
 }
@@ -234,7 +234,7 @@ if ($campSource -notmatch 'Wait here for some time \(8 hours\)' -or
     $refugeSource -notmatch 'TrySurveyCurrentSite') {
     throw 'Camp must create its temporary marker on entry and expose one surveyed, confirmed refuge-construction action.'
 }
-if ($refugeSource -notmatch 'RealisticCalendarTweaks\.RefugeStashV2' -or
+if ($refugeSource -notmatch 'AgesOfCalradia\.RefugeStashV2' -or
     $refugeSource -notmatch 'TryOpenStash' -or
     $refugeSource -notmatch 'ApplyRestBenefitIfAtRefuge' -or
     $refugeSource -notmatch 'GetUpgradeConstructionHours' -or
@@ -335,7 +335,7 @@ if ($strategicMapViewport.Count -ne 1 -or
 $strategicTextureWidgets = @($worldCalendarDocument.SelectNodes('//TextureWidget'))
 $strategicLegendWidgets = @($worldCalendarDocument.SelectNodes('//StrategicLegendDrawWidget'))
 if ($strategicTextureWidgets.Count -ne 1 -or
-    $strategicTextureWidgets[0].TextureProviderName -ne 'RealisticCalendarStrategicMapAtlasTextureProvider' -or
+    $strategicTextureWidgets[0].TextureProviderName -ne 'CalendarStrategicCampaignAtlasTextureProvider' -or
     $strategicLegendWidgets.Count -ne 2 -or
     @($worldCalendarDocument.SelectNodes('//StrategicLegendDrawWidget[@IconKind="Town"]')).Count -ne 1 -or
     @($worldCalendarDocument.SelectNodes('//StrategicLegendDrawWidget[@IconKind="Castle"]')).Count -ne 1 -or
@@ -403,9 +403,9 @@ $version = $manifest.Module.Version.value
 if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^v\d+\.\d+\.\d+$') {
     throw 'SubModule.xml must define a valid Bannerlord version in vMajor.Minor.Patch format.'
 }
-if ($manifest.Module.Id.value -ne 'RealisticCalendarTweaks' -or
+if ($manifest.Module.Id.value -ne 'AgesOfCalradia' -or
     $manifest.Module.Name.value -ne 'Ages of Calradia') {
-    throw 'The manifest must retain the legacy RealisticCalendarTweaks ID and use the Ages of Calradia display name.'
+    throw 'The manifest must use the AgesOfCalradia ID and Ages of Calradia display name.'
 }
 $subModuleNames = @($manifest.Module.SubModules.SubModule.Name.value)
 if ($subModuleNames -notcontains 'Ages of Calradia') {
@@ -415,7 +415,7 @@ $mcmMetadata = @($manifest.Module.DependedModuleMetadatas.DependedModuleMetadata
 $additionalAssemblies = @($manifest.Module.SubModules.SubModule.Assemblies.Assembly | ForEach-Object { $_.value })
 if ($mcmMetadata.Count -ne 1 -or $mcmMetadata[0].optional -ne 'true' -or
     $additionalAssemblies -notcontains 'MCMv5.dll' -or
-    $additionalAssemblies -notcontains 'RealisticCalendarTweaks.MCM.dll') {
+    $additionalAssemblies -notcontains 'AgesOfCalradia.MCM.dll') {
     throw 'MCM must remain an optional load-before dependency, with its core and calendar adapter declared as additional assemblies.'
 }
 
@@ -439,8 +439,8 @@ if (Test-Path -LiteralPath $ReleaseArchive) {
     Remove-Item -LiteralPath $ReleaseArchive -Force
 }
 
-$stagingRoot = Join-Path ([IO.Path]::GetTempPath()) ("RealisticCalendarTweaks-release-{0}" -f [Guid]::NewGuid())
-$moduleStage = Join-Path $stagingRoot 'RealisticCalendarTweaks'
+$stagingRoot = Join-Path ([IO.Path]::GetTempPath()) ("AgesOfCalradia-release-{0}" -f [Guid]::NewGuid())
+$moduleStage = Join-Path $stagingRoot 'AgesOfCalradia'
 try {
     New-Item -ItemType Directory -Force -Path `
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
@@ -469,19 +469,19 @@ finally {
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $expectedEntries = @(
-    'RealisticCalendarTweaks/README.md',
-    'RealisticCalendarTweaks/SubModule.xml',
-    'RealisticCalendarTweaks/ModuleData/module_strings.xml',
-    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/0Harmony.dll',
-    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.dll',
-    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/RealisticCalendarTweaks.MCM.dll',
-    'RealisticCalendarTweaks/bin/Win64_Shipping_Client/MCMv5.dll'
+    'AgesOfCalradia/README.md',
+    'AgesOfCalradia/SubModule.xml',
+    'AgesOfCalradia/ModuleData/module_strings.xml',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/0Harmony.dll',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.dll',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.MCM.dll',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/MCMv5.dll'
 )
 $runtimeDirectoryEntries = foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot)) {
     $directoryName = Split-Path -Leaf $directory
     Get-ChildItem -LiteralPath $directory -Recurse -File | ForEach-Object {
         $relativePath = $_.FullName.Substring($directory.Length).TrimStart('\', '/')
-        ('RealisticCalendarTweaks/{0}/{1}' -f $directoryName, $relativePath).Replace('\', '/')
+        ('AgesOfCalradia/{0}/{1}' -f $directoryName, $relativePath).Replace('\', '/')
     }
 }
 $runtimeSceneEntries = foreach ($sceneDirectory in $runtimeSceneDirectories) {
@@ -489,7 +489,7 @@ $runtimeSceneEntries = foreach ($sceneDirectory in $runtimeSceneDirectories) {
         Where-Object { $_.FullName -notmatch '[\\/]ShaderCache[\\/]' } |
         ForEach-Object {
         $relativePath = $_.FullName.Substring($sceneObjRoot.Length).TrimStart('\', '/')
-        ('RealisticCalendarTweaks/SceneObj/{0}' -f $relativePath).Replace('\', '/')
+        ('AgesOfCalradia/SceneObj/{0}' -f $relativePath).Replace('\', '/')
     }
 }
 $expectedEntries = @($expectedEntries + $runtimeDirectoryEntries + $runtimeSceneEntries | Sort-Object -Unique)

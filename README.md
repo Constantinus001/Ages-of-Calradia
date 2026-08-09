@@ -1,6 +1,31 @@
 # Ages of Calradia
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.8.
+See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.9.
+
+## Current player features
+
+- **Gregorian campaign calendar:** a 365-day year, twelve named months,
+  Gregorian leap years, real-world four-season boundaries, custom date formats,
+  and a map-bar season/date display.
+- **World Calendar:** an interactive month calendar with navigation, event
+  summaries, and quest-deadline markers.
+- **Strategic map:** settlement ownership, province overlays, town and castle
+  markers, siege information, caravan trade-priority coverage, zoom and pan,
+  and configurable legend, marker, and label presentation.
+- **Annual balance:** campaign pacing, wages, economy, food, settlement,
+  progression, life-cycle, and diplomacy systems are scaled toward the native
+  annual cadence. Pregnancy, renown, mortality, and other supported systems are
+  configurable.
+- **Settings and diagnostics:** optional MCM v5 UI, native Calendar fallback,
+  shared module-local XML settings, Annual Balance controls, and compatibility
+  diagnostics use one persisted settings state.
+- **Save compatibility:** existing vanilla and older-release saves are
+  supported. The first load preserves the visible campaign date and existing
+  hero ages while applying the 365-day calendar to future time. Saves from the
+  old hard-marker era must first be migrated with v1.4.5.
+
+The normal player archive does not enable the unfinished camp and refuge
+systems. Those systems are reserved for the diagnostics **Test** archive.
 
 ## Documentation location
 
@@ -85,23 +110,24 @@ Defender scan. It also refuses uncommitted sources and rejects an invalid
 Bannerlord module-version format. Only upload an archive after it reports
 `PASS`.
 
-For the diagnostics-enabled **v1.5.8 Test** archive, run:
+For the diagnostics-enabled **v1.5.9 Test** archive, run:
 
 ```powershell
 & .\Tests\Verify-Release.ps1 -IncludeStrategicProvinceDiagnostics
 ```
 
-This produces `artifacts\AgesOfCalradia-v1.5.8-Test.zip`. It is for
+This produces `artifacts\AgesOfCalradia-v1.5.9-Test.zip`. It is for
 testers and includes strategic-province snapshot diagnostics plus every
 module-owned refuge/editor scene. Camps and refuges are enabled only in this
 Test archive; their behaviors and map-bar button are disabled in the normal
 player archive. Use the normal archive for players.
 
 The build output is written to `bin\Win64_Shipping_Client`. Install the
-`RealisticCalendarTweaks` module folder in the game's `Modules` directory, then
+`AgesOfCalradia` module folder in the game's `Modules` directory, then
 enable **Ages of Calradia** in the Bannerlord launcher. The legacy internal
-folder and module ID intentionally remain unchanged so existing saves and
-in-place upgrades continue to work.
+identity was retired in v1.5.9. Remove an older `RealisticCalendarTweaks`
+module folder before installing this release so Bannerlord cannot load both
+identities at once.
 
 This changes the underlying campaign-time interpretation so hero aging, native
 four-season calculations, and campaign events created with
@@ -161,7 +187,7 @@ payments for the longer year.
 The module writes diagnostics to:
 
 ```text
-<Bannerlord>\Modules\RealisticCalendarTweaks\Logs\RealisticCalendarTweaks.log
+<Bannerlord>\Modules\AgesOfCalradia\Logs\AgesOfCalradia.log
 ```
 
 The log records module loading, Harmony patch registration, campaign startup,
@@ -205,7 +231,7 @@ and module-local XML file.
 Standalone settings are saved to:
 
 ```text
-Modules\RealisticCalendarTweaks\RealisticCalendarTweaks.settings.xml
+Modules\AgesOfCalradia\AgesOfCalradia.settings.xml
 ```
 
 The module-local file is the active configuration source. On first launch, the
@@ -215,7 +241,7 @@ including the twelve month names, month lengths, and annual-balance toggles.
 For example:
 
 ```xml
-<RealisticCalendarTweaks UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
+<AgesOfCalradia UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
   UseOrdinalDaySuffixes="true"
   AutoCampaignTimeScale="true" CampaignTimeScale="0.15"
   FastForwardSpeedMultiplier="4"
@@ -263,11 +289,11 @@ to `0.5` and can be changed from the Calendar settings tab, MCM, or XML.
 
 The Strategic Map legend and marker spacing are also configurable without
 rebuilding the module. Edit these attributes in the generated
-`Modules\RealisticCalendarTweaks\RealisticCalendarTweaks.settings.xml` while
+`Modules\AgesOfCalradia\AgesOfCalradia.settings.xml` while
 the game is closed, then reopen the game:
 
 ```xml
-<RealisticCalendarTweaks
+<AgesOfCalradia
   StrategicMapShowLegend="true"
   StrategicMapLegendWidth="250"
   StrategicMapLegendHeight="108"

@@ -633,7 +633,7 @@ namespace TwelveMonthCalendar
             {
                 return Path.Combine(
                     GetModuleRoot(),
-                    "RealisticCalendarTweaks.settings.xml");
+                    "AgesOfCalradia.settings.xml");
             }
         }
 
@@ -645,7 +645,7 @@ namespace TwelveMonthCalendar
                     Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     "Mount and Blade II Bannerlord",
                     "Configs",
-                    "RealisticCalendarTweaks",
+                    "AgesOfCalradia",
                     "settings.xml");
             }
         }
@@ -833,7 +833,7 @@ namespace TwelveMonthCalendar
                     DefaultStrategicMapLegendFontSize);
                 _strategicMapMarkerSpacing = ClampFloat(
                     strategicMapMarkerSpacing ?? _strategicMapMarkerSpacing,
-                    20f,
+                    DefaultStrategicMapMarkerSpacing,
                     200f,
                     DefaultStrategicMapMarkerSpacing);
                 _strategicMapShowSettlementLabels = strategicMapShowSettlementLabels ?? _strategicMapShowSettlementLabels;
@@ -1062,7 +1062,7 @@ namespace TwelveMonthCalendar
                 document.Load(settingsPath);
                 XmlElement root = document.DocumentElement;
                 if (root == null
-                    || (root.Name != "RealisticCalendarTweaks"
+                    || (root.Name != "AgesOfCalradia"
                         && root.Name != "TwelveMonthCalendar"))
                 {
                     throw new InvalidDataException("The standalone settings file has an invalid root element.");
@@ -1152,7 +1152,7 @@ namespace TwelveMonthCalendar
                 }
 
                 XmlDocument document = new XmlDocument();
-                XmlElement root = document.CreateElement("RealisticCalendarTweaks");
+                XmlElement root = document.CreateElement("AgesOfCalradia");
                 document.AppendChild(root);
                 root.SetAttribute("UseLeapYears", UseLeapYears.ToString());
                 root.SetAttribute("ShowDayLabel", ShowDayLabel.ToString());

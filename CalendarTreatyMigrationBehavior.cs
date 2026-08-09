@@ -11,7 +11,7 @@ namespace TwelveMonthCalendar
     internal sealed class CalendarTreatyMigrationBehavior : CampaignBehaviorBase
     {
         private const int GregorianTributeTreatyDays = 235;
-        private const string MigrationKey = "RealisticCalendarTweaks.TributeTreatyMigrationV1";
+        private const string MigrationKey = "AgesOfCalradia.TributeTreatyMigrationV1";
         private const string LegacyMigrationKey = "TwelveMonthCalendar.TributeTreatyMigrationV1";
         private bool _hasMigratedExistingTributes;
 

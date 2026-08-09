@@ -220,7 +220,6 @@ namespace TwelveMonthCalendar
         private const string StableSkyboxTextureName = "semi_cloudy_2";
         private const float StableAtmosphereFrame = 140f;
         private static int _lastLoggedCampaignHour = -1;
-        private static Scene _lastManagedAtmosphereScene;
         private static Scene _lastSkyboxScene;
         private static string _lastSkyboxSignature = string.Empty;
         private static Texture _stableSkyboxTexture;

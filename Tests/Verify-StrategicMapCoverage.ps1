@@ -325,11 +325,11 @@ $markerButton = [regex]::Match($worldCalendarPrefab, '<ButtonWidget(?=[^>]*Posit
 Assert-True $markerButton.Success 'The transparent settlement-marker hit target is missing.'
 Assert-True ($markerButton.Value -notmatch 'Sprite=') 'The old coloured square block marker is still rendered.'
 Assert-True ($worldCalendarPrefab -notmatch 'CalendarStrategic(?:Town|Castle)MarkerTextureProvider') 'The World Calendar must not instantiate unsafe direct marker texture providers.'
-Assert-True ($worldCalendarPrefab -match 'CalendarStrategicTownLegendTextureProvider') 'The Strategic Map legend is missing its direct town icon.'
-Assert-True ($worldCalendarPrefab -match 'CalendarStrategicCastleLegendTextureProvider') 'The Strategic Map legend is missing its direct castle icon.'
+Assert-True (([regex]::Matches($worldCalendarPrefab, '<StrategicLegendDrawWidget[^>]*IconKind="Town"')).Count -eq 1) 'The Strategic Map legend is missing its engine-drawn town icon.'
+Assert-True (([regex]::Matches($worldCalendarPrefab, '<StrategicLegendDrawWidget[^>]*IconKind="Castle"')).Count -eq 1) 'The Strategic Map legend is missing its engine-drawn castle icon.'
 Assert-True ($worldCalendarPrefab -match 'Text="Town"') 'The Strategic Map legend is missing the Town label.'
 Assert-True ($worldCalendarPrefab -match 'Text="Castle"') 'The Strategic Map legend is missing the Castle label.'
-Assert-True (([regex]::Matches($worldCalendarPrefab, 'TextureProviderName="')).Count -eq 3) "The Strategic Map must use one map composer plus two direct legend-marker textures."
+Assert-True (([regex]::Matches($worldCalendarPrefab, 'TextureProviderName="')).Count -eq 1) "The Strategic Map must use one map composer while engine widgets draw both legend icons."
 Assert-True ($ledgerSource -match '\[DataSourceProperty\] public bool IsUnderSiege') 'Strategic settlement marker data does not expose its live siege state.'
 Assert-True ($ledgerSource -match 'BuildStrategicPanelText\(\)') 'The strategic map is missing its selected-settlement details panel.'
 Assert-True ($ledgerSource -match 'CanPlayerInspectSettlement') 'The strategic-map settlement details are missing faction access control.'

@@ -20,7 +20,7 @@ namespace TwelveMonthCalendar
                 // Use the same stable game-root resolution used by established Bannerlord
                 // modules. Assembly.Location can point at a loader/cache path rather than
                 // the installed module directory.
-                string modulePath = Path.Combine(BasePath.Name, "Modules", "RealisticCalendarTweaks");
+                string modulePath = Path.Combine(BasePath.Name, "Modules", "AgesOfCalradia");
                 if (!TrySetDirectory(Path.Combine(modulePath, "Logs")))
                 {
                     string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

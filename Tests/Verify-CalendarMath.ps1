@@ -19,7 +19,7 @@ foreach ($assemblyName in @(
 }
 
 if ([string]::IsNullOrWhiteSpace($CalendarAssemblyPath)) {
-    $CalendarAssemblyPath = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll'
+    $CalendarAssemblyPath = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\AgesOfCalradia.dll'
 }
 $calendarAssembly = [Reflection.Assembly]::LoadFrom($CalendarAssemblyPath)
 $calendarMath = $calendarAssembly.GetType('TwelveMonthCalendar.CalendarTimeMath', $true)

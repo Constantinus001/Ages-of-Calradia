@@ -5,8 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6D9B6A1E-1D8D-4E36-BD42-3BEA3E4B42F7}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>RealisticCalendarTweaks.MCM</RootNamespace>
-    <AssemblyName>RealisticCalendarTweaks.MCM</AssemblyName>
+    <RootNamespace>AgesOfCalradia.MCM</RootNamespace>
+    <AssemblyName>AgesOfCalradia.MCM</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -16,7 +16,7 @@
     <NetStandardPath Condition=" '$(NetStandardPath)' == '' and '$(NETSTANDARD_PATH)' != '' ">$(NETSTANDARD_PATH)</NetStandardPath>
     <NetStandardPath Condition=" '$(NetStandardPath)' == '' ">C:\Program Files\dotnet\sdk\3.1.426\Microsoft\Microsoft.NET.Build.Extensions\net461\lib\netstandard.dll</NetStandardPath>
     <McmAssemblyPath Condition=" '$(McmAssemblyPath)' == '' ">$(UserProfile)\.nuget\packages\bannerlord.mcm\5.12.2\lib\netstandard2.0\MCMv5.dll</McmAssemblyPath>
-    <MainAssemblyPath Condition=" '$(MainAssemblyPath)' == '' ">bin\Win64_Shipping_Client\RealisticCalendarTweaks.dll</MainAssemblyPath>
+    <MainAssemblyPath Condition=" '$(MainAssemblyPath)' == '' ">bin\Win64_Shipping_Client\AgesOfCalradia.dll</MainAssemblyPath>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -43,7 +43,7 @@
       <HintPath>$(NetStandardPath)</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="RealisticCalendarTweaks">
+    <Reference Include="AgesOfCalradia">
       <HintPath>$(MainAssemblyPath)</HintPath>
       <Private>false</Private>
     </Reference>

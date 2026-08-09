@@ -23,7 +23,7 @@ namespace TwelveMonthCalendar
     // Use a distinct provider name for the full campaign atlas. It prevents
     // Gauntlet's provider cache from ever resolving this 1730px map as one of
     // the small Town/Castle legend textures.
-    public sealed class RealisticCalendarStrategicMapAtlasTextureProvider : TextureProvider
+    public sealed class CalendarStrategicCampaignAtlasTextureProvider : TextureProvider
     {
         private const int TerritoryCount = 133;
         private const byte SyntheticTerritoryBorder = 255;
@@ -123,7 +123,7 @@ namespace TwelveMonthCalendar
                 _engineTexture = replacement;
                 _renderTexture = new TwoDimensionTexture(new EngineTextureWrapper(replacement));
                 _renderedRevision = revision;
-                Diagnostics.Info("Strategic texture diagnostic: provider=RealisticCalendarStrategicMapAtlasTextureProvider; request="
+                Diagnostics.Info("Strategic texture diagnostic: provider=CalendarStrategicCampaignAtlasTextureProvider; request="
                     + (name ?? "<null>") + "; revision=" + revision + "; png=" + _mapWidth + "x" + _mapHeight
                     + "; markers=" + markerSnapshot.Count + "; engineTextureReleased=" + replacement.IsReleased + ".");
                 ReleaseTextureAfterFrameBudget(previous, 3);
@@ -364,7 +364,7 @@ namespace TwelveMonthCalendar
 
         private static string GetModuleRoot()
         {
-            string assemblyDirectory = Path.GetDirectoryName(typeof(RealisticCalendarStrategicMapAtlasTextureProvider).Assembly.Location);
+            string assemblyDirectory = Path.GetDirectoryName(typeof(CalendarStrategicCampaignAtlasTextureProvider).Assembly.Location);
             if (string.IsNullOrEmpty(assemblyDirectory))
             {
                 throw new InvalidOperationException("The Strategic Map assembly location is unavailable.");

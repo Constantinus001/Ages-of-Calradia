@@ -1836,6 +1836,14 @@
       <SpritePartName>strategic_province_133</SpritePartName>
     </GenericSprite>
     <GenericSprite>
+      <Name>strategic_marker_town</Name>
+      <SpritePartName>strategic_marker_town</SpritePartName>
+    </GenericSprite>
+    <GenericSprite>
+      <Name>strategic_marker_castle</Name>
+      <SpritePartName>strategic_marker_castle</SpritePartName>
+    </GenericSprite>
+    <GenericSprite>
       <Name>realistic_calendar_legend_town</Name>
       <SpritePartName>strategic_marker_town</SpritePartName>
     </GenericSprite>

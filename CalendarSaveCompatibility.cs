@@ -496,10 +496,10 @@ namespace TwelveMonthCalendar
     /// </summary>
     internal sealed class CalendarCampaignProfileBehavior : CampaignBehaviorBase
     {
-        private const string SerializedProfileKey = "RealisticCalendarTweaks.CampaignProfileV3";
+        private const string SerializedProfileKey = "AgesOfCalradia.CampaignProfileV3";
         private const string LegacySerializedProfileKey = "TwelveMonthCalendar.CampaignProfileV2";
-        private const string LegacyAgeCompatibilityKey = "RealisticCalendarTweaks.LegacyNativeAgeCompatibilityV1";
-        private const string LegacyAgeCutoverKey = "RealisticCalendarTweaks.LegacyNativeAgeCutoverDayV1";
+        private const string LegacyAgeCompatibilityKey = "AgesOfCalradia.LegacyNativeAgeCompatibilityV1";
+        private const string LegacyAgeCutoverKey = "AgesOfCalradia.LegacyNativeAgeCutoverDayV1";
 
         private string _serializedCampaignProfile = string.Empty;
         private bool _legacyAgeCompatibility;

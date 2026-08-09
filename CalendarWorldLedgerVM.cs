@@ -22,6 +22,7 @@ namespace TwelveMonthCalendar
         // Markers are painted at a fixed size in the source texture. Keeping
         // their centres this far apart prevents town/castle silhouettes from
         // merging when the player zooms into dense settlement clusters.
+        private const float StrategicMarkerMinimumSeparation = 52f;
         private const float StrategicMarkerEdgePadding = 20f;
         private string _title = "World Events";
         private string _monthTitle = string.Empty;
@@ -444,7 +445,9 @@ namespace TwelveMonthCalendar
             });
 
             List<StrategicSettlementPoint> placed = new List<StrategicSettlementPoint>();
-            float minimumSeparation = CalendarSettingsState.StrategicMapMarkerSpacing;
+            float minimumSeparation = Math.Max(
+                StrategicMarkerMinimumSeparation,
+                CalendarSettingsState.StrategicMapMarkerSpacing);
             foreach (StrategicSettlementPoint point in ordered)
             {
                 if (point == null) continue;
@@ -520,7 +523,9 @@ namespace TwelveMonthCalendar
                 float deltaX = x - occupied.DisplayX;
                 float deltaY = y - occupied.DisplayY;
                 float distanceSquared = (deltaX * deltaX) + (deltaY * deltaY);
-                float minimumSeparation = CalendarSettingsState.StrategicMapMarkerSpacing;
+                float minimumSeparation = Math.Max(
+                    StrategicMarkerMinimumSeparation,
+                    CalendarSettingsState.StrategicMapMarkerSpacing);
                 if (distanceSquared < minimumSeparation * minimumSeparation) return false;
             }
             return true;
@@ -914,7 +919,7 @@ namespace TwelveMonthCalendar
             // One composed texture owns all faction-colour rendering. This
             // avoids Gauntlet dropping individual sprite-color bindings and
             // keeps every province interior filled on the live map.
-            RealisticCalendarStrategicMapAtlasTextureProvider.UpdateMapState(ownerColorsBySettlementId, markerPoints);
+            CalendarStrategicCampaignAtlasTextureProvider.UpdateMapState(ownerColorsBySettlementId, markerPoints);
         }
 
         private void BuildStrategicContestedProvinces(Dictionary<string, IFaction> besiegersBySettlementId)
@@ -1707,6 +1712,7 @@ namespace TwelveMonthCalendar
         [DataSourceProperty] public int Size { get { return _size; } }
         [DataSourceProperty] public int IconSize { get { return _iconSize; } }
         [DataSourceProperty] public string BorderColor { get { return _isSelected ? "#FFE3A3FF" : "#100D0BFF"; } }
+        [DataSourceProperty] public string GlowColor { get { return _isSelected ? "#FFE3A3A8" : "#00000000"; } }
         [DataSourceProperty] public bool IsSelected
         {
             get { return _isSelected; }
@@ -1716,6 +1722,7 @@ namespace TwelveMonthCalendar
                 _isSelected = value;
                 OnPropertyChangedWithValue(value, "IsSelected");
                 OnPropertyChangedWithValue(BorderColor, "BorderColor");
+                OnPropertyChangedWithValue(GlowColor, "GlowColor");
             }
         }
         public void ExecuteSelect() { if (_select != null) _select(this); }
