@@ -205,7 +205,7 @@ namespace TwelveMonthCalendar
             DirectoryInfo moduleDirectory = binaryDirectory == null ? null : binaryDirectory.Parent;
             if (moduleDirectory == null)
             {
-                throw new InvalidOperationException("The Realistic Calendar Tweaks module directory could not be resolved.");
+                throw new InvalidOperationException("The Ages of Calradia module directory could not be resolved.");
             }
 
             return moduleDirectory.FullName;

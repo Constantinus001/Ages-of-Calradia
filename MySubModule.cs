@@ -76,7 +76,7 @@ namespace TwelveMonthCalendar
                 // this mod's runtime behavior disabled, rather than rethrowing
                 // into Bannerlord's startup sequence.
                 Diagnostics.Error(
-                    "Harmony patch registration failed. Realistic Calendar Tweaks runtime patches were disabled to protect the game session.",
+                    "Harmony patch registration failed. Ages of Calradia runtime patches were disabled to protect the game session.",
                     exception);
                 try
                 {

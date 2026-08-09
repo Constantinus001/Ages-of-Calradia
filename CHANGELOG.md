@@ -2,6 +2,14 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## v1.5.8 - Ages of Calradia rename
+
+- Renamed all public-facing launcher, MCM, diagnostics, documentation, and
+  release-archive branding to **Ages of Calradia**.
+- Retained the legacy `RealisticCalendarTweaks` module ID, installation folder,
+  assemblies, settings path, and save keys so existing saves and upgrades keep
+  working under the new name.
+
 ## v1.5.7 - Existing-save and story-quest compatibility
 
 - Fixed story quests that use `CampaignTime.Never` being timed out by annual

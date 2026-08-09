@@ -1,4 +1,4 @@
-# Strategic Province Diagnostics
+# Ages of Calradia Diagnostics
 
 This is an independent Bannerlord module/build for investigating the 133-region
 strategic map. It does not compile, load, patch, or depend on the refuge-system
@@ -12,7 +12,7 @@ msbuild StrategicProvinceDiagnostics.csproj /p:Configuration=Release
 
 Copy the resulting module directory, including `SubModule.xml` and
 `bin\Win64_Shipping_Client\StrategicProvinceDiagnostics.dll`, into the game's
-`Modules` directory. Enable **Strategic Province Diagnostics** alongside the
+`Modules` directory. Enable **Ages of Calradia Diagnostics** alongside the
 normal calendar/refuge build.
 
 Logs are written beside the diagnostics module in `Logs` when possible, with a

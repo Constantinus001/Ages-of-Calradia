@@ -19,8 +19,8 @@ if (-not $AllowDirtySource) {
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
 if ($IncludeStrategicProvinceDiagnostics) {
-    $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\Test_Win64_Shipping_Client'
-    dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /p:IncludeStrategicProvinceDiagnostics=true /p:DefineConstants=TRACE%3BSTRATEGIC_PROVINCE_DIAGNOSTICS /p:OutputPath='bin\Test_Win64_Shipping_Client\' /v:minimal
+    $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\AgesOfCalradia_Test_Win64_Shipping_Client'
+    dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /p:IncludeStrategicProvinceDiagnostics=true /p:DefineConstants=TRACE%3BSTRATEGIC_PROVINCE_DIAGNOSTICS /p:OutputPath='bin\AgesOfCalradia_Test_Win64_Shipping_Client\' /v:minimal
 }
 else {
     $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client'
@@ -36,7 +36,7 @@ if (-not (Test-Path -LiteralPath $harmonyPackageDll -PathType Leaf)) {
     throw "Harmony package output is missing: $harmonyPackageDll"
 }
 if ($IncludeStrategicProvinceDiagnostics) {
-    dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /p:MainAssemblyPath=$mainDll /p:OutputPath='bin\Test_Win64_Shipping_Client\' /v:minimal
+    dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /p:MainAssemblyPath=$mainDll /p:OutputPath='bin\AgesOfCalradia_Test_Win64_Shipping_Client\' /v:minimal
 }
 else {
     dotnet msbuild $mcmProject /t:Rebuild /p:Configuration=Release /v:minimal
@@ -404,8 +404,12 @@ if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^v\d+\.\d+\.\
     throw 'SubModule.xml must define a valid Bannerlord version in vMajor.Minor.Patch format.'
 }
 if ($manifest.Module.Id.value -ne 'RealisticCalendarTweaks' -or
-    $manifest.Module.Name.value -ne 'Realistic Calendar Tweaks') {
-    throw 'The primary module manifest must use the RealisticCalendarTweaks ID and display name.'
+    $manifest.Module.Name.value -ne 'Ages of Calradia') {
+    throw 'The manifest must retain the legacy RealisticCalendarTweaks ID and use the Ages of Calradia display name.'
+}
+$subModuleNames = @($manifest.Module.SubModules.SubModule.Name.value)
+if ($subModuleNames -notcontains 'Ages of Calradia') {
+    throw 'The runtime submodule must use the Ages of Calradia display name.'
 }
 $mcmMetadata = @($manifest.Module.DependedModuleMetadatas.DependedModuleMetadata | Where-Object { $_.id -eq 'Bannerlord.MBOptionScreen' })
 $additionalAssemblies = @($manifest.Module.SubModules.SubModule.Assemblies.Assembly | ForEach-Object { $_.value })
@@ -426,7 +430,7 @@ foreach ($optionId in @('CalendarMonthNames', 'CalendarSeasonNames', 'CalendarMo
 
 if ([string]::IsNullOrWhiteSpace($ReleaseArchive)) {
     $archiveLabel = if ($IncludeStrategicProvinceDiagnostics) { "{0}-Test" -f $version } else { $version }
-    $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\RealisticCalendarTweaks-{0}.zip" -f $archiveLabel)
+    $ReleaseArchive = Join-Path $ModuleRoot ("artifacts\AgesOfCalradia-{0}.zip" -f $archiveLabel)
 }
 
 $archiveDirectory = Split-Path -Parent $ReleaseArchive

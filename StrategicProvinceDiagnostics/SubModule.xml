@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Strategic Province Diagnostics" />
+  <Name value="Ages of Calradia Diagnostics" />
   <Id value="RealisticCalendarTweaksStrategicDiagnostics" />
   <Version value="v0.1.0" />
   <SingleplayerModule value="true" />
@@ -14,7 +14,7 @@
 
   <SubModules>
     <SubModule>
-      <Name value="Strategic Province Diagnostics" />
+      <Name value="Ages of Calradia Diagnostics" />
       <DLLName value="StrategicProvinceDiagnostics.dll" />
       <SubModuleClassType value="TwelveMonthCalendar.StrategicProvinceDiagnosticsSubModule" />
       <Tags>

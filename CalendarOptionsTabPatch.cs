@@ -491,7 +491,7 @@ namespace TwelveMonthCalendar
             InformationManager.ShowInquiry(
                 new InquiryData(
                     "Reset Calendar Settings",
-                    "This will restore every Realistic Calendar Tweaks setting to its default value. You will not be able to undo this action. Are you sure?",
+                    "This will restore every Ages of Calradia setting to its default value. You will not be able to undo this action. Are you sure?",
                     true,
                     true,
                     "Yes",
