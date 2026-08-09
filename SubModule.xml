@@ -2,7 +2,7 @@
 <Module>
   <Name value="Realistic Calendar Tweaks" />
   <Id value="RealisticCalendarTweaks" />
-  <Version value="v1.5.6" />
+  <Version value="v1.5.7" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <Official value="false" />
