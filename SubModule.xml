@@ -2,15 +2,29 @@
 <Module>
   <Name value="Realistic Calendar Tweaks" />
   <Id value="RealisticCalendarTweaks" />
-  <Version value="v1.5.5" />
+  <Version value="v1.5.6" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
+  <Official value="false" />
+  <DefaultModule value="false" />
+  <ModuleCategory value="Singleplayer" />
+  <ModuleType value="Community" />
 
   <DependedModules>
     <DependedModule Id="Native" DependentVersion="v1.4.7" />
     <DependedModule Id="SandBoxCore" DependentVersion="v1.4.7" />
     <DependedModule Id="Sandbox" DependentVersion="v1.4.7" />
   </DependedModules>
+
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Native" order="LoadBeforeThis" version="v1.4.7" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" version="v1.4.7" />
+    <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" version="v1.4.7" />
+    <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" version="v1.4.7" optional="true" />
+    <DependedModuleMetadata id="CustomBattle" order="LoadBeforeThis" version="v1.4.7" optional="true" />
+    <DependedModuleMetadata id="NavalDLC" order="LoadBeforeThis" optional="true" />
+    <DependedModuleMetadata id="Bannerlord.MBOptionScreen" order="LoadBeforeThis" version="v5.12.2" optional="true" />
+  </DependedModuleMetadatas>
 
   <Xmls>
     <XmlNode>
@@ -27,6 +41,10 @@
       <Name value="Realistic Calendar Tweaks" />
       <DLLName value="RealisticCalendarTweaks.dll" />
       <SubModuleClassType value="RealisticCalendarTweaks.MySubModule" />
+      <Assemblies>
+        <Assembly value="MCMv5.dll" />
+        <Assembly value="RealisticCalendarTweaks.MCM.dll" />
+      </Assemblies>
       <Tags>
         <Tag key="DedicatedServerType" value="none" />
         <Tag key="IsNoRenderModeElement" value="false" />

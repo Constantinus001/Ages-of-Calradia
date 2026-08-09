@@ -115,17 +115,21 @@ namespace TwelveMonthCalendar
             base.OnFinalize();
         }
 
-        public void ExecuteOpenWorldCalendar()
+        public void ExecuteToggleWorldCalendar()
         {
             try
             {
-                WorldCalendarScreen.Show();
+                WorldCalendarScreen.Toggle();
             }
             catch (Exception exception)
             {
-                Diagnostics.Error("World Calendar could not be opened from the map bar.", exception);
+                Diagnostics.Error("World Events could not be toggled from the map bar.", exception);
             }
         }
+
+        // Retained for compatibility with any cached or third-party prefab
+        // that still invokes the former command name.
+        public void ExecuteOpenWorldCalendar() { ExecuteToggleWorldCalendar(); }
 
         public void ExecuteOpenCamp()
         {

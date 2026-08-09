@@ -2,6 +2,14 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## v1.5.6 - Calendar navigation and strategic-map refinement
+
+- Added an interactive month calendar with previous/next navigation, event summaries, and quest-deadline markers.
+- Added strategic-map settlement tracking, selected-settlement village details, and configurable legend, marker, and label presentation.
+- Refined strategic-map zoom, panning, custom atlas rendering, and town/castle legend artwork.
+- Improved campaign-map visual-clock, weather, atmosphere, and colour-grade synchronization diagnostics.
+- Completed the MCM/native Calendar Options fallback split so each settings surface loads only when appropriate.
+
 ## v1.5.5 - GitHub-ready refuge and strategic-map release
 
 - Added the player refuge workflow: surveyed construction sites, persistent camp anchors, refuge staff and upgrades, the builder HUD, and data-driven fort and scene profiles.
@@ -16,6 +24,12 @@ All versions target Bannerlord Native v1.4.7.
 - Added a save-persisted Annual Balance master switch that does not disable the calendar itself.
 - Migrates v1.5 schema-3 profiles with obsolete high fast-forward values safely to the supported 4x maximum.
 - Made standalone settings writes atomic and remove temporary files after a failed write.
+- Declared the MCM adapter in the module manifest, packaged the MCM v5 core as
+  a soft dependency, and restored JSON format registration so the optional MCM
+  UI discovers and persists the settings page correctly.
+- Split the native Calendar fallback into its own prefab: MCM sessions retain
+  Bannerlord's untouched Options layout, while no-MCM sessions load an enabled
+  Calendar tab without leaving a blank tab behind.
 
 ## v1.5.0 - Calendar settings and map-bar update
 

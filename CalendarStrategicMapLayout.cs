@@ -238,11 +238,7 @@ namespace TwelveMonthCalendar
                 { "strategic_province_058", "town_EN2" },
                 { "strategic_province_059", "town_EN5" },
                 { "strategic_province_060", "castle_EN5" },
-                // Province 061 is the polygon containing Amprela (town_EN6).
-                // The previous castle_ES7 binding made Amprela invisible to
-                // ownership and siege overlays even though its marker was
-                // drawn at the correct map position.
-                { "strategic_province_061", "town_EN6" },
+                { "strategic_province_061", "castle_ES7" },
                 { "strategic_province_062", "town_B5" },
                 { "strategic_province_063", "town_B4" },
                 { "strategic_province_064", "town_EN1" },

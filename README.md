@@ -1,6 +1,6 @@
 # Realistic Calendar Tweaks
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.5.
+See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.6.
 
 ## Documentation location
 
@@ -66,11 +66,12 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 ## Build and release verification
 
 Release archives contain the complete single runtime module: module XML, module
-data, README, Harmony dependency, compiled module DLLs, UI prefab XML files,
-and any finished module-owned refuge scenes. The retired Better Time adapter
-and the old-module save bridge are intentionally excluded. Development and
-verification scripts, logs, debug symbols, unfinished scene-editor work,
-editor backups, and shader caches are intentionally excluded.
+data, README, Harmony, the MCM v5 core and calendar adapter, compiled module
+DLLs, UI prefab XML files, and any finished module-owned refuge scenes. The
+retired Better Time adapter and the old-module save bridge are intentionally
+excluded. Development and verification scripts, logs, debug symbols,
+unfinished scene-editor work, editor backups, and shader caches are
+intentionally excluded.
 
 Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 
@@ -84,13 +85,13 @@ Defender scan. It also refuses uncommitted sources and rejects an invalid
 Bannerlord module-version format. Only upload an archive after it reports
 `PASS`.
 
-For the diagnostics-enabled **v1.5.5 Test** archive, run:
+For the diagnostics-enabled **v1.5.6 Test** archive, run:
 
 ```powershell
 & .\Tests\Verify-Release.ps1 -IncludeStrategicProvinceDiagnostics
 ```
 
-This produces `artifacts\RealisticCalendarTweaks-v1.5.5-Test.zip`. It is for
+This produces `artifacts\RealisticCalendarTweaks-v1.5.6-Test.zip`. It is for
 testers and includes strategic-province snapshot diagnostics plus every
 module-owned refuge/editor scene. Use the normal archive for players.
 
@@ -144,49 +145,54 @@ the module automatically falls back to
 
 ## Optional MCM settings
 
-MCM is optional. If MCM is installed, the calendar exposes an in-game settings
-page with calendar, display, balance, lord-mortality, fast-forward-speed, and
-clock-synchronized-lighting controls. The date format supports `{Month}`, `{Season}`, `{Day}`,
-`{Year}`, `{MonthNumber}`, and `{DayOfYear}`. Without MCM, the native
-**Calendar** Options tab provides the same core controls. On the map bar, the
-date and season occupy the two-line block left of the sundial, while the clock
-appears to its right. The preset default is
-**Month-Day-Year**.
+The release includes the MCM v5 core and this mod's settings adapter so the
+adapter can load safely. The standalone **Mod Configuration Menu v5** UI remains
+optional. When that UI is enabled, it exposes calendar, display, pacing,
+lighting, life-cycle, progression, annual-balance, diagnostics, and Strategic
+Map controls. Without the standalone MCM UI, the native **Calendar** Options tab
+provides the same core controls.
+
+The date format supports `{Month}`, `{Season}`, `{Day}`, `{Year}`,
+`{MonthNumber}`, and `{DayOfYear}`. On the map bar, the date and season occupy
+the two-line block left of the sundial, while the clock appears to its right.
+The preset default is **Month-Day-Year**.
 
 ## Standalone in-game settings
 
-MCM is not required. The module adds leap-year, label, pacing,
-and preset-format controls to a separate **Calendar** tab in Bannerlord's native
-**Options** screen. Open the game's Options screen and select the Calendar tab.
-MCM and the XML settings file also support custom format
+MCM provides the in-game settings interface when enabled. When MCM is
+unavailable, the mod loads its separate **Calendar** fallback layout and shows
+an enabled Calendar tab. MCM and the XML settings file support custom format
 tokens: `{Month}`, `{Season}`, `{Day}`, `{Year}`, `{MonthNumber}`, and
 `{DayOfYear}`.
 
 Use the native tab's top-right **Reset to Defaults** button to restore calendar
 settings. The old duplicate reset row is intentionally not shown.
 
-When the optional MCM settings page successfully loads, the native **Calendar**
-tab remains visible but is disabled so there is one active settings screen. If
-MCM is not installed or its optional adapter cannot initialize, the native tab
-remains fully functional.
+With MCM active, Bannerlord's untouched native Options layout is used: the
+**Calendar** tab is absent and MCM's **Mod Options** tab is authoritative. If
+MCM is absent or its adapter cannot initialize, the separate Calendar fallback
+layout loads with an enabled Calendar tab. Both paths use the same runtime state
+and module-local XML file.
 
 Standalone settings are saved to:
 
 ```text
-Documents\Mount and Blade II Bannerlord\Configs\RealisticCalendarTweaks\settings.xml
+Modules\RealisticCalendarTweaks\RealisticCalendarTweaks.settings.xml
 ```
 
-The file is created automatically on first launch. Every calendar setting is
-kept there, including the twelve month names, month lengths, and annual-balance
-toggles. For example:
+The module-local file is the active configuration source. On first launch, the
+mod migrates an existing Documents-based settings file into the module folder;
+otherwise it uses the shipped defaults. Every calendar setting is kept there,
+including the twelve month names, month lengths, and annual-balance toggles.
+For example:
 
 ```xml
 <RealisticCalendarTweaks UseLeapYears="true" ShowDayLabel="false" ShowYearLabel="false"
   UseOrdinalDaySuffixes="true"
   AutoCampaignTimeScale="true" CampaignTimeScale="0.15"
   FastForwardSpeedMultiplier="4"
-  ClockSynchronizedLighting="true" VisualSunriseHour="5" VisualSunsetHour="21"
-  VisualLightingTransitionHours="1"
+  ClockSynchronizedLighting="true" VisualSunriseHour="6.25" VisualSunsetHour="18.25"
+  VisualLightingTransitionHours="2"
   DateFormat="{Month} {Day} {Year}"
   NativeDaysInYear="84" UseCalendarMonthPregnancy="true"
   PregnancyDurationMonths="9" PregnancyDurationDays="273.75" RenownGainMultiplier="0.5"
@@ -217,15 +223,39 @@ day to the configured second month. Set
 
 The settings are not added to campaign, town, castle, or village menus. They are
 available on the separate native **Calendar** tab in the Options screen, and in
-MCM when MCM is installed.
+the standalone MCM UI when it is enabled.
 The date-format selector uses **Month-Day-Year** as the default and also provides
-**Day-Month-Year** and **Year-Month-Day**. The season name is always displayed
-to the right of the map clock, regardless of the selected date order. Changes
-apply immediately to display settings; campaign-time pacing changes affect
-subsequent campaign-time advancement.
+**Day-Month-Year** and **Year-Month-Day**. The season is displayed with the date
+block regardless of the selected date order. Changes apply immediately to
+display settings; campaign-time pacing changes affect subsequent campaign-time
+advancement.
 
 Positive renown rewards are multiplied by `RenownGainMultiplier`, which defaults
 to `0.5` and can be changed from the Calendar settings tab, MCM, or XML.
+
+The Strategic Map legend and marker spacing are also configurable without
+rebuilding the module. Edit these attributes in the generated
+`Modules\RealisticCalendarTweaks\RealisticCalendarTweaks.settings.xml` while
+the game is closed, then reopen the game:
+
+```xml
+<RealisticCalendarTweaks
+  StrategicMapShowLegend="true"
+  StrategicMapLegendWidth="250"
+  StrategicMapLegendHeight="108"
+  StrategicMapLegendMarginTop="6"
+  StrategicMapLegendIconSize="30"
+  StrategicMapLegendFontSize="13"
+  StrategicMapMarkerSpacing="52"
+  StrategicMapShowSettlementLabels="true"
+  StrategicMapLabelFontSize="12" />
+```
+
+The values are range-checked so an accidental edit cannot create an invalid
+layout. The same controls are available under MCM's **Strategic Map** group.
+The live map atlas is the only custom texture provider. Legend icons are drawn
+by dedicated town and castle widgets, so a legend icon cannot be selected or
+cached as the map texture, and it cannot be stretched into the map viewport.
 
 Annual Balance, its five scoped toggles, and Lord Death Rate Multiplier are
 available in XML, optional MCM, and the native Calendar Options tab. They may

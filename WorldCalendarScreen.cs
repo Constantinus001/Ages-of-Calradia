@@ -40,12 +40,24 @@ namespace TwelveMonthCalendar
                 WorldCalendarScreen screen = new WorldCalendarScreen();
                 _active = screen;
                 ScreenManager.AddGlobalLayer(screen, true);
+                Diagnostics.Info("World Events opened with refreshed campaign data.");
             }
             catch (Exception exception)
             {
                 _active = null;
                 Diagnostics.Error("World Calendar overlay could not be initialized.", exception);
             }
+        }
+
+        internal static void Toggle()
+        {
+            if (_active != null)
+            {
+                _active.Close();
+                return;
+            }
+
+            Show();
         }
 
         protected override void OnTick(float dt)
@@ -71,10 +83,25 @@ namespace TwelveMonthCalendar
         {
             if (_active != this) return;
 
-            ScreenManager.RemoveGlobalLayer(this);
-            _layer.InputRestrictions.ResetInputRestrictions();
-            _dataSource.OnFinalize();
-            _active = null;
+            try
+            {
+                // Capture the latest ownership, tracking, calendar, and event
+                // state before the overlay is discarded. A newly opened
+                // overlay creates a fresh VM and refreshes it again.
+                _dataSource.RefreshWorldState();
+                Diagnostics.Info("World Events refreshed and closed.");
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("World Events close-time refresh failed; the overlay will still close.", exception);
+            }
+            finally
+            {
+                ScreenManager.RemoveGlobalLayer(this);
+                _layer.InputRestrictions.ResetInputRestrictions();
+                _dataSource.OnFinalize();
+                _active = null;
+            }
         }
     }
 }

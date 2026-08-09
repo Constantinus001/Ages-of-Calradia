@@ -36,9 +36,20 @@ namespace TwelveMonthCalendar
         // synchronized atmosphere mode is enabled. Native sunrise/sunset
         // remain untouched for gameplay mechanics and compatibility.
         public const bool DefaultClockSynchronizedLighting = true;
-        public const float DefaultVisualSunriseHour = 5f;
-        public const float DefaultVisualSunsetHour = 21f;
-        public const float DefaultVisualLightingTransitionHours = 1f;
+        public const float DefaultVisualSunriseHour = 6.25f;
+        // Begin the evening lighting transition around 19:30, with the
+        // visual sunset occurring naturally in the 19:00–20:00 window.
+        public const float DefaultVisualSunsetHour = 18.25f;
+        public const float DefaultVisualLightingTransitionHours = 2f;
+        public const bool DefaultStrategicMapShowLegend = true;
+        public const int DefaultStrategicMapLegendWidth = 250;
+        public const int DefaultStrategicMapLegendHeight = 108;
+        public const int DefaultStrategicMapLegendMarginTop = 6;
+        public const int DefaultStrategicMapLegendIconSize = 30;
+        public const int DefaultStrategicMapLegendFontSize = 13;
+        public const float DefaultStrategicMapMarkerSpacing = 52f;
+        public const bool DefaultStrategicMapShowSettlementLabels = true;
+        public const int DefaultStrategicMapLabelFontSize = 12;
         internal const float DefaultPregnancyDurationInDays = 273.75f;
         internal const int DefaultPregnancyDurationMonths = 9;
         internal const float DefaultRenownGainMultiplier = 0.5f;
@@ -82,6 +93,15 @@ namespace TwelveMonthCalendar
         private static float _visualSunriseHour = DefaultVisualSunriseHour;
         private static float _visualSunsetHour = DefaultVisualSunsetHour;
         private static float _visualLightingTransitionHours = DefaultVisualLightingTransitionHours;
+        private static bool _strategicMapShowLegend = DefaultStrategicMapShowLegend;
+        private static int _strategicMapLegendWidth = DefaultStrategicMapLegendWidth;
+        private static int _strategicMapLegendHeight = DefaultStrategicMapLegendHeight;
+        private static int _strategicMapLegendMarginTop = DefaultStrategicMapLegendMarginTop;
+        private static int _strategicMapLegendIconSize = DefaultStrategicMapLegendIconSize;
+        private static int _strategicMapLegendFontSize = DefaultStrategicMapLegendFontSize;
+        private static float _strategicMapMarkerSpacing = DefaultStrategicMapMarkerSpacing;
+        private static bool _strategicMapShowSettlementLabels = DefaultStrategicMapShowSettlementLabels;
+        private static int _strategicMapLabelFontSize = DefaultStrategicMapLabelFontSize;
         private static string _dateFormat = DefaultDateFormat;
         private static int _nativeDaysInYear = DefaultNativeDaysInYear;
         private static float _pregnancyDurationInDays = DefaultPregnancyDurationInDays;
@@ -185,6 +205,51 @@ namespace TwelveMonthCalendar
         public static float VisualLightingTransitionHours
         {
             get { lock (SyncRoot) return _visualLightingTransitionHours; }
+        }
+
+        public static bool StrategicMapShowLegend
+        {
+            get { lock (SyncRoot) return _strategicMapShowLegend; }
+        }
+
+        public static int StrategicMapLegendWidth
+        {
+            get { lock (SyncRoot) return _strategicMapLegendWidth; }
+        }
+
+        public static int StrategicMapLegendHeight
+        {
+            get { lock (SyncRoot) return _strategicMapLegendHeight; }
+        }
+
+        public static int StrategicMapLegendMarginTop
+        {
+            get { lock (SyncRoot) return _strategicMapLegendMarginTop; }
+        }
+
+        public static int StrategicMapLegendIconSize
+        {
+            get { lock (SyncRoot) return _strategicMapLegendIconSize; }
+        }
+
+        public static int StrategicMapLegendFontSize
+        {
+            get { lock (SyncRoot) return _strategicMapLegendFontSize; }
+        }
+
+        public static float StrategicMapMarkerSpacing
+        {
+            get { lock (SyncRoot) return _strategicMapMarkerSpacing; }
+        }
+
+        public static bool StrategicMapShowSettlementLabels
+        {
+            get { lock (SyncRoot) return _strategicMapShowSettlementLabels; }
+        }
+
+        public static int StrategicMapLabelFontSize
+        {
+            get { lock (SyncRoot) return _strategicMapLabelFontSize; }
         }
 
         internal static bool IsCampaignProfileLocked
@@ -512,6 +577,16 @@ namespace TwelveMonthCalendar
             get
             {
                 return Path.Combine(
+                    GetModuleRoot(),
+                    "RealisticCalendarTweaks.settings.xml");
+            }
+        }
+
+        private static string PreviousUserConfigPath
+        {
+            get
+            {
+                return Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     "Mount and Blade II Bannerlord",
                     "Configs",
@@ -564,7 +639,16 @@ namespace TwelveMonthCalendar
             bool? clockSynchronizedLighting = null,
             float? visualSunriseHour = null,
             float? visualSunsetHour = null,
-            float? visualLightingTransitionHours = null)
+            float? visualLightingTransitionHours = null,
+            bool? strategicMapShowLegend = null,
+            int? strategicMapLegendWidth = null,
+            int? strategicMapLegendHeight = null,
+            int? strategicMapLegendMarginTop = null,
+            int? strategicMapLegendIconSize = null,
+            int? strategicMapLegendFontSize = null,
+            float? strategicMapMarkerSpacing = null,
+            bool? strategicMapShowSettlementLabels = null,
+            int? strategicMapLabelFontSize = null)
         {
             lock (SyncRoot)
             {
@@ -666,6 +750,43 @@ namespace TwelveMonthCalendar
                 }
                 _visualLightingTransitionHours = NormalizeLightingTransition(
                     visualLightingTransitionHours ?? _visualLightingTransitionHours);
+                _strategicMapShowLegend = strategicMapShowLegend ?? _strategicMapShowLegend;
+                _strategicMapLegendWidth = ClampInt(
+                    strategicMapLegendWidth ?? _strategicMapLegendWidth,
+                    180,
+                    400,
+                    DefaultStrategicMapLegendWidth);
+                _strategicMapLegendHeight = ClampInt(
+                    strategicMapLegendHeight ?? _strategicMapLegendHeight,
+                    60,
+                    220,
+                    DefaultStrategicMapLegendHeight);
+                _strategicMapLegendMarginTop = ClampInt(
+                    strategicMapLegendMarginTop ?? _strategicMapLegendMarginTop,
+                    0,
+                    80,
+                    DefaultStrategicMapLegendMarginTop);
+                _strategicMapLegendIconSize = ClampInt(
+                    strategicMapLegendIconSize ?? _strategicMapLegendIconSize,
+                    16,
+                    64,
+                    DefaultStrategicMapLegendIconSize);
+                _strategicMapLegendFontSize = ClampInt(
+                    strategicMapLegendFontSize ?? _strategicMapLegendFontSize,
+                    8,
+                    24,
+                    DefaultStrategicMapLegendFontSize);
+                _strategicMapMarkerSpacing = ClampFloat(
+                    strategicMapMarkerSpacing ?? _strategicMapMarkerSpacing,
+                    20f,
+                    200f,
+                    DefaultStrategicMapMarkerSpacing);
+                _strategicMapShowSettlementLabels = strategicMapShowSettlementLabels ?? _strategicMapShowSettlementLabels;
+                _strategicMapLabelFontSize = ClampInt(
+                    strategicMapLabelFontSize ?? _strategicMapLabelFontSize,
+                    8,
+                    24,
+                    DefaultStrategicMapLabelFontSize);
             }
 
             Diagnostics.Info(
@@ -722,7 +843,16 @@ namespace TwelveMonthCalendar
                 clockSynchronizedLighting: DefaultClockSynchronizedLighting,
                 visualSunriseHour: DefaultVisualSunriseHour,
                 visualSunsetHour: DefaultVisualSunsetHour,
-                visualLightingTransitionHours: DefaultVisualLightingTransitionHours);
+                visualLightingTransitionHours: DefaultVisualLightingTransitionHours,
+                strategicMapShowLegend: DefaultStrategicMapShowLegend,
+                strategicMapLegendWidth: DefaultStrategicMapLegendWidth,
+                strategicMapLegendHeight: DefaultStrategicMapLegendHeight,
+                strategicMapLegendMarginTop: DefaultStrategicMapLegendMarginTop,
+                strategicMapLegendIconSize: DefaultStrategicMapLegendIconSize,
+                strategicMapLegendFontSize: DefaultStrategicMapLegendFontSize,
+                strategicMapMarkerSpacing: DefaultStrategicMapMarkerSpacing,
+                strategicMapShowSettlementLabels: DefaultStrategicMapShowSettlementLabels,
+                strategicMapLabelFontSize: DefaultStrategicMapLabelFontSize);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
         }
@@ -840,7 +970,12 @@ namespace TwelveMonthCalendar
             {
                 string settingsPath = ConfigPath;
                 bool migratedLegacyPath = false;
-                if (!File.Exists(settingsPath) && File.Exists(LegacyConfigPath))
+                if (!File.Exists(settingsPath) && File.Exists(PreviousUserConfigPath))
+                {
+                    settingsPath = PreviousUserConfigPath;
+                    migratedLegacyPath = true;
+                }
+                else if (!File.Exists(settingsPath) && File.Exists(LegacyConfigPath))
                 {
                     settingsPath = LegacyConfigPath;
                     migratedLegacyPath = true;
@@ -908,7 +1043,16 @@ namespace TwelveMonthCalendar
                     visualLightingTransitionHours: ReadFloat(
                         root,
                         "VisualLightingTransitionHours",
-                        DefaultVisualLightingTransitionHours));
+                        DefaultVisualLightingTransitionHours),
+                    strategicMapShowLegend: ReadBoolean(root, "StrategicMapShowLegend", DefaultStrategicMapShowLegend),
+                    strategicMapLegendWidth: ReadInt(root, "StrategicMapLegendWidth", DefaultStrategicMapLegendWidth),
+                    strategicMapLegendHeight: ReadInt(root, "StrategicMapLegendHeight", DefaultStrategicMapLegendHeight),
+                    strategicMapLegendMarginTop: ReadInt(root, "StrategicMapLegendMarginTop", DefaultStrategicMapLegendMarginTop),
+                    strategicMapLegendIconSize: ReadInt(root, "StrategicMapLegendIconSize", DefaultStrategicMapLegendIconSize),
+                    strategicMapLegendFontSize: ReadInt(root, "StrategicMapLegendFontSize", DefaultStrategicMapLegendFontSize),
+                    strategicMapMarkerSpacing: ReadFloat(root, "StrategicMapMarkerSpacing", DefaultStrategicMapMarkerSpacing),
+                    strategicMapShowSettlementLabels: ReadBoolean(root, "StrategicMapShowSettlementLabels", DefaultStrategicMapShowSettlementLabels),
+                    strategicMapLabelFontSize: ReadInt(root, "StrategicMapLabelFontSize", DefaultStrategicMapLabelFontSize));
 
                 Diagnostics.Info(
                     string.Format(
@@ -956,6 +1100,15 @@ namespace TwelveMonthCalendar
                 root.SetAttribute(
                     "VisualLightingTransitionHours",
                     VisualLightingTransitionHours.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("StrategicMapShowLegend", StrategicMapShowLegend.ToString());
+                root.SetAttribute("StrategicMapLegendWidth", StrategicMapLegendWidth.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("StrategicMapLegendHeight", StrategicMapLegendHeight.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("StrategicMapLegendMarginTop", StrategicMapLegendMarginTop.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("StrategicMapLegendIconSize", StrategicMapLegendIconSize.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("StrategicMapLegendFontSize", StrategicMapLegendFontSize.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("StrategicMapMarkerSpacing", StrategicMapMarkerSpacing.ToString("R", CultureInfo.InvariantCulture));
+                root.SetAttribute("StrategicMapShowSettlementLabels", StrategicMapShowSettlementLabels.ToString());
+                root.SetAttribute("StrategicMapLabelFontSize", StrategicMapLabelFontSize.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("DateFormat", DateFormat);
                 root.SetAttribute("NativeDaysInYear", NativeDaysInYear.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("PregnancyDurationDays", PregnancyDurationInDays.ToString("R", CultureInfo.InvariantCulture));
@@ -1007,6 +1160,24 @@ namespace TwelveMonthCalendar
                 catch { }
                 Diagnostics.Error("Standalone settings could not be saved.", exception);
             }
+        }
+
+        private static string GetModuleRoot()
+        {
+            string assemblyDirectory = Path.GetDirectoryName(typeof(CalendarSettingsState).Assembly.Location);
+            if (string.IsNullOrEmpty(assemblyDirectory))
+            {
+                throw new InvalidOperationException("The module assembly location is unavailable.");
+            }
+
+            DirectoryInfo binaryDirectory = Directory.GetParent(assemblyDirectory);
+            DirectoryInfo moduleDirectory = binaryDirectory == null ? null : binaryDirectory.Parent;
+            if (moduleDirectory == null)
+            {
+                throw new InvalidOperationException("The module directory could not be resolved.");
+            }
+
+            return moduleDirectory.FullName;
         }
 
         private static string ReadAttribute(XmlElement root, string name, string fallback)
@@ -1142,6 +1313,16 @@ namespace TwelveMonthCalendar
             return IsFinite(value)
                 ? Math.Max(0.25f, Math.Min(4f, value))
                 : DefaultVisualLightingTransitionHours;
+        }
+
+        private static int ClampInt(int value, int minimum, int maximum, int fallback)
+        {
+            return value < minimum || value > maximum ? fallback : value;
+        }
+
+        private static float ClampFloat(float value, float minimum, float maximum, float fallback)
+        {
+            return !IsFinite(value) || value < minimum || value > maximum ? fallback : value;
         }
 
         private static int ReadInt(XmlElement root, string name, int fallback)

@@ -29,9 +29,9 @@
                             <OptionsGroupedPage Id="PerformanceOptionsPage" DataSource="{PerformanceOptions}" Parameter.ResetButtonScopeID="PerformanceResetButtonScope" />
                             <OptionsGroupedPage Id="AudioOptionsPage" DataSource="{AudioOptions}" Parameter.ResetButtonScopeID="AudioResetButtonScope" Parameter.HasCircularNavigation="true" />
                             <OptionsGroupedPage Id="GameplayOptionsPage" DataSource="{GameplayOptions}" Parameter.ResetButtonScopeID="GameplayResetButtonScope" />
-                            <CalendarOptionsGroupedPage Id="CalendarOptionsPage" DataSource="{CalendarOptions}" Parameter.ResetButtonScopeID="CalendarResetButtonScope" IsEnabled="@IsEnabled" />
                             <OptionsGameKeyPage Id="GameKeyOptionGroupsPage" DataSource="{GameKeyOptionGroups}" />
                             <OptionsGamepadPage Id="GamepadOptionsPage" DataSource="{GamepadOptions}" />
+                            <CalendarOptionsGroupedPage Id="CalendarOptionsPage" DataSource="{CalendarOptions}" Parameter.ResetButtonScopeID="CalendarResetButtonScope" IsEnabled="@IsEnabled" />
                           </Children>
                         </TabControl>
                       </Children>
@@ -119,9 +119,9 @@
                 <OptionsTabToggle Id="PerformanceTabToggle" DataSource="{PerformanceOptions}" Parameter.ButtonBrush="Header.Tab.Center" PositionYOffset="2" Parameter.Text.Left.Margin="7" Parameter.Text.Right.Margin="7" Parameter.TabName="PerformanceOptionsPage" IsVisible="@IsEnabled"/>
                 <OptionsTabToggle DataSource="{AudioOptions}" Parameter.ButtonBrush="Header.Tab.Center" PositionYOffset="2" Parameter.Text.Left.Margin="7" Parameter.Text.Right.Margin="7" Parameter.TabName="AudioOptionsPage"/>
                 <OptionsTabToggle DataSource="{GameplayOptions}" Parameter.ButtonBrush="Header.Tab.Center" PositionYOffset="2" Parameter.Text.Left.Margin="7" Parameter.Text.Right.Margin="7" Parameter.TabName="GameplayOptionsPage" />
-                <OptionsTabToggle Id="CalendarTabToggle" DataSource="{CalendarOptions}" Parameter.ButtonBrush="Header.Tab.Center" PositionYOffset="2" Parameter.Text.Left.Margin="7" Parameter.Text.Right.Margin="7" Parameter.TabName="CalendarOptionsPage" IsEnabled="@IsEnabled" />
                 <OptionsTabToggle DataSource="{GameKeyOptionGroups}" Parameter.ButtonBrush="Header.Tab.Right" Parameter.Text.Top.Margin="3" Parameter.TabName="GameKeyOptionGroupsPage" IsVisible="@IsEnabled"/>
                 <OptionsTabToggle DataSource="{GamepadOptions}" Parameter.ButtonBrush="Header.Tab.Right" Parameter.Text.Top.Margin="4" Parameter.Text.Left.Margin="10" Parameter.Text.Right.Margin="20" Parameter.TabName="GamepadOptionsPage" IsVisible="@IsEnabled"/>
+                <OptionsTabToggle Id="CalendarTabToggle" DataSource="{CalendarOptions}" Parameter.ButtonBrush="Header.Tab.Right" PositionYOffset="2" Parameter.Text.Left.Margin="7" Parameter.Text.Right.Margin="20" Parameter.TabName="CalendarOptionsPage" IsEnabled="@IsEnabled" />
               </Children>
             </ListPanel>
 

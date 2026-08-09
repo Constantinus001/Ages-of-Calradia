@@ -20,3 +20,5 @@ SceneObj/**/ShaderCache/
 # Local reverse-engineering helpers and their generated files
 tools/
 tmp/
+.analysis-tools/
+_analysis_refuge_frames/

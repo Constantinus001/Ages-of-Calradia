@@ -50,11 +50,21 @@ namespace TwelveMonthCalendar
 
         [HarmonyPrefix]
         private static void Prefix(
-            [HarmonyArgument(0)] string movieName,
+            [HarmonyArgument(0)] ref string movieName,
             [HarmonyArgument(3)] ref IViewModel viewModel)
         {
             if (!string.Equals(movieName, "Options", StringComparison.Ordinal))
             {
+                return;
+            }
+
+            // MCM owns the settings screen when its calendar page registered.
+            // Do not wrap MCM's OptionsVM: doing so removes the data source its
+            // Mods tab needs and leaves that tab blank.
+            if (OptionalMcmIntegration.IsSettingsRegistered)
+            {
+                Diagnostics.Info(
+                    "Native Calendar Options tab hidden because the MCM settings page is active.");
                 return;
             }
 
@@ -76,7 +86,8 @@ namespace TwelveMonthCalendar
             {
                 Diagnostics.Info("Native Settings OptionsVM detected; creating the Calendar category.");
                 viewModel = new CalendarOptionsVM(options);
-                Diagnostics.Info("Native Settings screen extended with the Calendar tab.");
+                movieName = "CalendarOptions";
+                Diagnostics.Info("Native Settings screen switched to the Calendar fallback layout.");
             }
             catch (Exception exception)
             {
@@ -182,11 +193,11 @@ namespace TwelveMonthCalendar
             CopyNativeState(source);
             DetachProxyGamepadHandler();
 
-            // MCM and the native Calendar tab share CalendarSettingsState and
-            // synchronize through SettingsChanged. Keeping this page enabled
-            // is essential: a disabled Gauntlet category still renders its
-            // checkboxes/sliders but makes them appear decorative.
-            const bool nativeCalendarSettingsEnabled = true;
+            // This VM is created only when MCM is absent or its adapter could
+            // not register. Keep the fallback category guarded as a second
+            // line of protection against duplicate active settings pages.
+            bool nativeCalendarSettingsEnabled =
+                !OptionalMcmIntegration.IsSettingsRegistered;
 
             List<IOptionData> calendarOptions = new List<IOptionData>
             {
@@ -287,7 +298,7 @@ namespace TwelveMonthCalendar
                     2,
                     delegate { return CalendarSettingsState.VisualLightingTransitionHours; },
                     delegate(float value) { Apply(visualLightingTransitionHours: value); }),
-                new CalendarActionOptionData("Reset Lighting", "Reset Category", "Restores clock-synchronized lighting, 05:00 sunrise, 21:00 sunset, and one-hour transitions.", ResetLightingCategory)
+                new CalendarActionOptionData("Reset Lighting", "Reset Category", "Restores clock-synchronized lighting, the default sunrise and sunset, and two-hour transitions.", ResetLightingCategory)
             };
             List<IOptionData> lifeCycleOptions = new List<IOptionData>
             {
@@ -803,11 +814,11 @@ namespace TwelveMonthCalendar
 
         private void AddCategoryToNativeLists(GroupedOptionCategoryVM category)
         {
-            AddToListField("_categories", category, 4);
-            AddToListField("_groupedCategories", category, 4);
+            AddToListField("_categories", category);
+            AddToListField("_groupedCategories", category);
         }
 
-        private void AddToListField(string fieldName, object value, int index)
+        private void AddToListField(string fieldName, object value)
         {
             FieldInfo field = AccessTools.Field(typeof(OptionsVM), fieldName);
             IList list = field == null ? null : field.GetValue(this) as IList;
@@ -816,7 +827,9 @@ namespace TwelveMonthCalendar
                 return;
             }
 
-            list.Insert(Math.Min(index, list.Count), value);
+            // Keep every native/MCM category index unchanged. The Calendar
+            // fallback is the final tab only in sessions where MCM is absent.
+            list.Add(value);
         }
 
         private static void Apply(
@@ -1031,7 +1044,7 @@ namespace TwelveMonthCalendar
                 visualSunriseHour: CalendarSettingsState.DefaultVisualSunriseHour,
                 visualSunsetHour: CalendarSettingsState.DefaultVisualSunsetHour,
                 visualLightingTransitionHours: CalendarSettingsState.DefaultVisualLightingTransitionHours);
-            CompleteCategoryReset("Lighting", "Lighting was reset to the campaign clock with 05:00 sunrise, 21:00 sunset, and one-hour transitions.");
+            CompleteCategoryReset("Lighting", "Lighting was reset to the campaign clock with the default sunrise, sunset, and two-hour transitions.");
         }
 
         private void ResetLifeCycleCategory()

@@ -25,13 +25,21 @@ namespace TwelveMonthCalendar
 
             try
             {
-                Type mcmType = Type.GetType(
-                    "MCM.Abstractions.Base.Global.AttributeGlobalSettings`1, MCMv5");
+                Assembly mcmAssembly = FindLoadedAssembly("MCMv5");
+                Type mcmType = mcmAssembly?.GetType(
+                    "MCM.Abstractions.Base.Global.AttributeGlobalSettings`1") ??
+                    Type.GetType(
+                        "MCM.Abstractions.Base.Global.AttributeGlobalSettings`1, MCMv5");
                 if (mcmType == null)
                 {
                     Diagnostics.Info("MCM not detected. Calendar defaults remain active; MCM is optional.");
                     return;
                 }
+
+                Diagnostics.Info(
+                    "MCM detected: " +
+                    (mcmAssembly?.GetName().Version?.ToString() ?? "version unavailable") +
+                    ". Loading the calendar settings adapter.");
 
                 string moduleDirectory = Path.GetDirectoryName(
                     typeof(MySubModule).Assembly.Location);
@@ -45,7 +53,8 @@ namespace TwelveMonthCalendar
                     return;
                 }
 
-                Assembly adapter = Assembly.LoadFrom(adapterPath);
+                Assembly adapter = FindLoadedAssembly("RealisticCalendarTweaks.MCM") ??
+                    Assembly.LoadFrom(adapterPath);
                 Type settingsType = adapter.GetType(
                     "RealisticCalendarTweaks.MCM.CalendarMcmSettings");
                 MethodInfo registerMethod = settingsType?.GetMethod(
@@ -62,7 +71,7 @@ namespace TwelveMonthCalendar
                 _settingsRegistered = result is bool && (bool)result;
                 if (_settingsRegistered)
                 {
-                    Diagnostics.Info("Optional MCM settings registered; the native Calendar Options tab remains visible but is disabled.");
+                    Diagnostics.Info("Optional MCM settings registered; the native Calendar Options tab will be hidden.");
                 }
                 else
                 {
@@ -75,6 +84,30 @@ namespace TwelveMonthCalendar
                     "Optional MCM integration failed; calendar will continue with defaults.",
                     exception);
             }
+        }
+
+        private static Assembly FindLoadedAssembly(string simpleName)
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    if (string.Equals(
+                        assembly.GetName().Name,
+                        simpleName,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        return assembly;
+                    }
+                }
+                catch
+                {
+                    // Dynamic or partially loaded assemblies can reject metadata
+                    // access. They are unrelated to this optional integration.
+                }
+            }
+
+            return null;
         }
     }
 }

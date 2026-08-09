@@ -218,6 +218,23 @@ namespace TwelveMonthCalendar
             {
                 Diagnostics.Error("Gauntlet could not register the Strategic Map texture provider.", exception);
             }
+
+            try
+            {
+                TaleWorlds.TwoDimension.SpriteCategory legendCategory =
+                    TaleWorlds.Engine.GauntletUI.UIResourceManager.LoadSpriteCategory("rct_legend_markers_v2");
+                bool townExists = TaleWorlds.Engine.GauntletUI.UIResourceManager.SpriteData
+                    .SpriteExists("rct_legend_town_v2");
+                bool castleExists = TaleWorlds.Engine.GauntletUI.UIResourceManager.SpriteData
+                    .SpriteExists("rct_legend_castle_v2");
+                Diagnostics.Info("Strategic legend sprite diagnostic: categoryLoaded="
+                    + (legendCategory != null && legendCategory.IsLoaded)
+                    + "; townExists=" + townExists + "; castleExists=" + castleExists + ".");
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Error("Gauntlet could not load the Strategic Map legend sprite category.", exception);
+            }
             OptionalMcmIntegration.TryInitialize();
         }
 
