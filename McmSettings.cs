@@ -20,6 +20,15 @@ namespace RealisticCalendarTweaks.MCM
         private float _visualSunriseHour = CalendarSettingsState.VisualSunriseHour;
         private float _visualSunsetHour = CalendarSettingsState.VisualSunsetHour;
         private float _visualLightingTransitionHours = CalendarSettingsState.VisualLightingTransitionHours;
+        private bool _strategicMapShowLegend = CalendarSettingsState.StrategicMapShowLegend;
+        private int _strategicMapLegendWidth = CalendarSettingsState.StrategicMapLegendWidth;
+        private int _strategicMapLegendHeight = CalendarSettingsState.StrategicMapLegendHeight;
+        private int _strategicMapLegendMarginTop = CalendarSettingsState.StrategicMapLegendMarginTop;
+        private int _strategicMapLegendIconSize = CalendarSettingsState.StrategicMapLegendIconSize;
+        private int _strategicMapLegendFontSize = CalendarSettingsState.StrategicMapLegendFontSize;
+        private float _strategicMapMarkerSpacing = CalendarSettingsState.StrategicMapMarkerSpacing;
+        private bool _strategicMapShowSettlementLabels = CalendarSettingsState.StrategicMapShowSettlementLabels;
+        private int _strategicMapLabelFontSize = CalendarSettingsState.StrategicMapLabelFontSize;
         private string _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
         private string _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
         private string _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
@@ -220,7 +229,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Visual Sunset Hour", 0f, 23.75f, "0.00", Order = 3,
-            RequireRestart = false, HintText = "Visual sunset hour on the campaign clock. Default: 21:00.")]
+            RequireRestart = false, HintText = "Visual sunset hour on the campaign clock. Default: 19:30.")]
         [SettingPropertyGroup("Lighting")]
         public float VisualSunsetHour
         {
@@ -234,7 +243,7 @@ namespace RealisticCalendarTweaks.MCM
         }
 
         [SettingPropertyFloatingInteger("Lighting Transition Hours", 0.25f, 4f, "0.00", Order = 4,
-            RequireRestart = false, HintText = "Length of the gradual dawn and dusk transition. Default: 1 hour.")]
+            RequireRestart = false, HintText = "Length of the gradual dawn and dusk transition. Default: 2 hours.")]
         [SettingPropertyGroup("Lighting")]
         public float VisualLightingTransitionHours
         {
@@ -316,6 +325,87 @@ namespace RealisticCalendarTweaks.MCM
                 Apply();
                 OnPropertyChanged();
             }
+        }
+
+        [SettingPropertyBool("Show Strategic Map Legend", Order = 1, RequireRestart = false,
+            HintText = "Shows the town/castle legend on the Strategic Map.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public bool StrategicMapShowLegend
+        {
+            get { return _strategicMapShowLegend; }
+            set { _strategicMapShowLegend = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyInteger("Legend Width", 180, 400, "0", Order = 2, RequireRestart = false,
+            HintText = "Width of the Strategic Map legend in UI units.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public int StrategicMapLegendWidth
+        {
+            get { return _strategicMapLegendWidth; }
+            set { _strategicMapLegendWidth = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyInteger("Legend Height", 60, 220, "0", Order = 3, RequireRestart = false,
+            HintText = "Height of the Strategic Map legend in UI units.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public int StrategicMapLegendHeight
+        {
+            get { return _strategicMapLegendHeight; }
+            set { _strategicMapLegendHeight = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyInteger("Legend Top Margin", 0, 80, "0", Order = 4, RequireRestart = false,
+            HintText = "Top offset of the Strategic Map legend.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public int StrategicMapLegendMarginTop
+        {
+            get { return _strategicMapLegendMarginTop; }
+            set { _strategicMapLegendMarginTop = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyInteger("Legend Icon Size", 16, 64, "0", Order = 5, RequireRestart = false,
+            HintText = "Town and castle icon size in the legend. The map itself uses its own fixed-size renderer.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public int StrategicMapLegendIconSize
+        {
+            get { return _strategicMapLegendIconSize; }
+            set { _strategicMapLegendIconSize = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyInteger("Legend Font Size", 8, 24, "0", Order = 6, RequireRestart = false,
+            HintText = "Text size used by the Strategic Map legend.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public int StrategicMapLegendFontSize
+        {
+            get { return _strategicMapLegendFontSize; }
+            set { _strategicMapLegendFontSize = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyFloatingInteger("Marker Spacing", 20f, 200f, "0.0", Order = 7, RequireRestart = false,
+            HintText = "Minimum source-map spacing between settlement markers. Increase it when icons overlap.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public float StrategicMapMarkerSpacing
+        {
+            get { return _strategicMapMarkerSpacing; }
+            set { _strategicMapMarkerSpacing = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyBool("Show Settlement Labels", Order = 8, RequireRestart = false,
+            HintText = "Shows town names on the composed Strategic Map texture.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public bool StrategicMapShowSettlementLabels
+        {
+            get { return _strategicMapShowSettlementLabels; }
+            set { _strategicMapShowSettlementLabels = value; Apply(); OnPropertyChanged(); }
+        }
+
+        [SettingPropertyInteger("Settlement Label Font Size", 8, 24, "0", Order = 9, RequireRestart = false,
+            HintText = "Font size used for town names on the Strategic Map.")]
+        [SettingPropertyGroup("Strategic Map")]
+        public int StrategicMapLabelFontSize
+        {
+            get { return _strategicMapLabelFontSize; }
+            set { _strategicMapLabelFontSize = value; Apply(); OnPropertyChanged(); }
         }
 
         [SettingPropertyBool("Annual Balance Enabled", Order = 19, RequireRestart = false,
@@ -461,7 +551,16 @@ namespace RealisticCalendarTweaks.MCM
                 clockSynchronizedLighting: _clockSynchronizedLighting,
                 visualSunriseHour: _visualSunriseHour,
                 visualSunsetHour: _visualSunsetHour,
-                visualLightingTransitionHours: _visualLightingTransitionHours);
+                visualLightingTransitionHours: _visualLightingTransitionHours,
+                strategicMapShowLegend: _strategicMapShowLegend,
+                strategicMapLegendWidth: _strategicMapLegendWidth,
+                strategicMapLegendHeight: _strategicMapLegendHeight,
+                strategicMapLegendMarginTop: _strategicMapLegendMarginTop,
+                strategicMapLegendIconSize: _strategicMapLegendIconSize,
+                strategicMapLegendFontSize: _strategicMapLegendFontSize,
+                strategicMapMarkerSpacing: _strategicMapMarkerSpacing,
+                strategicMapShowSettlementLabels: _strategicMapShowSettlementLabels,
+                strategicMapLabelFontSize: _strategicMapLabelFontSize);
             CalendarSettingsState.Save();
         }
 
@@ -488,6 +587,15 @@ namespace RealisticCalendarTweaks.MCM
                 _visualSunriseHour = CalendarSettingsState.VisualSunriseHour;
                 _visualSunsetHour = CalendarSettingsState.VisualSunsetHour;
                 _visualLightingTransitionHours = CalendarSettingsState.VisualLightingTransitionHours;
+                _strategicMapShowLegend = CalendarSettingsState.StrategicMapShowLegend;
+                _strategicMapLegendWidth = CalendarSettingsState.StrategicMapLegendWidth;
+                _strategicMapLegendHeight = CalendarSettingsState.StrategicMapLegendHeight;
+                _strategicMapLegendMarginTop = CalendarSettingsState.StrategicMapLegendMarginTop;
+                _strategicMapLegendIconSize = CalendarSettingsState.StrategicMapLegendIconSize;
+                _strategicMapLegendFontSize = CalendarSettingsState.StrategicMapLegendFontSize;
+                _strategicMapMarkerSpacing = CalendarSettingsState.StrategicMapMarkerSpacing;
+                _strategicMapShowSettlementLabels = CalendarSettingsState.StrategicMapShowSettlementLabels;
+                _strategicMapLabelFontSize = CalendarSettingsState.StrategicMapLabelFontSize;
                 _monthNamesDelimited = CalendarSettingsState.MonthNamesDelimited;
                 _seasonNamesDelimited = CalendarSettingsState.SeasonNamesDelimited;
                 _monthLengthsDelimited = CalendarSettingsState.MonthLengthsDelimited;
@@ -533,6 +641,15 @@ namespace RealisticCalendarTweaks.MCM
             OnPropertyChanged(nameof(VisualSunriseHour));
             OnPropertyChanged(nameof(VisualSunsetHour));
             OnPropertyChanged(nameof(VisualLightingTransitionHours));
+            OnPropertyChanged(nameof(StrategicMapShowLegend));
+            OnPropertyChanged(nameof(StrategicMapLegendWidth));
+            OnPropertyChanged(nameof(StrategicMapLegendHeight));
+            OnPropertyChanged(nameof(StrategicMapLegendMarginTop));
+            OnPropertyChanged(nameof(StrategicMapLegendIconSize));
+            OnPropertyChanged(nameof(StrategicMapLegendFontSize));
+            OnPropertyChanged(nameof(StrategicMapMarkerSpacing));
+            OnPropertyChanged(nameof(StrategicMapShowSettlementLabels));
+            OnPropertyChanged(nameof(StrategicMapLabelFontSize));
             OnPropertyChanged(nameof(DateFormat));
             OnPropertyChanged(nameof(UseCalendarMonthPregnancy));
             OnPropertyChanged(nameof(PregnancyDurationMonths));

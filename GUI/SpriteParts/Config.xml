@@ -2,4 +2,7 @@
   <SpriteCategory Name="ui_world_calendar">
     <AlwaysLoad />
   </SpriteCategory>
+  <SpriteCategory Name="rct_legend_markers_v2">
+    <AlwaysLoad />
+  </SpriteCategory>
 </Config>

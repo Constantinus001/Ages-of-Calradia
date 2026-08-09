@@ -116,7 +116,7 @@
                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="MapTextBrushGal" Brush.FontSize="20" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="C" />
               </Children>
             </ButtonWidget>
-            <ButtonWidget Id="WorldCalendarButton" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="31" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-70" PositionYOffset="-12" Brush="SPOptions.Checkbox.Empty.Button" Command.Click="ExecuteOpenWorldCalendar" GamepadNavigationIndex="4">
+            <ButtonWidget Id="WorldCalendarButton" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="31" HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-70" PositionYOffset="-12" Brush="SPOptions.Checkbox.Empty.Button" Command.Click="ExecuteToggleWorldCalendar" GamepadNavigationIndex="4">
               <Children>
                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="MapTextBrushGal" Brush.FontSize="20" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="W" />
               </Children>

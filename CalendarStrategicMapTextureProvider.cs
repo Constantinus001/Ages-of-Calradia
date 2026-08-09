@@ -23,7 +23,7 @@ namespace TwelveMonthCalendar
     // Use a distinct provider name for the full campaign atlas. It prevents
     // Gauntlet's provider cache from ever resolving this 1730px map as one of
     // the small Town/Castle legend textures.
-    public sealed class CalendarStrategicCampaignAtlasTextureProvider : TextureProvider
+    public sealed class RealisticCalendarStrategicMapAtlasTextureProvider : TextureProvider
     {
         private const int TerritoryCount = 133;
         private const byte SyntheticTerritoryBorder = 255;
@@ -123,6 +123,9 @@ namespace TwelveMonthCalendar
                 _engineTexture = replacement;
                 _renderTexture = new TwoDimensionTexture(new EngineTextureWrapper(replacement));
                 _renderedRevision = revision;
+                Diagnostics.Info("Strategic texture diagnostic: provider=RealisticCalendarStrategicMapAtlasTextureProvider; request="
+                    + (name ?? "<null>") + "; revision=" + revision + "; png=" + _mapWidth + "x" + _mapHeight
+                    + "; markers=" + markerSnapshot.Count + "; engineTextureReleased=" + replacement.IsReleased + ".");
                 ReleaseTextureAfterFrameBudget(previous, 3);
                 return _renderTexture;
             }
@@ -361,7 +364,7 @@ namespace TwelveMonthCalendar
 
         private static string GetModuleRoot()
         {
-            string assemblyDirectory = Path.GetDirectoryName(typeof(CalendarStrategicCampaignAtlasTextureProvider).Assembly.Location);
+            string assemblyDirectory = Path.GetDirectoryName(typeof(RealisticCalendarStrategicMapAtlasTextureProvider).Assembly.Location);
             if (string.IsNullOrEmpty(assemblyDirectory))
             {
                 throw new InvalidOperationException("The Strategic Map assembly location is unavailable.");
@@ -470,8 +473,8 @@ namespace TwelveMonthCalendar
             byte[] composedBgra = new byte[_baseBgra.Length];
             Buffer.BlockCopy(_baseBgra, 0, composedBgra, 0, _baseBgra.Length);
             uint[] resolvedProvinceColors = ResolveProvinceOwnerColors(ownerColors, markers);
-            uint[] contestedProvinceColors = ResolveContestedProvinceColors(markers);
-            uint[] contestedDefenderColors = ResolveContestedDefenderColors(markers);
+            uint[] contestedProvinceColors = ResolveContestedProvinceColors(markers, resolvedProvinceColors);
+            uint[] contestedDefenderColors = ResolveContestedDefenderColors(markers, resolvedProvinceColors);
 
             for (int pixel = 0, offset = 0; pixel < _territoryIndices.Length; pixel++, offset += 4)
             {
@@ -553,20 +556,66 @@ namespace TwelveMonthCalendar
             uint[] resolved = new uint[TerritoryCount];
             if (ownerColors != null) Array.Copy(ownerColors, resolved, Math.Min(ownerColors.Length, resolved.Length));
 
-            // Do not rebind every province from the nearest live marker here.
-            // Several towns and castles share a visual region, and some marker
-            // anchors sit just outside the region they label. Reassigning all
-            // markers made one settlement overwrite a neighbouring province's
-            // occupation colour. The authored province binding remains the
-            // authority for normal occupation; active sieges are resolved
-            // separately below from their exact live settlement anchor.
+            // Town anchors are authoritative for the visible province that
+            // contains them. The authored manifest remains the fallback for
+            // castles and regions without a town anchor. Restricting this live
+            // override to towns prevents nearby castles from stealing a town's
+            // province while still correcting shifted/shared artwork such as
+            // Amprela (live territory 032, not manifest territory 061).
+            if (markers != null)
+            {
+                HashSet<int> townTerritories = new HashSet<int>();
+                foreach (StrategicMarkerSnapshot marker in markers)
+                {
+                    if (marker == null || !marker.IsTown || marker.OwnerColor == 0) continue;
+                    int territory = FindTerritoryAtMarkerAnchor(marker.AnchorX, marker.AnchorY);
+                    if (territory > 0)
+                    {
+                        resolved[territory - 1] = marker.OwnerColor;
+                        townTerritories.Add(territory);
+                    }
+                }
+
+                // Remap castle-only regions from their live anchors as well,
+                // but never let a castle overwrite a province containing a
+                // town. A shared castle is handled as contested when owners
+                // differ, while the town remains the province authority.
+                foreach (StrategicMarkerSnapshot marker in markers)
+                {
+                    if (marker == null || marker.IsTown || marker.OwnerColor == 0) continue;
+                    int territory = FindTerritoryAtMarkerAnchor(marker.AnchorX, marker.AnchorY);
+                    if (territory > 0 && !townTerritories.Contains(territory))
+                    {
+                        resolved[territory - 1] = marker.OwnerColor;
+                    }
+                }
+            }
             return resolved;
         }
 
-        private static uint[] ResolveContestedDefenderColors(IList<StrategicMarkerSnapshot> markers)
+        private static uint[] ResolveContestedDefenderColors(
+            IList<StrategicMarkerSnapshot> markers,
+            uint[] provinceOwnerColors)
         {
             uint[] resolved = new uint[TerritoryCount];
             if (markers == null || markers.Count == 0) return resolved;
+
+            // A castle physically inside a town-led province can be captured
+            // separately. When its owner differs from the province owner,
+            // retain the town/province owner as the dominant defender layer
+            // and let the castle owner appear as occupation stripes.
+            foreach (StrategicMarkerSnapshot marker in markers)
+            {
+                if (marker == null || marker.IsTown || marker.OwnerColor == 0) continue;
+                int territory = FindTerritoryAtMarkerAnchor(marker.AnchorX, marker.AnchorY);
+                if (territory <= 0) territory = FindAuthoredTerritory(marker.SettlementId);
+                if (territory <= 0 || provinceOwnerColors == null || territory > provinceOwnerColors.Length) continue;
+                uint provinceOwnerColor = provinceOwnerColors[territory - 1];
+                if (provinceOwnerColor != 0 && provinceOwnerColor != marker.OwnerColor)
+                {
+                    resolved[territory - 1] = provinceOwnerColor;
+                }
+            }
 
             HashSet<string> dynamicallyBoundSieges = new HashSet<string>(StringComparer.Ordinal);
 
@@ -590,6 +639,7 @@ namespace TwelveMonthCalendar
             {
                 if (marker != null && !string.IsNullOrEmpty(marker.SettlementId)) bySettlementId[marker.SettlementId] = marker;
             }
+            HashSet<string> fallbackBoundSieges = new HashSet<string>(StringComparer.Ordinal);
             for (int province = 0; province < TerritoryCount; province++)
             {
                 StrategicMarkerSnapshot marker;
@@ -597,9 +647,10 @@ namespace TwelveMonthCalendar
                     && marker.IsUnderSiege && marker.BesiegerColor != 0)
                 {
                     if (!dynamicallyBoundSieges.Contains(marker.SettlementId)
-                        && resolved[province] == 0)
+                        && !fallbackBoundSieges.Contains(marker.SettlementId))
                     {
                         resolved[province] = marker.OwnerColor;
+                        fallbackBoundSieges.Add(marker.SettlementId);
                     }
                 }
             }
@@ -643,10 +694,28 @@ namespace TwelveMonthCalendar
             return true;
         }
 
-        private static uint[] ResolveContestedProvinceColors(IList<StrategicMarkerSnapshot> markers)
+        private static uint[] ResolveContestedProvinceColors(
+            IList<StrategicMarkerSnapshot> markers,
+            uint[] provinceOwnerColors)
         {
             uint[] resolved = new uint[TerritoryCount];
             if (markers == null || markers.Count == 0) return resolved;
+
+            // A differently owned castle inside a town-led province means the
+            // province is occupied/contested even after the siege event ends.
+            // Use the castle owner's faction colour for the narrow top stripes.
+            foreach (StrategicMarkerSnapshot marker in markers)
+            {
+                if (marker == null || marker.IsTown || marker.OwnerColor == 0) continue;
+                int territory = FindTerritoryAtMarkerAnchor(marker.AnchorX, marker.AnchorY);
+                if (territory <= 0) territory = FindAuthoredTerritory(marker.SettlementId);
+                if (territory <= 0 || provinceOwnerColors == null || territory > provinceOwnerColors.Length) continue;
+                uint provinceOwnerColor = provinceOwnerColors[territory - 1];
+                if (provinceOwnerColor != 0 && provinceOwnerColor != marker.OwnerColor)
+                {
+                    resolved[territory - 1] = marker.OwnerColor;
+                }
+            }
 
             HashSet<string> dynamicallyBoundSieges = new HashSet<string>(StringComparer.Ordinal);
 
@@ -672,6 +741,7 @@ namespace TwelveMonthCalendar
             {
                 if (marker != null && !string.IsNullOrEmpty(marker.SettlementId)) bySettlementId[marker.SettlementId] = marker;
             }
+            HashSet<string> fallbackBoundSieges = new HashSet<string>(StringComparer.Ordinal);
             for (int province = 0; province < TerritoryCount; province++)
             {
                 StrategicMarkerSnapshot marker;
@@ -679,14 +749,25 @@ namespace TwelveMonthCalendar
                     && marker.IsUnderSiege && marker.BesiegerColor != 0)
                 {
                     if (!dynamicallyBoundSieges.Contains(marker.SettlementId)
-                        && resolved[province] == 0)
+                        && !fallbackBoundSieges.Contains(marker.SettlementId))
                     {
                         resolved[province] = marker.BesiegerColor;
+                        fallbackBoundSieges.Add(marker.SettlementId);
                     }
                 }
             }
 
             return resolved;
+        }
+
+        private static int FindAuthoredTerritory(string settlementId)
+        {
+            if (string.IsNullOrEmpty(settlementId) || _settlementIds == null) return 0;
+            for (int index = 0; index < _settlementIds.Length; index++)
+            {
+                if (string.Equals(_settlementIds[index], settlementId, StringComparison.Ordinal)) return index + 1;
+            }
+            return 0;
         }
 
         private static int FindTerritoryAtMarkerAnchor(float anchorX, float anchorY)
@@ -847,7 +928,8 @@ namespace TwelveMonthCalendar
 
         private static void DrawTownLabels(Bitmap map, IList<StrategicMarkerSnapshot> markers)
         {
-            if (map == null || markers == null || markers.Count == 0) return;
+            if (map == null || markers == null || markers.Count == 0
+                || !CalendarSettingsState.StrategicMapShowSettlementLabels) return;
             List<StrategicMarkerSnapshot> orderedMarkers = new List<StrategicMarkerSnapshot>();
             foreach (StrategicMarkerSnapshot marker in markers)
             {
@@ -867,7 +949,7 @@ namespace TwelveMonthCalendar
             using (Graphics graphics = Graphics.FromImage(map))
             using (System.Drawing.Font font = new System.Drawing.Font(
                 System.Drawing.FontFamily.GenericSerif,
-                12f,
+                CalendarSettingsState.StrategicMapLabelFontSize,
                 System.Drawing.FontStyle.Bold,
                 GraphicsUnit.Pixel))
             using (SolidBrush shadow = new SolidBrush(Color.FromArgb(230, 20, 18, 15)))
@@ -1021,36 +1103,6 @@ namespace TwelveMonthCalendar
             graphics.FillRectangle(highlight, centerX - 13, centerY - 5, 4, 17);
             graphics.FillEllipse(detail, centerX - 5, centerY + 3, 10, 10);
             graphics.FillRectangle(detail, centerX - 5, centerY + 8, 10, 8);
-        }
-
-        // The legend uses the exact same renderer as the map marker.  It is
-        // supplied as a memory texture rather than a sprite-atlas entry so it
-        // cannot degrade into clipped white fragments after a UI reload.
-        internal static byte[] BuildLegendMarkerPng(bool isTown)
-        {
-            using (Bitmap marker = new Bitmap(64, 64, PixelFormat.Format32bppArgb))
-            using (Graphics graphics = Graphics.FromImage(marker))
-            using (SolidBrush markerFill = new SolidBrush(Color.FromArgb(255, 183, 136, 68)))
-            using (SolidBrush markerHighlight = new SolidBrush(Color.FromArgb(255, 222, 180, 99)))
-            using (SolidBrush markerDetail = new SolidBrush(Color.FromArgb(255, 49, 32, 19)))
-            using (Pen markerOutline = new Pen(Color.FromArgb(255, 24, 17, 12), 2.5f))
-            using (MemoryStream stream = new MemoryStream())
-            {
-                graphics.Clear(Color.Transparent);
-                graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                if (isTown)
-                {
-                    DrawTownMarker(graphics, 30, 35, markerFill, markerHighlight, markerDetail, markerOutline);
-                }
-                else
-                {
-                    DrawCastleMarker(graphics, 31, 32, markerFill, markerHighlight, markerDetail, markerOutline);
-                }
-
-                marker.Save(stream, ImageFormat.Png);
-                return stream.ToArray();
-            }
         }
 
         private sealed class StrategicVillageSnapshot : IEquatable<StrategicVillageSnapshot>
@@ -1280,82 +1332,4 @@ namespace TwelveMonthCalendar
         }
     }
 
-    // Small direct-memory textures for the legend. Unlike ImageWidget sprites,
-    // these do not rely on the module's sprite atlas being loaded correctly.
-    public abstract class CalendarStrategicLegendMarkerTextureProvider : TextureProvider
-    {
-        private EngineTexture _engineTexture;
-        private TwoDimensionTexture _renderTexture;
-
-        protected abstract bool IsTown { get; }
-
-        protected override TwoDimensionTexture OnGetTextureForRender(TwoDimensionContext context, string name)
-        {
-            if (_renderTexture != null && _renderTexture.IsValid)
-            {
-                return _renderTexture;
-            }
-
-            try
-            {
-                EngineTexture texture = EngineTexture.CreateFromMemory(
-                    CalendarStrategicCampaignAtlasTextureProvider.BuildLegendMarkerPng(IsTown));
-                if (texture == null || texture.IsReleased)
-                {
-                    return null;
-                }
-
-                _engineTexture = texture;
-                _renderTexture = new TwoDimensionTexture(new EngineTextureWrapper(texture));
-                return _renderTexture;
-            }
-            catch (Exception exception)
-            {
-                Diagnostics.Error("Strategic Map legend marker could not be rendered.", exception);
-                return _renderTexture;
-            }
-        }
-
-        public override void Clear(bool clearNextFrame)
-        {
-            base.Clear(clearNextFrame);
-            _renderTexture = null;
-            if (_engineTexture == null || _engineTexture.IsReleased)
-            {
-                _engineTexture = null;
-                return;
-            }
-
-            try
-            {
-                if (clearNextFrame)
-                {
-                    _engineTexture.ReleaseAfterNumberOfFrames(1);
-                }
-                else
-                {
-                    _engineTexture.Release();
-                }
-            }
-            catch
-            {
-                // Native cleanup is best-effort while the containing screen
-                // is being disposed.
-            }
-            finally
-            {
-                _engineTexture = null;
-            }
-        }
-    }
-
-    public sealed class CalendarStrategicTownLegendTextureProvider : CalendarStrategicLegendMarkerTextureProvider
-    {
-        protected override bool IsTown { get { return true; } }
-    }
-
-    public sealed class CalendarStrategicCastleLegendTextureProvider : CalendarStrategicLegendMarkerTextureProvider
-    {
-        protected override bool IsTown { get { return false; } }
-    }
 }

@@ -12,9 +12,10 @@ mods or decompiled projects.
 ## Research basis
 
 Bannerlord modules declare required dependencies in `SubModule.xml`; the
-project currently requires only the official campaign modules and keeps MCM
-optional. The official documentation describes dependencies as the modules a
-mod requires to function, and warns that same-ID XML objects can overwrite one
+project currently requires only the official campaign modules. It packages the
+MCM v5 core and adapter while keeping the standalone MCM UI module optional.
+The official documentation describes dependencies as the modules a mod
+requires to function, and warns that same-ID XML objects can overwrite one
 another according to load order. See the [SubModule documentation](https://docs.bannerlordmodding.com/_xmldocs/submodule.html)
 and [module structure guidance](https://docs.bannerlordmodding.com/_intro/folder-structure.html).
 
@@ -43,7 +44,7 @@ persistence documentation](https://mcm.bannerlord.aragas.org/articles/MCMv5/mcmv
 | Map bar | `MapBarVM.Initialize`, `MapTimeControlVM.Refresh/Tick`, and `GUI/Prefabs/Map/MapBar.xml` | High for UI overhaul mods | Native map bar by default in Conservative mode; custom calendar map bar only when no conflicting owner is detected |
 | Strategic map | Separate World Calendar movie and texture provider | Low to medium; mostly additive | Keep enabled unless a replacement World Calendar screen/provider is detected |
 | Camp/refuge | Namespaced behaviors, menus, save keys, and additive map marker | Low; does not replace town/economy models | Keep enabled; use unique IDs and disable only the affected menu/UI component on conflict |
-| MCM | Optional adapter loaded by reflection | Low | Never make MCM a hard dependency; keep XML/native options functional |
+| MCM | Packaged core and manifest-declared adapter, initialized through the optional integration bridge | Low | Never make the standalone MCM UI a hard dependency; keep XML/native options functional |
 
 Local audit references:
 
@@ -175,8 +176,8 @@ Test each mode with representative mod classes, not only named mods:
 3. Diplomacy overhaul: calendar and economy remain; diplomacy group backs off.
 4. Party-speed/food overhaul: foreign models remain authoritative.
 5. Map-bar overhaul: native/custom World Calendar fallback remains usable.
-6. MCM absent: XML and native Calendar tab still work.
-7. MCM present: settings update the same runtime state without duplicate saves.
+6. Standalone MCM UI absent: module-local XML and the native Calendar tab still work.
+7. Standalone MCM UI present: the MCM page is active and the native Calendar tab is hidden.
 8. Save/reload with MCM removed: campaign profile retains gameplay settings.
 9. Unknown Bannerlord method fingerprint: only the affected optional group is
    disabled.

@@ -20,58 +20,23 @@
                 </ButtonWidget>
               </ItemTemplate>
             </ListPanel>
-            <TextWidget IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="700" SuggestedHeight="26" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="48" MarginTop="155" Brush="Popup.Button.Text" Brush.FontSize="14" Text="Every saved world event is retained here. Select a month to expand or collapse it." />
-            <Widget Id="CalendarContentPanel" IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="700" SuggestedHeight="580" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="48" MarginTop="180" Sprite="BlankWhiteSquare" Color="#1A120CE8">
+            <TextWidget IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="700" SuggestedHeight="26" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="48" MarginTop="155" Brush="Popup.Button.Text" Brush.FontSize="14" Text="Use the arrows to browse months. Quest deadlines are marked with !." />
+            <Widget Id="CalendarContentPanel" IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="700" SuggestedHeight="580" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="48" MarginTop="180" Sprite="BlankWhiteSquare" Color="#241A12E8">
               <Children>
-                <ScrollablePanel Id="CalendarHistoryScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="392" HorizontalAlignment="Center" VerticalAlignment="Top" MarginLeft="8" MarginRight="22" MarginTop="8" InnerPanel="CalendarHistoryClip\CalendarMonthList" ClipRect="CalendarHistoryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\CalendarHistoryScrollbar\Scrollbar" AutoHideScrollBars="true">
+                <Widget Id="CalendarMonthPager" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="392" HorizontalAlignment="Center" VerticalAlignment="Top" MarginLeft="8" MarginRight="8" MarginTop="8">
                   <Children>
-                    <Widget Id="CalendarHistoryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                    <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="672" SuggestedHeight="38" HorizontalAlignment="Center" VerticalAlignment="Top" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
-                        <ListPanel Id="CalendarMonthList" DataSource="{CalendarMonths}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
-                          <ItemTemplate>
-                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
-                              <Children>
-                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteToggle">
-                                  <Children>
-                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="36" HorizontalAlignment="Left" Brush="Popup.Button.Text" Text="@ExpandGlyph" Brush.FontSize="22" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
-                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="360" HorizontalAlignment="Left" MarginLeft="42" Brush="Popup.Button.Text" Text="@Title" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" />
-                                  </Children>
-                                </ButtonWidget>
-                                <Widget IsVisible="@IsExpanded" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="382">
-                                  <Children>
-                                    <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="672" SuggestedHeight="25" HorizontalAlignment="Center" VerticalAlignment="Top" StackLayout.LayoutMethod="HorizontalLeftToRight">
-                                      <Children>
-                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Sun" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
-                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Mon" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
-                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Tue" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
-                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Wed" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
-                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Thu" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
-                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Fri" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
-                                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Sat" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" />
-                                      </Children>
-                                    </ListPanel>
-                                    <GridWidget DataSource="{Days}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="25" DefaultCellWidth="96" DefaultCellHeight="58" ColumnCount="7" LayoutImp="GridLayout">
-                                      <ItemTemplate>
-                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="1" MarginRight="1" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare" Color="@BackgroundColor">
-                                          <Children>
-                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="25" SuggestedHeight="20" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="6" MarginTop="3" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@DayNumber" />
-                                            <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="78" SuggestedHeight="32" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="3" Brush="Popup.Button.Text" Brush.FontSize="10" Text="@EventSummary" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
-                                          </Children>
-                                        </Widget>
-                                      </ItemTemplate>
-                                    </GridWidget>
-                                  </Children>
-                                </Widget>
-                              </Children>
-                            </ListPanel>
-                          </ItemTemplate>
-                        </ListPanel>
+                        <ButtonWidget IsEnabled="@CanPreviousCalendarMonth" DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="52" SuggestedHeight="34" Sprite="StdAssets\Popup\button_default" Command.Click="ExecutePreviousCalendarMonth"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="22" Text="&lt;" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="568" SuggestedHeight="34" Brush="Popup.Button.Text" Brush.FontSize="18" Text="@MonthTitle" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                        <ButtonWidget IsEnabled="@CanNextCalendarMonth" DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="52" SuggestedHeight="34" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteNextCalendarMonth"><Children><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="22" Text="&gt;" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
                       </Children>
-                    </Widget>
+                    </ListPanel>
+                    <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="672" SuggestedHeight="25" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="40" StackLayout.LayoutMethod="HorizontalLeftToRight"><Children><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Sun" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Mon" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Tue" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Wed" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Thu" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Fri" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="96" SuggestedHeight="25" Brush="Popup.Button.Text" Text="Sat" Brush.FontSize="13" Brush.TextHorizontalAlignment="Center" /></Children></ListPanel>
+                    <GridWidget DataSource="{Days}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="66" DefaultCellWidth="96" DefaultCellHeight="58" ColumnCount="7" LayoutImp="GridLayout"><ItemTemplate><ButtonWidget IsEnabled="@IsSelectable" DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="1" MarginRight="1" MarginTop="1" MarginBottom="1" Command.Click="ExecuteSelect"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare" Color="@BackgroundColor" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="25" SuggestedHeight="20" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="6" MarginTop="3" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@DayNumber" /><TextWidget IsVisible="@HasQuestDue" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="18" SuggestedHeight="20" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="4" MarginTop="2" Brush="Popup.Button.Text" Brush.FontSize="16" Text="!" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /><TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="78" SuggestedHeight="32" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="3" Brush="Popup.Button.Text" Brush.FontSize="10" Text="@EventSummary" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget></ItemTemplate></GridWidget>
                   </Children>
-                </ScrollablePanel>
-                <Standard.VerticalScrollbar Id="CalendarHistoryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Top" HeightSizePolicy="Fixed" SuggestedHeight="392" MarginTop="8" />
-                <Widget Id="CalendarSummaryPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="164" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginLeft="8" MarginRight="8" MarginBottom="8" Sprite="BlankWhiteSquare" Color="#241A12E8">
+                </Widget>
+                <Widget Id="CalendarSummaryPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="172" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                   <Children>
                     <Widget Id="MonthlySummaryPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="334" SuggestedHeight="150" HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="8">
                       <Children>
@@ -84,7 +49,6 @@
                           </Children>
                         </ScrollablePanel>
                         <Standard.VerticalScrollbar Id="MonthSummaryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="110" MarginBottom="4" />
-                        <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
                       </Children>
                     </Widget>
                     <Widget Id="YearlySummaryPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="334" SuggestedHeight="150" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="8">
@@ -98,10 +62,9 @@
                           </Children>
                         </ScrollablePanel>
                         <Standard.VerticalScrollbar Id="YearSummaryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="110" MarginBottom="4" />
-                        <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
                       </Children>
                     </Widget>
-                    <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
+                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center" MarginTop="6" MarginBottom="6" Sprite="BlankWhiteSquare" Color="#80652CFF" />
                   </Children>
                 </Widget>
                 <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
@@ -109,7 +72,7 @@
             </Widget>
             <Widget Id="CalendarNotesPanel" IsVisible="@IsCalendarVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="285" SuggestedHeight="600" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="45" MarginTop="156" Sprite="BlankWhiteSquare" Color="#241A12E8">
               <Children>
-                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="5" Brush="Popup.Button.Text" Brush.FontSize="18" Text="NOTES" Brush.TextHorizontalAlignment="Center" />
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="5" Brush="Popup.Button.Text" Brush.FontSize="18" Text="@NotesTitle" Brush.TextHorizontalAlignment="Center" />
                 <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="530" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="12" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@NotesText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
                 <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
               </Children>
@@ -152,13 +115,15 @@
             <!-- The base map, faction markers, and labels share this one panning canvas. -->
             <Widget Id="StrategicMapPanel" IsVisible="@IsStrategicMap" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="810" SuggestedHeight="610" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="35" MarginTop="155" Sprite="BlankWhiteSquare" Color="#18232AFF" Command.HoverBegin="ExecuteStrategicMapHoverBegin" Command.HoverEnd="ExecuteStrategicMapHoverEnd">
               <Children>
-                <EncyclopediaTroopScrollablePanel Id="StrategicMapScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" InnerPanel="StrategicMapClip\StrategicMapCanvas" ClipRect="StrategicMapClip" HorizontalScrollbar="..\StrategicMapHorizontalScrollbar" VerticalScrollbar="..\StrategicMapVerticalScrollbar" PanWithMouseEnabled="true" AutoHideScrollBars="false" AutoHideScrollBarHandle="false" Command.HoverBegin="ExecuteStrategicMapHoverBegin" Command.HoverEnd="ExecuteStrategicMapHoverEnd">
+                <!-- Keep drag-to-pan, but set the panel's own wheel speed to zero.
+                     WorldCalendarScreen consumes the wheel over this viewport for zoom only. -->
+                <StrategicMapZoomScrollablePanel Id="StrategicMapScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" InnerPanel="StrategicMapClip\StrategicMapCanvas" ClipRect="StrategicMapClip" HorizontalScrollbar="..\StrategicMapHorizontalScrollbar" VerticalScrollbar="..\StrategicMapVerticalScrollbar" PanWithMouseEnabled="true" MouseScrollSpeed="0" AutoHideScrollBars="false" AutoHideScrollBarHandle="false" Command.HoverBegin="ExecuteStrategicMapHoverBegin" Command.HoverEnd="ExecuteStrategicMapHoverEnd">
                   <Children>
                     <Widget Id="StrategicMapClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" ClipContents="true" DoNotAcceptEvents="true">
                       <Children>
                         <Widget Id="StrategicMapCanvas" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@MapCanvasWidth" SuggestedHeight="@MapCanvasHeight" HorizontalAlignment="Left" VerticalAlignment="Top">
                           <Children>
-                            <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="CalendarStrategicCampaignAtlasTextureProvider" />
+                            <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="RealisticCalendarStrategicMapAtlasTextureProvider" />
                             <!-- Legacy individual layers remain in the prefab for rollback only. The composed texture above is the active renderer. -->
                             <Widget IsVisible="false">
                               <Children>
@@ -453,17 +418,17 @@
                       </Children>
                     </Widget>
                   </Children>
-                </EncyclopediaTroopScrollablePanel>
+                </StrategicMapZoomScrollablePanel>
                 <ScrollbarWidget Id="StrategicMapVerticalScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="10" HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="3" MarginTop="7" MarginBottom="7" AlignmentAxis="Vertical" Handle="StrategicMapVerticalScrollbarHandle" MinValue="0" MaxValue="100">
                   <Children>
-                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="3" HorizontalAlignment="Center" Sprite="BlankWhiteSquare" Color="#746044AA" />
-                    <Widget Id="StrategicMapVerticalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="10" SuggestedHeight="54" HorizontalAlignment="Center" Sprite="BlankWhiteSquare" Color="#C7A76AFF" />
+                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="3" HorizontalAlignment="Center" Sprite="BlankWhiteSquare" Color="#00000000" />
+                    <Widget Id="StrategicMapVerticalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="10" SuggestedHeight="54" HorizontalAlignment="Center" Sprite="BlankWhiteSquare" Color="#00000000" />
                   </Children>
                 </ScrollbarWidget>
                 <ScrollbarWidget Id="StrategicMapHorizontalScrollbar" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginLeft="7" MarginRight="7" MarginBottom="3" AlignmentAxis="Horizontal" Handle="StrategicMapHorizontalScrollbarHandle" MinValue="0" MaxValue="100">
                   <Children>
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="3" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#746044AA" />
-                    <Widget Id="StrategicMapHorizontalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="54" SuggestedHeight="10" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#C7A76AFF" />
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="3" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#00000000" />
+                    <Widget Id="StrategicMapHorizontalScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="54" SuggestedHeight="10" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#00000000" />
                   </Children>
                 </ScrollbarWidget>
                 <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="26" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginRight="4" MarginBottom="8" StackLayout.LayoutMethod="HorizontalLeftToRight">
@@ -479,42 +444,81 @@
             </Widget>
             <Widget Id="StrategicSidePanel" IsVisible="@IsStrategicMap" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="270" SuggestedHeight="610" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="35" MarginTop="155" Sprite="BlankWhiteSquare" Color="#241A12E8">
               <Children>
-                <Widget Id="MapLegendFrame" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="108" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="6">
+                <ListPanel IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@StrategicMapLegendContentWidth" SuggestedHeight="@StrategicMapLegendHeight" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="@StrategicMapLegendMarginTop" StackLayout.LayoutMethod="VerticalTopToBottom">
                   <Children>
-                    <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
-                  </Children>
-                </Widget>
-                <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="238" SuggestedHeight="96" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="12" StackLayout.LayoutMethod="VerticalTopToBottom">
-                  <Children>
-                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="20" Brush="Popup.Button.Text" Brush.FontSize="14" Text="MAP LEGEND" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
-                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="20" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="MAP LEGEND" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@StrategicMapLegendIconSize" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
-                        <!-- Use the same town renderer as the live map marker. -->
-                        <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="30" VerticalAlignment="Center" TextureProviderName="CalendarStrategicTownLegendTextureProvider" />
-                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="66" SuggestedHeight="32" MarginLeft="3" Brush="Popup.Button.Text" Brush.FontSize="13" Text="Town" Brush.TextVerticalAlignment="Center" />
-                        <!-- Use the same castle renderer as the live map marker. -->
-                        <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="30" MarginLeft="10" VerticalAlignment="Center" TextureProviderName="CalendarStrategicCastleLegendTextureProvider" />
-                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="74" SuggestedHeight="32" MarginLeft="3" Brush="Popup.Button.Text" Brush.FontSize="13" Text="Castle" Brush.TextVerticalAlignment="Center" />
+                        <!-- Engine-owned sprites from a versioned, legend-only
+                             category avoid both provider and stale-atlas state. -->
+                        <StrategicLegendDrawWidget IconKind="Town" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@StrategicMapLegendIconSize" SuggestedHeight="@StrategicMapLegendIconSize" VerticalAlignment="Center" />
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="120" SuggestedHeight="@StrategicMapLegendIconSize" MarginLeft="20" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Town" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
                       </Children>
                     </ListPanel>
-                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22" Brush="Popup.Button.Text" Brush.FontSize="11" Text="Province colour = current owner" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@StrategicMapLegendIconSize" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <StrategicLegendDrawWidget IconKind="Castle" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@StrategicMapLegendIconSize" SuggestedHeight="@StrategicMapLegendIconSize" VerticalAlignment="Center" />
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="120" SuggestedHeight="@StrategicMapLegendIconSize" MarginLeft="20" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Castle" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                      </Children>
+                    </ListPanel>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Province colour = current owner" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
                   </Children>
                 </ListPanel>
-                <Widget Id="KingdomSummaryFrame" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="487" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="6">
-                  <Children>
-                    <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
-                  </Children>
-                </Widget>
-                <ScrollablePanel Id="StrategicSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="238" SuggestedHeight="485" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="12" InnerPanel="StrategicSummaryClip\StrategicSummaryText" ClipRect="StrategicSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\StrategicSummaryScrollbar\Scrollbar" AutoHideScrollBars="true">
+                <Widget IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="2" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="116" Sprite="BlankWhiteSquare" Color="#80652CFF" />
+                <ScrollablePanel Id="StrategicSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="238" SuggestedHeight="@StrategicSummaryScrollerHeight" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="@StrategicSummaryScrollerMarginBottom" InnerPanel="StrategicSummaryClip\StrategicSummaryBody" ClipRect="StrategicSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\StrategicSummaryScrollbar\Scrollbar" AutoHideScrollBars="true">
                   <Children>
                     <Widget Id="StrategicSummaryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                       <Children>
-                        <TextWidget Id="StrategicSummaryText" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="220" HorizontalAlignment="Left" VerticalAlignment="Top" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@StrategicText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                        <ListPanel Id="StrategicSummaryBody" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="220" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
+                          <Children>
+                            <TextWidget Id="StrategicSummaryText" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@StrategicText" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                            <TextWidget IsVisible="@HasSelectedStrategicSettlement" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="24" MarginTop="6" Brush="Popup.Button.Text" Brush.FontSize="13" Text="BOUND VILLAGES" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                            <ListPanel DataSource="{SelectedStrategicVillages}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
+                              <ItemTemplate>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                  <Children>
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="132" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@Name" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="26" VerticalAlignment="Center" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteToggleTrack">
+                                      <Children>
+                                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@TrackText" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                      </Children>
+                                    </ButtonWidget>
+                                  </Children>
+                                </ListPanel>
+                              </ItemTemplate>
+                            </ListPanel>
+                            <TextWidget IsVisible="@ShowTrackedStrategicSettlements" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="24" MarginTop="8" Brush="Popup.Button.Text" Brush.FontSize="13" Text="TRACKED SETTLEMENTS" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                            <ListPanel IsVisible="@ShowTrackedStrategicSettlements" DataSource="{TrackedStrategicSettlements}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
+                              <ItemTemplate>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                  <Children>
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="132" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@Name" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="82" SuggestedHeight="26" VerticalAlignment="Center" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteToggleTrack">
+                                      <Children>
+                                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@TrackText" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                      </Children>
+                                    </ButtonWidget>
+                                  </Children>
+                                </ListPanel>
+                              </ItemTemplate>
+                            </ListPanel>
+                          </Children>
+                        </ListPanel>
                       </Children>
                     </Widget>
                   </Children>
                 </ScrollablePanel>
-                <Standard.VerticalScrollbar Id="StrategicSummaryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="485" MarginRight="3" MarginBottom="12" />
+                <Standard.VerticalScrollbar Id="StrategicSummaryScrollbar" HorizontalAlignment="Right" VerticalAlignment="Bottom" HeightSizePolicy="Fixed" SuggestedHeight="@StrategicSummaryScrollerHeight" MarginRight="3" MarginBottom="@StrategicSummaryScrollerMarginBottom" />
+                <ButtonWidget IsVisible="@HasSelectedStrategicSettlement" DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="220" SuggestedHeight="38" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="56" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteShowKingdomSummary">
+                  <Children>
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="14" Text="Back to Kingdom Summary" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                  </Children>
+                </ButtonWidget>
+                <ButtonWidget IsVisible="@HasSelectedStrategicSettlement" DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="220" SuggestedHeight="38" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="14" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteTrackSelectedSettlement">
+                  <Children>
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="14" Text="@TrackSelectedSettlementText" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                  </Children>
+                </ButtonWidget>
                 <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="TownManagement.GovernorPopup.GoldFrame" />
               </Children>
             </Widget>
@@ -526,6 +530,10 @@
             </ButtonWidget>
           </Children>
         </Widget>
+        <!-- The global layer blocks map-bar input. This transparent hit target
+             sits directly over the already-rendered W button, preserving one
+             visible icon while routing its second click through Close(). -->
+        <ButtonWidget Id="WorldCalendarOpenOverlayToggle" DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="31" HorizontalAlignment="Center" VerticalAlignment="Bottom" PositionXOffset="213" MarginBottom="2" AlphaFactor="0" Command.Click="ExecuteClose" />
       </Children>
     </Widget>
   </Window>

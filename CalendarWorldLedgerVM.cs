@@ -12,15 +12,16 @@ namespace TwelveMonthCalendar
     {
         private const float StrategicMapViewportWidth = 810f;
         private const float StrategicMapViewportHeight = 610f;
-        private const float StrategicMapMinimumZoom = 1f;
+        private const float StrategicMapMinimumZoom = 0.5f;
+        private const float StrategicMapDefaultZoom = 1f;
         private const float StrategicMapMaximumZoom = 5f;
-        private const float StrategicMapZoomStep = 0.5f;
+        private const float StrategicMapZoomStep = 0.25f;
         private const int FirstCalendarMonth = 0;
         private const int LastCalendarMonth = 11;
+        private const int CalendarFutureMonths = 12;
         // Markers are painted at a fixed size in the source texture. Keeping
         // their centres this far apart prevents town/castle silhouettes from
         // merging when the player zooms into dense settlement clusters.
-        private const float StrategicMarkerMinimumSeparation = 52f;
         private const float StrategicMarkerEdgePadding = 20f;
         private string _title = "World Events";
         private string _monthTitle = string.Empty;
@@ -29,6 +30,7 @@ namespace TwelveMonthCalendar
         private string _yearSummaryTitle = string.Empty;
         private string _yearSummaryText = string.Empty;
         private string _notesText = "No world events have been recorded yet.";
+        private string _notesTitle = "NOTES";
         private string _strategicText = string.Empty;
         private bool _isStrategicMap;
         private bool _isCalendarVisible = true;
@@ -41,6 +43,8 @@ namespace TwelveMonthCalendar
         private readonly MBBindingList<CalendarWorldStrategicProvinceVM> _strategicProvinces = new MBBindingList<CalendarWorldStrategicProvinceVM>();
         private readonly MBBindingList<CalendarWorldStrategicProvinceVM> _strategicContestedProvinces = new MBBindingList<CalendarWorldStrategicProvinceVM>();
         private readonly MBBindingList<CalendarWorldStrategicMarkerVM> _strategicMarkers = new MBBindingList<CalendarWorldStrategicMarkerVM>();
+        private readonly MBBindingList<CalendarWorldStrategicVillageVM> _selectedStrategicVillages = new MBBindingList<CalendarWorldStrategicVillageVM>();
+        private readonly MBBindingList<CalendarWorldStrategicVillageVM> _trackedStrategicSettlements = new MBBindingList<CalendarWorldStrategicVillageVM>();
         // The repeated ItemTemplate renderer intermittently loses an item's bound
         // sprite/color pair in Gauntlet. Fixed named layers are used by the map XML
         // instead; these arrays provide the matching data sources for those layers.
@@ -49,7 +53,10 @@ namespace TwelveMonthCalendar
         private readonly Action _close;
         private string _selectedFilter = "All";
         private string _selectedStrategicSettlementId = string.Empty;
-        private float _strategicMapZoom = StrategicMapMinimumZoom;
+        private long _selectedCalendarDay = long.MinValue;
+        private int _displayCalendarYear = int.MinValue;
+        private int _displayCalendarMonth = int.MinValue;
+        private float _strategicMapZoom = StrategicMapDefaultZoom;
         // Reference-map positions recovered from our authored settlement-marker
         // artwork. These are the original 2000 x 2000 map coordinates, before
         // the displayed map's black-frame crop is applied. They are calibration
@@ -239,22 +246,42 @@ namespace TwelveMonthCalendar
         [DataSourceProperty] public string YearSummaryTitle { get { return _yearSummaryTitle; } private set { if (_yearSummaryTitle == value) return; _yearSummaryTitle = value ?? string.Empty; OnPropertyChangedWithValue(_yearSummaryTitle, "YearSummaryTitle"); } }
         [DataSourceProperty] public string YearSummaryText { get { return _yearSummaryText; } private set { if (_yearSummaryText == value) return; _yearSummaryText = value ?? string.Empty; OnPropertyChangedWithValue(_yearSummaryText, "YearSummaryText"); } }
         [DataSourceProperty] public string NotesText { get { return _notesText; } private set { if (_notesText == value) return; _notesText = value ?? string.Empty; OnPropertyChangedWithValue(_notesText, "NotesText"); } }
+        [DataSourceProperty] public string NotesTitle { get { return _notesTitle; } private set { if (_notesTitle == value) return; _notesTitle = value ?? string.Empty; OnPropertyChangedWithValue(_notesTitle, "NotesTitle"); } }
         [DataSourceProperty] public string StrategicText { get { return _strategicText; } private set { if (_strategicText == value) return; _strategicText = value ?? string.Empty; OnPropertyChangedWithValue(_strategicText, "StrategicText"); } }
         [DataSourceProperty] public bool IsStrategicMap { get { return _isStrategicMap; } private set { if (_isStrategicMap == value) return; _isStrategicMap = value; OnPropertyChangedWithValue(value, "IsStrategicMap"); } }
         [DataSourceProperty] public bool IsCalendarVisible { get { return _isCalendarVisible; } private set { if (_isCalendarVisible == value) return; _isCalendarVisible = value; OnPropertyChangedWithValue(value, "IsCalendarVisible"); } }
         [DataSourceProperty] public bool IsSummariesVisible { get { return _isSummariesVisible; } private set { if (_isSummariesVisible == value) return; _isSummariesVisible = value; OnPropertyChangedWithValue(value, "IsSummariesVisible"); } }
         [DataSourceProperty] public MBBindingList<CalendarWorldLedgerTabVM> Tabs { get { return _tabs; } }
         [DataSourceProperty] public MBBindingList<CalendarWorldCalendarDayVM> Days { get { return _days; } }
+        [DataSourceProperty] public bool CanPreviousCalendarMonth { get { return CanMoveDisplayedCalendarMonth(-1); } }
+        [DataSourceProperty] public bool CanNextCalendarMonth { get { return CanMoveDisplayedCalendarMonth(1); } }
         [DataSourceProperty] public MBBindingList<CalendarWorldCalendarMonthVM> CalendarMonths { get { return _calendarMonths; } }
         [DataSourceProperty] public MBBindingList<CalendarWorldSavedSummaryVM> SavedSummaries { get { return _savedSummaries; } }
         [DataSourceProperty] public MBBindingList<CalendarWorldStrategicProvinceVM> StrategicProvinces { get { return _strategicProvinces; } }
         [DataSourceProperty] public MBBindingList<CalendarWorldStrategicProvinceVM> StrategicContestedProvinces { get { return _strategicContestedProvinces; } }
         [DataSourceProperty] public MBBindingList<CalendarWorldStrategicMarkerVM> StrategicMarkers { get { return _strategicMarkers; } }
+        [DataSourceProperty] public MBBindingList<CalendarWorldStrategicVillageVM> SelectedStrategicVillages { get { return _selectedStrategicVillages; } }
+        [DataSourceProperty] public MBBindingList<CalendarWorldStrategicVillageVM> TrackedStrategicSettlements { get { return _trackedStrategicSettlements; } }
+        [DataSourceProperty] public bool HasTrackedStrategicSettlements { get { return _trackedStrategicSettlements.Count > 0; } }
+        [DataSourceProperty] public bool ShowTrackedStrategicSettlements
+        {
+            get { return HasTrackedStrategicSettlements && !HasSelectedStrategicSettlement; }
+        }
+        [DataSourceProperty] public bool ShowStrategicMapLegend { get { return CalendarSettingsState.StrategicMapShowLegend; } }
+        [DataSourceProperty] public int StrategicMapLegendWidth { get { return CalendarSettingsState.StrategicMapLegendWidth; } }
+        [DataSourceProperty] public int StrategicMapLegendHeight { get { return CalendarSettingsState.StrategicMapLegendHeight; } }
+        [DataSourceProperty] public int StrategicMapLegendMarginTop { get { return CalendarSettingsState.StrategicMapLegendMarginTop; } }
+        [DataSourceProperty] public int StrategicMapLegendIconSize { get { return CalendarSettingsState.StrategicMapLegendIconSize; } }
+        [DataSourceProperty] public int StrategicMapLegendFontSize { get { return CalendarSettingsState.StrategicMapLegendFontSize; } }
+        [DataSourceProperty] public int StrategicMapLegendContentWidth { get { return Math.Max(160, CalendarSettingsState.StrategicMapLegendWidth - 12); } }
         private static float StrategicMapFitScale
         {
             get
             {
-                return Math.Min(
+                // Fill the entire viewport instead of letterboxing the nearly
+                // square map inside the wider panel. The small vertical excess
+                // remains available through drag panning.
+                return Math.Max(
                     StrategicMapViewportWidth / CalendarStrategicMapLayout.SourceWidth,
                     StrategicMapViewportHeight / CalendarStrategicMapLayout.SourceHeight);
             }
@@ -266,13 +293,60 @@ namespace TwelveMonthCalendar
         [DataSourceProperty] public string MapZoomText { get { return _strategicMapZoom.ToString("0.00x"); } }
         [DataSourceProperty] public bool CanZoomIn { get { return _strategicMapZoom < StrategicMapMaximumZoom; } }
         [DataSourceProperty] public bool CanZoomOut { get { return _strategicMapZoom > StrategicMapMinimumZoom; } }
+        [DataSourceProperty] public bool HasSelectedStrategicSettlement { get { return GetSelectedStrategicSettlement() != null; } }
+        [DataSourceProperty] public bool IsSelectedStrategicSettlementTracked
+        {
+            get
+            {
+                Settlement selected = GetSelectedStrategicSettlement();
+                return selected != null && Campaign.Current != null
+                    && Campaign.Current.VisualTrackerManager != null
+                    && Campaign.Current.VisualTrackerManager.CheckTracked(selected);
+            }
+        }
+        [DataSourceProperty] public string TrackSelectedSettlementText
+        {
+            get { return IsSelectedStrategicSettlementTracked ? "Untrack Settlement" : "Track Settlement"; }
+        }
+        [DataSourceProperty] public int StrategicSummaryScrollerHeight
+        {
+            get { return HasSelectedStrategicSettlement ? 383 : 425; }
+        }
+        [DataSourceProperty] public int StrategicSummaryScrollerMarginBottom
+        {
+            get { return HasSelectedStrategicSettlement ? 102 : 60; }
+        }
 
         public void ExecuteClose() { if (_close != null) _close(); }
         public void ExecuteRefresh() { RefreshCalendar(); }
         internal void RefreshWorldState() { RefreshCalendar(); }
         public void ExecuteZoomIn() { SetStrategicMapZoom(_strategicMapZoom + StrategicMapZoomStep); }
         public void ExecuteZoomOut() { SetStrategicMapZoom(_strategicMapZoom - StrategicMapZoomStep); }
-        public void ExecuteResetMapView() { SetStrategicMapZoom(StrategicMapMinimumZoom); }
+        public void ExecuteResetMapView() { SetStrategicMapZoom(StrategicMapDefaultZoom); }
+        public void ExecuteTrackSelectedSettlement()
+        {
+            Settlement selected = GetSelectedStrategicSettlement();
+            if (selected == null || Campaign.Current == null || Campaign.Current.VisualTrackerManager == null) return;
+
+            ToggleSettlementTracking(selected, "settlement");
+
+            RefreshTrackedStrategicSettlements();
+            NotifyStrategicSettlementSelectionChanged();
+            StrategicText = BuildStrategicPanelText();
+        }
+        public void ExecuteShowKingdomSummary()
+        {
+            _selectedStrategicSettlementId = string.Empty;
+            foreach (CalendarWorldStrategicMarkerVM marker in _strategicMarkers)
+            {
+                marker.IsSelected = false;
+            }
+
+            RefreshSelectedStrategicVillages();
+            StrategicText = BuildStrategicPanelText();
+            NotifyStrategicSettlementSelectionChanged();
+            Diagnostics.Info("Strategic settlement details closed; Kingdom Summary restored.");
+        }
         public void ExecuteStrategicMapHoverBegin() { _isPointerOverStrategicMap = true; }
         public void ExecuteStrategicMapHoverEnd() { _isPointerOverStrategicMap = false; }
         internal void AdjustStrategicMapZoomFromMouseWheel(float delta)
@@ -299,9 +373,12 @@ namespace TwelveMonthCalendar
 
         private void RefreshCalendar()
         {
-            NotesText = CalendarWorldLedgerBehavior.GetRecentEntriesText(_selectedFilter);
+            RefreshCalendarNotes();
             BuildStrategicMapLayers();
+            RefreshSelectedStrategicVillages();
+            RefreshTrackedStrategicSettlements();
             StrategicText = BuildStrategicPanelText();
+            NotifyStrategicSettlementSelectionChanged();
             BuildCalendarHistory();
         }
 
@@ -367,6 +444,7 @@ namespace TwelveMonthCalendar
             });
 
             List<StrategicSettlementPoint> placed = new List<StrategicSettlementPoint>();
+            float minimumSeparation = CalendarSettingsState.StrategicMapMarkerSpacing;
             foreach (StrategicSettlementPoint point in ordered)
             {
                 if (point == null) continue;
@@ -383,7 +461,7 @@ namespace TwelveMonthCalendar
                         float deltaX = candidateX - occupied.DisplayX;
                         float deltaY = candidateY - occupied.DisplayY;
                         float distance = (float)Math.Sqrt((deltaX * deltaX) + (deltaY * deltaY));
-                        if (distance >= StrategicMarkerMinimumSeparation) continue;
+                        if (distance >= minimumSeparation) continue;
 
                         if (distance < 0.01f)
                         {
@@ -396,7 +474,7 @@ namespace TwelveMonthCalendar
                             distance = 1f;
                         }
 
-                        float requiredPush = StrategicMarkerMinimumSeparation - distance + 4f;
+                        float requiredPush = minimumSeparation - distance + 4f;
                         pushX += (deltaX / distance) * requiredPush;
                         pushY += (deltaY / distance) * requiredPush;
                     }
@@ -442,7 +520,8 @@ namespace TwelveMonthCalendar
                 float deltaX = x - occupied.DisplayX;
                 float deltaY = y - occupied.DisplayY;
                 float distanceSquared = (deltaX * deltaX) + (deltaY * deltaY);
-                if (distanceSquared < StrategicMarkerMinimumSeparation * StrategicMarkerMinimumSeparation) return false;
+                float minimumSeparation = CalendarSettingsState.StrategicMapMarkerSpacing;
+                if (distanceSquared < minimumSeparation * minimumSeparation) return false;
             }
             return true;
         }
@@ -647,12 +726,154 @@ namespace TwelveMonthCalendar
         private void SelectStrategicSettlement(CalendarWorldStrategicMarkerVM marker)
         {
             if (marker == null || marker.Settlement == null) return;
-            _selectedStrategicSettlementId = marker.Settlement.StringId ?? string.Empty;
-            foreach (CalendarWorldStrategicMarkerVM entry in _strategicMarkers)
+            string previousSelection = _selectedStrategicSettlementId;
+            Diagnostics.Info("Strategic settlement selection started: "
+                + (marker.Settlement.StringId ?? "<no-id>") + " (" + marker.Settlement.Name + ").");
+            try
             {
-                entry.IsSelected = ReferenceEquals(entry, marker);
+                _selectedStrategicSettlementId = marker.Settlement.StringId ?? string.Empty;
+                foreach (CalendarWorldStrategicMarkerVM entry in _strategicMarkers)
+                {
+                    entry.IsSelected = ReferenceEquals(entry, marker);
+                }
+                RefreshSelectedStrategicVillages();
+                Diagnostics.Info("Strategic settlement villages prepared: settlement="
+                    + _selectedStrategicSettlementId + "; count=" + _selectedStrategicVillages.Count + ".");
+                StrategicText = BuildStrategicPanelText();
+                NotifyStrategicSettlementSelectionChanged();
+                Diagnostics.Info("Strategic settlement selection completed: " + _selectedStrategicSettlementId + ".");
             }
+            catch (Exception exception)
+            {
+                _selectedStrategicSettlementId = previousSelection;
+                foreach (CalendarWorldStrategicMarkerVM entry in _strategicMarkers)
+                {
+                    entry.IsSelected = entry.Settlement != null
+                        && string.Equals(entry.Settlement.StringId, previousSelection, StringComparison.Ordinal);
+                }
+                RefreshSelectedStrategicVillages();
+                StrategicText = BuildStrategicPanelText();
+                NotifyStrategicSettlementSelectionChanged();
+                Diagnostics.Error("Strategic settlement selection failed and was rolled back.", exception);
+            }
+        }
+
+        private void RefreshSelectedStrategicVillages()
+        {
+            _selectedStrategicVillages.Clear();
+            Settlement selected = GetSelectedStrategicSettlement();
+            if (selected == null || selected.BoundVillages == null) return;
+
+            List<Village> villages = new List<Village>();
+            foreach (Village village in selected.BoundVillages)
+            {
+                if (village != null && village.Settlement != null) villages.Add(village);
+            }
+            villages.Sort(delegate(Village left, Village right)
+            {
+                return string.Compare(
+                    left.Settlement.Name.ToString(),
+                    right.Settlement.Name.ToString(),
+                    StringComparison.CurrentCultureIgnoreCase);
+            });
+            foreach (Village village in villages)
+            {
+                _selectedStrategicVillages.Add(new CalendarWorldStrategicVillageVM(
+                    village.Settlement,
+                    ToggleStrategicVillageTracking));
+            }
+        }
+
+        private void ToggleStrategicVillageTracking(CalendarWorldStrategicVillageVM village)
+        {
+            if (village == null || village.Settlement == null) return;
+            ToggleSettlementTracking(village.Settlement, "village");
+            village.RefreshTracking();
+            RefreshTrackedStrategicSettlements();
+        }
+
+        private void ToggleTrackedStrategicSettlement(CalendarWorldStrategicVillageVM item)
+        {
+            if (item == null || item.Settlement == null) return;
+            ToggleSettlementTracking(item.Settlement, "settlement-list item");
+            RefreshSelectedStrategicVillages();
+            RefreshTrackedStrategicSettlements();
+            NotifyStrategicSettlementSelectionChanged();
             StrategicText = BuildStrategicPanelText();
+        }
+
+        private void RefreshTrackedStrategicSettlements()
+        {
+            _trackedStrategicSettlements.Clear();
+            if (Campaign.Current == null || Campaign.Current.VisualTrackerManager == null)
+            {
+                OnPropertyChangedWithValue(false, "HasTrackedStrategicSettlements");
+                OnPropertyChangedWithValue(false, "ShowTrackedStrategicSettlements");
+                return;
+            }
+
+            List<Settlement> tracked = new List<Settlement>();
+            foreach (Settlement settlement in Settlement.All)
+            {
+                if (settlement == null || (settlement.Town == null && settlement.Village == null)) continue;
+                if (Campaign.Current.VisualTrackerManager.CheckTracked(settlement)) tracked.Add(settlement);
+            }
+            tracked.Sort(delegate(Settlement left, Settlement right)
+            {
+                return string.Compare(
+                    left.Name.ToString(),
+                    right.Name.ToString(),
+                    StringComparison.CurrentCultureIgnoreCase);
+            });
+            foreach (Settlement settlement in tracked)
+            {
+                _trackedStrategicSettlements.Add(new CalendarWorldStrategicVillageVM(
+                    settlement,
+                    ToggleTrackedStrategicSettlement));
+            }
+            OnPropertyChangedWithValue(HasTrackedStrategicSettlements, "HasTrackedStrategicSettlements");
+            OnPropertyChangedWithValue(ShowTrackedStrategicSettlements, "ShowTrackedStrategicSettlements");
+            Diagnostics.Info("Strategic tracked-settlement list refreshed: count="
+                + _trackedStrategicSettlements.Count + ".");
+        }
+
+        private static void ToggleSettlementTracking(Settlement settlement, string kind)
+        {
+            if (settlement == null || Campaign.Current == null || Campaign.Current.VisualTrackerManager == null) return;
+            if (Campaign.Current.VisualTrackerManager.CheckTracked(settlement))
+            {
+                Campaign.Current.VisualTrackerManager.RemoveTrackedObject(settlement, false);
+                Diagnostics.Info("Strategic " + kind + " tracking: untracked " + settlement.StringId + " (" + settlement.Name + ").");
+            }
+            else
+            {
+                Campaign.Current.VisualTrackerManager.RegisterObject(settlement);
+                Diagnostics.Info("Strategic " + kind + " tracking: tracked " + settlement.StringId + " (" + settlement.Name + ").");
+            }
+        }
+
+        private Settlement GetSelectedStrategicSettlement()
+        {
+            if (string.IsNullOrEmpty(_selectedStrategicSettlementId)) return null;
+            foreach (Settlement settlement in Settlement.All)
+            {
+                if (settlement != null
+                    && string.Equals(settlement.StringId, _selectedStrategicSettlementId, StringComparison.Ordinal))
+                {
+                    return settlement;
+                }
+            }
+            return null;
+        }
+
+        private void NotifyStrategicSettlementSelectionChanged()
+        {
+            OnPropertyChangedWithValue(HasSelectedStrategicSettlement, "HasSelectedStrategicSettlement");
+            OnPropertyChangedWithValue(IsSelectedStrategicSettlementTracked, "IsSelectedStrategicSettlementTracked");
+            OnPropertyChangedWithValue(TrackSelectedSettlementText, "TrackSelectedSettlementText");
+            OnPropertyChangedWithValue(StrategicSummaryScrollerHeight, "StrategicSummaryScrollerHeight");
+            OnPropertyChangedWithValue(StrategicSummaryScrollerMarginBottom, "StrategicSummaryScrollerMarginBottom");
+            OnPropertyChangedWithValue(ShowTrackedStrategicSettlements, "ShowTrackedStrategicSettlements");
         }
 
         private void BuildStrategicProvinces(
@@ -693,7 +914,7 @@ namespace TwelveMonthCalendar
             // One composed texture owns all faction-colour rendering. This
             // avoids Gauntlet dropping individual sprite-color bindings and
             // keeps every province interior filled on the live map.
-            CalendarStrategicCampaignAtlasTextureProvider.UpdateMapState(ownerColorsBySettlementId, markerPoints);
+            RealisticCalendarStrategicMapAtlasTextureProvider.UpdateMapState(ownerColorsBySettlementId, markerPoints);
         }
 
         private void BuildStrategicContestedProvinces(Dictionary<string, IFaction> besiegersBySettlementId)
@@ -764,15 +985,7 @@ namespace TwelveMonthCalendar
                 return BuildKingdomStrengthText();
             }
 
-            Settlement selected = null;
-            foreach (Settlement settlement in Settlement.All)
-            {
-                if (settlement != null && string.Equals(settlement.StringId, _selectedStrategicSettlementId, StringComparison.Ordinal))
-                {
-                    selected = settlement;
-                    break;
-                }
-            }
+            Settlement selected = GetSelectedStrategicSettlement();
 
             if (selected == null || selected.Town == null)
             {
@@ -798,6 +1011,9 @@ namespace TwelveMonthCalendar
                 text.Append("Status: UNDER SIEGE").AppendLine();
                 text.Append("Besieging faction: ").Append(besieger.Name.ToString()).AppendLine();
             }
+
+            text.Append("Tracking: ").Append(IsSelectedStrategicSettlementTracked ? "Yes" : "No").AppendLine();
+            text.Append("Bound villages: ").Append(selected.BoundVillages == null ? 0 : selected.BoundVillages.Count).AppendLine();
 
             if (!CanPlayerInspectSettlement(selected, owner))
             {
@@ -903,15 +1119,29 @@ namespace TwelveMonthCalendar
             int currentYear = CalendarTimeMath.GetYear(now);
             int currentMonth = CalendarTimeMath.GetMonth(now);
             long today = (long)Math.Floor(now.ToDays);
+            Dictionary<long, List<QuestBase>> questDueByDay = GetActiveQuestDeadlines(today);
+            long futureCalendarEnd = today + CalendarFutureMonths * 31L;
+            foreach (long dueDay in questDueByDay.Keys)
+            {
+                futureCalendarEnd = Math.Max(futureCalendarEnd, dueDay);
+            }
+            int lastVisibleYear = CalendarTimeMath.GetYear(CampaignTime.Days(futureCalendarEnd));
+            int lastVisibleMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(futureCalendarEnd));
             long firstRecordedDay = CalendarWorldLedgerBehavior.GetFirstRecordedDay(today);
             int firstYear = CalendarTimeMath.GetYear(CampaignTime.Days(firstRecordedDay));
             int firstMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(firstRecordedDay));
+            if (_displayCalendarYear == int.MinValue || _displayCalendarMonth == int.MinValue)
+            {
+                _displayCalendarYear = currentYear;
+                _displayCalendarMonth = currentMonth;
+            }
+            ClampDisplayedCalendarMonth(firstRecordedDay, futureCalendarEnd);
             MonthTitle = "Campaign Calendar";
 
-            for (int year = firstYear; year <= currentYear; year++)
+            for (int year = firstYear; year <= lastVisibleYear; year++)
             {
                 int startMonth = year == firstYear ? firstMonth : FirstCalendarMonth;
-                int endMonth = year == currentYear ? currentMonth : LastCalendarMonth;
+                int endMonth = year == lastVisibleYear ? lastVisibleMonth : LastCalendarMonth;
                 for (int month = startMonth; month <= endMonth; month++)
                 {
                     bool leapYear = CalendarTimeMath.IsLeapYear(year);
@@ -932,14 +1162,25 @@ namespace TwelveMonthCalendar
                         // History starts at the first recorded month; inside
                         // each visible month, show the complete native date
                         // grid so day numbers never disappear.
-                        monthDays.Add(new CalendarWorldCalendarDayVM(dayOfMonth.ToString(), CalendarWorldLedgerBehavior.GetDaySummary(absoluteDay, "All"), absoluteDay == today));
+                        List<QuestBase> dueQuests;
+                        questDueByDay.TryGetValue(absoluteDay, out dueQuests);
+                        monthDays.Add(new CalendarWorldCalendarDayVM(
+                            dayOfMonth.ToString(),
+                            BuildCalendarDaySummary(absoluteDay, dueQuests),
+                            absoluteDay,
+                            absoluteDay == today,
+                            true,
+                            absoluteDay == _selectedCalendarDay,
+                            dueQuests != null && dueQuests.Count > 0,
+                            SelectCalendarDay));
                     }
 
                     int eventCount = CalendarWorldLedgerBehavior.CountRecordedEntries(monthStart, monthStart + monthLength);
+                    int questCount = CountQuestDeadlines(questDueByDay, monthStart, monthStart + monthLength);
                     bool isCurrentMonth = year == currentYear && month == currentMonth;
                     CalendarWorldCalendarMonthVM monthViewModel = new CalendarWorldCalendarMonthVM(
                         CalendarSettingsState.GetMonthName(month) + " " + year,
-                        eventCount == 1 ? "1 saved event" : eventCount + " saved events",
+                        BuildMonthEventCountText(eventCount, questCount),
                         monthDays,
                         monthStart,
                         monthStart + monthLength,
@@ -952,12 +1193,79 @@ namespace TwelveMonthCalendar
 
             BuildSavedSummaries(firstYear, firstMonth, currentYear, currentMonth);
 
-            // Kept for compatibility with the existing prefab binding. The
-            // visible calendar now uses CalendarMonths instead.
-            if (_calendarMonths.Count > 0)
+            BuildMonthGrid();
+        }
+
+        public void ExecutePreviousCalendarMonth() { MoveDisplayedCalendarMonth(-1); }
+        public void ExecuteNextCalendarMonth() { MoveDisplayedCalendarMonth(1); }
+
+        private void MoveDisplayedCalendarMonth(int direction)
+        {
+            if (!CanMoveDisplayedCalendarMonth(direction)) return;
+            _displayCalendarMonth += direction;
+            if (_displayCalendarMonth < FirstCalendarMonth)
             {
-                foreach (CalendarWorldCalendarDayVM day in _calendarMonths[_calendarMonths.Count - 1].Days) _days.Add(day);
+                _displayCalendarMonth = LastCalendarMonth;
+                _displayCalendarYear--;
             }
+            else if (_displayCalendarMonth > LastCalendarMonth)
+            {
+                _displayCalendarMonth = FirstCalendarMonth;
+                _displayCalendarYear++;
+            }
+            BuildMonthGrid();
+            OnPropertyChangedWithValue(CanPreviousCalendarMonth, "CanPreviousCalendarMonth");
+            OnPropertyChangedWithValue(CanNextCalendarMonth, "CanNextCalendarMonth");
+        }
+
+        private bool CanMoveDisplayedCalendarMonth(int direction)
+        {
+            if (direction == 0 || Campaign.Current == null) return false;
+            int year = _displayCalendarYear;
+            int month = _displayCalendarMonth + direction;
+            if (month < FirstCalendarMonth) { month = LastCalendarMonth; year--; }
+            if (month > LastCalendarMonth) { month = FirstCalendarMonth; year++; }
+            bool leapYear = CalendarTimeMath.IsLeapYear(year);
+            long candidateStart = CalendarTimeMath.DaysBeforeYear(year) + CalendarTimeMath.GetMonthStart(month, leapYear);
+            long today = (long)Math.Floor(CampaignTime.Now.ToDays);
+            long firstRecordedDay = CalendarWorldLedgerBehavior.GetFirstRecordedDay(today);
+            int firstCalendarYear = CalendarTimeMath.GetYear(CampaignTime.Days(firstRecordedDay));
+            int firstCalendarMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(firstRecordedDay));
+            bool firstCalendarLeapYear = CalendarTimeMath.IsLeapYear(firstCalendarYear);
+            long firstVisibleMonthStart = CalendarTimeMath.DaysBeforeYear(firstCalendarYear)
+                + CalendarTimeMath.GetMonthStart(firstCalendarMonth, firstCalendarLeapYear);
+            long lastVisibleDay = GetCalendarFutureEndDay(today);
+            return candidateStart >= firstVisibleMonthStart && candidateStart <= lastVisibleDay;
+        }
+
+        private void ClampDisplayedCalendarMonth(long firstRecordedDay, long lastVisibleDay)
+        {
+            int firstCalendarYear = CalendarTimeMath.GetYear(CampaignTime.Days(firstRecordedDay));
+            int firstCalendarMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(firstRecordedDay));
+            bool firstCalendarLeapYear = CalendarTimeMath.IsLeapYear(firstCalendarYear);
+            long firstVisibleMonthStart = CalendarTimeMath.DaysBeforeYear(firstCalendarYear)
+                + CalendarTimeMath.GetMonthStart(firstCalendarMonth, firstCalendarLeapYear);
+            bool leapYear = CalendarTimeMath.IsLeapYear(_displayCalendarYear);
+            long displayedStart = CalendarTimeMath.DaysBeforeYear(_displayCalendarYear)
+                + CalendarTimeMath.GetMonthStart(_displayCalendarMonth, leapYear);
+            if (displayedStart < firstVisibleMonthStart)
+            {
+                _displayCalendarYear = firstCalendarYear;
+                _displayCalendarMonth = firstCalendarMonth;
+            }
+            else if (displayedStart > lastVisibleDay)
+            {
+                _displayCalendarYear = CalendarTimeMath.GetYear(CampaignTime.Days(lastVisibleDay));
+                _displayCalendarMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(lastVisibleDay));
+            }
+        }
+
+        private static long GetCalendarFutureEndDay(long today)
+        {
+            long result = today + CalendarFutureMonths * 31L;
+            Dictionary<long, List<QuestBase>> deadlines = GetActiveQuestDeadlines(today);
+            foreach (long dueDay in deadlines.Keys) result = Math.Max(result, dueDay);
+            return result;
         }
 
         private void SelectCalendarMonth(CalendarWorldCalendarMonthVM month)
@@ -966,15 +1274,67 @@ namespace TwelveMonthCalendar
             SetMonthSummary(month);
         }
 
+        private void SelectCalendarDay(CalendarWorldCalendarDayVM day)
+        {
+            if (day == null || !day.IsSelectable) return;
+            _selectedCalendarDay = day.AbsoluteDay;
+            foreach (CalendarWorldCalendarMonthVM month in _calendarMonths)
+            {
+                foreach (CalendarWorldCalendarDayVM entry in month.Days)
+                {
+                    entry.IsSelected = entry.IsSelectable && entry.AbsoluteDay == _selectedCalendarDay;
+                }
+            }
+            RefreshCalendarNotes();
+            Diagnostics.Info("Calendar history day selected: absoluteDay=" + _selectedCalendarDay + ".");
+        }
+
+        private void RefreshCalendarNotes()
+        {
+            long today = Campaign.Current == null
+                ? long.MinValue
+                : (long)Math.Floor(CampaignTime.Now.ToDays);
+            if (_selectedCalendarDay != long.MinValue)
+            {
+                NotesTitle = CalendarFormatter.Format(CampaignTime.Days(_selectedCalendarDay)).ToUpperInvariant();
+                string eventText = _selectedCalendarDay <= today
+                    ? CalendarWorldLedgerBehavior.GetImportantEventsText(
+                    _selectedCalendarDay,
+                    _selectedCalendarDay + 1,
+                    int.MaxValue,
+                    true)
+                    : "No saved world events yet.";
+                string questText = GetQuestDeadlineText(_selectedCalendarDay);
+                NotesText = string.IsNullOrEmpty(questText)
+                    ? eventText
+                    : "QUEST DEADLINES\n" + questText + "\n\n" + eventText;
+                return;
+            }
+
+            _selectedCalendarDay = long.MinValue;
+            NotesTitle = "NOTES";
+            NotesText = CalendarWorldLedgerBehavior.GetRecentEntriesText(_selectedFilter);
+        }
+
         private void SetMonthSummary(CalendarWorldCalendarMonthVM month)
         {
-            int monthEvents = CalendarWorldLedgerBehavior.CountRecordedEntries(month.StartDay, month.EndDay);
-            int monthCapacity = Math.Max(1, (int)(month.EndDay - month.StartDay));
-            int selectedMonthEvents = Math.Min(monthCapacity, monthEvents);
-            MonthSummaryTitle = month.Title + " MONTHLY SUMMARY (" + selectedMonthEvents + "/" + monthCapacity + ")";
-            MonthSummaryText = CalendarWorldLedgerBehavior.GetImportantEventsText(month.StartDay, month.EndDay, monthCapacity, true);
+            SetMonthSummary(month.Title, month.StartDay, month.EndDay);
+        }
 
-            int year = CalendarTimeMath.GetYear(CampaignTime.Days(month.StartDay));
+        private void SetMonthSummary(string monthTitle, long monthStart, long monthEnd)
+        {
+            int monthEvents = CalendarWorldLedgerBehavior.CountRecordedEntries(monthStart, monthEnd);
+            int questCount = CountQuestDeadlines(GetActiveQuestDeadlines((long)Math.Floor(CampaignTime.Now.ToDays)), monthStart, monthEnd);
+            int monthCapacity = Math.Max(1, (int)(monthEnd - monthStart));
+            int selectedMonthEvents = Math.Min(monthCapacity, monthEvents);
+            MonthSummaryTitle = monthTitle + " MONTHLY SUMMARY (" + selectedMonthEvents + "/" + monthCapacity + "; " + questCount + " quest deadlines)";
+            string eventText = CalendarWorldLedgerBehavior.GetImportantEventsText(monthStart, monthEnd, monthCapacity, true);
+            string questText = GetQuestDeadlineText(monthStart, monthEnd);
+            MonthSummaryText = string.IsNullOrEmpty(questText)
+                ? eventText
+                : "QUEST DEADLINES\n" + questText + "\n\n" + eventText;
+
+            int year = CalendarTimeMath.GetYear(CampaignTime.Days(monthStart));
             int importantEventCount;
             int monthsWithEvents;
             YearSummaryText = BuildYearImportantSummary(
@@ -1059,10 +1419,13 @@ namespace TwelveMonthCalendar
         {
             _days.Clear();
             CampaignTime now = CampaignTime.Now;
-            int year = CalendarTimeMath.GetYear(now); int month = CalendarTimeMath.GetMonth(now); bool leapYear = CalendarTimeMath.IsLeapYear(year);
+            int year = _displayCalendarYear;
+            int month = _displayCalendarMonth;
+            bool leapYear = CalendarTimeMath.IsLeapYear(year);
             int monthLength = CalendarTimeMath.GetMonthLength(month, leapYear);
             long monthStart = CalendarTimeMath.DaysBeforeYear(year) + CalendarTimeMath.GetMonthStart(month, leapYear);
             int firstWeekday = (int)((monthStart % 7 + 7) % 7); long today = (long)Math.Floor(now.ToDays);
+            Dictionary<long, List<QuestBase>> questDueByDay = GetActiveQuestDeadlines(today);
             MonthTitle = CalendarSettingsState.GetMonthName(month) + " " + year;
             for (int cell = 0; cell < 42; cell++)
             {
@@ -1075,21 +1438,167 @@ namespace TwelveMonthCalendar
                 else
                 {
                     long absoluteDay = monthStart + dayOfMonth - 1;
-                    cellValue = new CalendarWorldCalendarDayVM(dayOfMonth.ToString(), CalendarWorldLedgerBehavior.GetDaySummary(absoluteDay, _selectedFilter), absoluteDay == today);
+                    List<QuestBase> dueQuests;
+                    questDueByDay.TryGetValue(absoluteDay, out dueQuests);
+                    cellValue = new CalendarWorldCalendarDayVM(
+                        dayOfMonth.ToString(),
+                        BuildCalendarDaySummary(absoluteDay, dueQuests),
+                        absoluteDay,
+                        absoluteDay == today,
+                        true,
+                        absoluteDay == _selectedCalendarDay,
+                        dueQuests != null && dueQuests.Count > 0,
+                        SelectCalendarDay);
                 }
                 _days.Add(cellValue);
             }
+            SetMonthSummary(MonthTitle, monthStart, monthStart + monthLength);
+        }
+
+        private static Dictionary<long, List<QuestBase>> GetActiveQuestDeadlines(long today)
+        {
+            Dictionary<long, List<QuestBase>> result = new Dictionary<long, List<QuestBase>>();
+            if (Campaign.Current == null || Campaign.Current.QuestManager == null) return result;
+
+            foreach (QuestBase quest in Campaign.Current.QuestManager.Quests)
+            {
+                if (quest == null || !quest.IsOngoing || quest.IsRemainingTimeHidden) continue;
+                double dueDays = quest.QuestDueTime.ToDays;
+                if (double.IsNaN(dueDays) || double.IsInfinity(dueDays)) continue;
+                long dueDay = (long)Math.Floor(dueDays);
+                // A non-expiring quest is represented by an out-of-range date.
+                if (dueDay < today - 1L || dueDay > today + 3650L) continue;
+
+                List<QuestBase> dueQuests;
+                if (!result.TryGetValue(dueDay, out dueQuests))
+                {
+                    dueQuests = new List<QuestBase>();
+                    result.Add(dueDay, dueQuests);
+                }
+                dueQuests.Add(quest);
+            }
+            return result;
+        }
+
+        private static int CountQuestDeadlines(Dictionary<long, List<QuestBase>> dueByDay, long startDay, long endDay)
+        {
+            int count = 0;
+            foreach (KeyValuePair<long, List<QuestBase>> entry in dueByDay)
+            {
+                if (entry.Key >= startDay && entry.Key < endDay) count += entry.Value.Count;
+            }
+            return count;
+        }
+
+        private static string BuildMonthEventCountText(int eventCount, int questCount)
+        {
+            string events = eventCount == 1 ? "1 saved event" : eventCount + " saved events";
+            return questCount == 0
+                ? events
+                : events + "; " + (questCount == 1 ? "1 quest due" : questCount + " quests due");
+        }
+
+        private static string BuildCalendarDaySummary(long absoluteDay, List<QuestBase> dueQuests)
+        {
+            if (dueQuests != null && dueQuests.Count > 0)
+            {
+                return dueQuests.Count == 1 ? "QUEST DUE" : dueQuests.Count + " QUESTS DUE";
+            }
+            return CalendarWorldLedgerBehavior.GetDaySummary(absoluteDay, "All");
+        }
+
+        private static string GetQuestDeadlineText(long day)
+        {
+            return GetQuestDeadlineText(day, day + 1L);
+        }
+
+        private static string GetQuestDeadlineText(long startDay, long endDay)
+        {
+            Dictionary<long, List<QuestBase>> dueByDay = GetActiveQuestDeadlines((long)Math.Floor(CampaignTime.Now.ToDays));
+            StringBuilder text = new StringBuilder();
+            foreach (KeyValuePair<long, List<QuestBase>> entry in dueByDay)
+            {
+                if (entry.Key < startDay || entry.Key >= endDay) continue;
+                foreach (QuestBase quest in entry.Value)
+                {
+                    if (text.Length > 0) text.AppendLine();
+                    text.Append(CalendarFormatter.Format(CampaignTime.Days(entry.Key))).Append(" — ");
+                    text.Append(quest.Title == null ? "Unnamed quest" : quest.Title.ToString());
+                }
+            }
+            return text.ToString();
         }
     }
 
     internal sealed class CalendarWorldCalendarDayVM : ViewModel
     {
-        private readonly string _dayNumber; private readonly string _eventSummary; private string _backgroundColor;
-        internal CalendarWorldCalendarDayVM(string dayNumber, string eventSummary, bool isToday) { _dayNumber = dayNumber; _eventSummary = eventSummary; _backgroundColor = isToday ? "#80652CFF" : "#22170FFF"; }
-        internal static CalendarWorldCalendarDayVM Empty() { return new CalendarWorldCalendarDayVM(string.Empty, string.Empty, false) { _backgroundColor = "#00000000" }; }
+        private readonly string _dayNumber;
+        private readonly string _eventSummary;
+        private readonly long _absoluteDay;
+        private readonly bool _isToday;
+        private readonly bool _isSelectable;
+        private readonly bool _hasQuestDue;
+        private readonly Action<CalendarWorldCalendarDayVM> _select;
+        private bool _isSelected;
+
+        internal CalendarWorldCalendarDayVM(
+            string dayNumber,
+            string eventSummary,
+            long absoluteDay,
+            bool isToday,
+            bool isSelectable,
+            bool isSelected,
+            bool hasQuestDue,
+            Action<CalendarWorldCalendarDayVM> select)
+        {
+            _dayNumber = dayNumber;
+            _eventSummary = eventSummary;
+            _absoluteDay = absoluteDay;
+            _isToday = isToday;
+            _isSelectable = isSelectable;
+            _isSelected = isSelected;
+            _hasQuestDue = hasQuestDue;
+            _select = select;
+        }
+        internal static CalendarWorldCalendarDayVM Empty()
+        {
+            return new CalendarWorldCalendarDayVM(
+                string.Empty,
+                string.Empty,
+                long.MinValue,
+                false,
+                false,
+                false,
+                false,
+                null);
+        }
+        internal long AbsoluteDay { get { return _absoluteDay; } }
         [DataSourceProperty] public string DayNumber { get { return _dayNumber; } }
         [DataSourceProperty] public string EventSummary { get { return _eventSummary; } }
-        [DataSourceProperty] public string BackgroundColor { get { return _backgroundColor; } }
+        [DataSourceProperty] public bool IsSelectable { get { return _isSelectable; } }
+        [DataSourceProperty] public bool HasQuestDue { get { return _hasQuestDue; } }
+        [DataSourceProperty] public bool IsSelected
+        {
+            get { return _isSelected; }
+            set
+            {
+                if (_isSelected == value) return;
+                _isSelected = value;
+                OnPropertyChangedWithValue(value, "IsSelected");
+                OnPropertyChangedWithValue(BackgroundColor, "BackgroundColor");
+            }
+        }
+        [DataSourceProperty] public string BackgroundColor
+        {
+            get
+            {
+                if (!_isSelectable) return "#00000000";
+                if (_isSelected) return "#B58A3FFF";
+                if (_hasQuestDue) return "#6A342CFF";
+                return _isToday ? "#80652CFF" : "#22170FFF";
+            }
+        }
+        public void ExecuteSelect() { if (_isSelectable && _select != null) _select(this); }
     }
 
     internal sealed class CalendarWorldCalendarMonthVM : ViewModel
@@ -1205,6 +1714,51 @@ namespace TwelveMonthCalendar
             }
         }
         public void ExecuteSelect() { if (_select != null) _select(this); }
+    }
+
+    internal sealed class CalendarWorldStrategicVillageVM : ViewModel
+    {
+        private readonly Settlement _settlement;
+        private readonly Action<CalendarWorldStrategicVillageVM> _toggleTracking;
+
+        internal CalendarWorldStrategicVillageVM(
+            Settlement settlement,
+            Action<CalendarWorldStrategicVillageVM> toggleTracking)
+        {
+            _settlement = settlement;
+            _toggleTracking = toggleTracking;
+        }
+
+        internal Settlement Settlement { get { return _settlement; } }
+        [DataSourceProperty] public string Name
+        {
+            get { return _settlement == null ? string.Empty : _settlement.Name.ToString(); }
+        }
+        [DataSourceProperty] public bool IsTracked
+        {
+            get
+            {
+                return _settlement != null
+                    && Campaign.Current != null
+                    && Campaign.Current.VisualTrackerManager != null
+                    && Campaign.Current.VisualTrackerManager.CheckTracked(_settlement);
+            }
+        }
+        [DataSourceProperty] public string TrackText
+        {
+            get { return IsTracked ? "Untrack" : "Track"; }
+        }
+
+        public void ExecuteToggleTrack()
+        {
+            if (_toggleTracking != null) _toggleTracking(this);
+        }
+
+        internal void RefreshTracking()
+        {
+            OnPropertyChangedWithValue(IsTracked, "IsTracked");
+            OnPropertyChangedWithValue(TrackText, "TrackText");
+        }
     }
 
     internal sealed class CalendarWorldStrategicProvinceVM : ViewModel

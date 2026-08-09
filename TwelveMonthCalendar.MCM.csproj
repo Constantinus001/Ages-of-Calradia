@@ -49,7 +49,7 @@
     </Reference>
     <Reference Include="MCMv5">
       <HintPath>$(McmAssemblyPath)</HintPath>
-      <Private>false</Private>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 

@@ -12,8 +12,32 @@
       <SpriteSheetCount>1</SpriteSheetCount>
       <SpriteSheetSize ID="1" Width="2048" Height="2048" />
     </SpriteCategory>
+    <SpriteCategory>
+      <Name>rct_legend_markers_v2</Name>
+      <AlwaysLoad />
+      <SpriteSheetCount>1</SpriteSheetCount>
+      <SpriteSheetSize ID="1" Width="256" Height="128" />
+    </SpriteCategory>
   </SpriteCategories>
   <SpriteParts>
+    <SpritePart>
+      <SheetID>1</SheetID>
+      <Name>rct_legend_town_part_v2</Name>
+      <Width>96</Width>
+      <Height>96</Height>
+      <SheetX>4</SheetX>
+      <SheetY>4</SheetY>
+      <CategoryName>rct_legend_markers_v2</CategoryName>
+    </SpritePart>
+    <SpritePart>
+      <SheetID>1</SheetID>
+      <Name>rct_legend_castle_part_v2</Name>
+      <Width>96</Width>
+      <Height>96</Height>
+      <SheetX>108</SheetX>
+      <SheetY>4</SheetY>
+      <CategoryName>rct_legend_markers_v2</CategoryName>
+    </SpritePart>
     <SpritePart>
       <SheetID>1</SheetID>
       <Name>strategic_city_labels</Name>
@@ -1812,12 +1836,20 @@
       <SpritePartName>strategic_province_133</SpritePartName>
     </GenericSprite>
     <GenericSprite>
-      <Name>strategic_marker_town</Name>
+      <Name>realistic_calendar_legend_town</Name>
       <SpritePartName>strategic_marker_town</SpritePartName>
     </GenericSprite>
     <GenericSprite>
-      <Name>strategic_marker_castle</Name>
+      <Name>realistic_calendar_legend_castle</Name>
       <SpritePartName>strategic_marker_castle</SpritePartName>
+    </GenericSprite>
+    <GenericSprite>
+      <Name>rct_legend_town_v2</Name>
+      <SpritePartName>rct_legend_town_part_v2</SpritePartName>
+    </GenericSprite>
+    <GenericSprite>
+      <Name>rct_legend_castle_v2</Name>
+      <SpritePartName>rct_legend_castle_part_v2</SpritePartName>
     </GenericSprite>
     <GenericSprite>
       <Name>world_calendar_map</Name>

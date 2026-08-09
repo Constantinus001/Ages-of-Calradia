@@ -8,8 +8,8 @@ from another mod.
 
 The project currently has three configuration surfaces:
 
-1. `CalendarSettingsState` is the runtime state and standalone XML persistence
-   layer.
+1. `CalendarSettingsState` is the runtime state and module-local XML
+   persistence layer.
 2. `CalendarOptionsTabPatch` exposes a native Bannerlord Calendar tab without
    requiring MCM.
 3. `McmSettings` is an optional MCM v5 adapter that mirrors values into
@@ -25,7 +25,11 @@ Useful local references:
 MCM v5 officially supports Global, PerCampaign, and PerSave settings, plus
 bool, integer, float, text, dropdown, and button controls. Its documentation
 also warns that settings use no persistence provider unless `FormatType` is
-overridden; this project already selects JSON in `McmSettings`. See the
+overridden. This project selects MCM's JSON provider so the adapter participates
+correctly in MCM's load/save lifecycle. Every adapter change is also validated
+through `CalendarSettingsState` and saved to the module-local XML file, which
+remains the runtime source of truth when the standalone MCM UI is removed. See
+the
 [MCM settings overview](https://mcm.bannerlord.aragas.org/articles/MCMv5/mcmv5.html),
 [scope and persistence guidance](https://mcm.bannerlord.aragas.org/articles/MCMv5/mcmv5.html#types-of-settings),
 and [attribute controls](https://mcm.bannerlord.aragas.org/articles/MCMv5/mcmv5-attributes.html).
@@ -48,16 +52,18 @@ request, applies it atomically, raises one `SettingsChanged` event, and saves
 the correct scope. MCM setters should not independently write half-applied
 groups while a related value is still being changed.
 
-The native tab and MCM should remain available together, but neither should
-own a second copy of gameplay state. XML should remain the no-MCM fallback and
-initial default source; MCM should be a UI adapter, not a competing simulation
-database.
+The native tab is a fallback and is hidden after the MCM adapter registers
+successfully so there is only one active settings interface. It appears enabled
+when MCM is absent or registration fails. Neither interface
+owns a second copy of gameplay state: XML remains the no-MCM fallback and
+initial default source, while MCM is a UI adapter rather than a competing
+simulation database.
 
 ## Configuration scopes
 
 | Scope | Examples | Persistence | Runtime rule |
 | --- | --- | --- | --- |
-| Global | 12/24-hour clock, labels, date format, map label mode, UI zoom preference | MCM JSON or standalone XML | Safe to change immediately |
+| Global | 12/24-hour clock, labels, date format, map label mode, UI zoom preference | MCM JSON mirror and module-local XML | Safe to change immediately |
 | Campaign profile | month lengths, leap-year policy, campaign time scale, pregnancy model, annual-balance profile | Existing save-safe `CalendarCampaignProfile` | Lock values that change the campaign timeline after start |
 | Per-save gameplay | economy thresholds, caravan pressure, camp/refuge costs and durations, optional balance toggles | Save-safe primitive profile or campaign behavior | Restore before dependent behaviors tick |
 | Runtime session | diagnostics verbosity, telemetry interval, temporary visual refresh settings | Not saved or global only | Safe to change immediately |
@@ -147,14 +153,27 @@ free text would turn a safe UI setting into a crash or invalid-scene surface.
 
 ### Strategy map and diagnostics
 
-- minimum/maximum map zoom and step;
+Implemented presentation controls:
+
 - marker spacing;
+- settlement-label visibility and font size;
+- legend visibility, width, height, top margin, icon size, and font size.
+
+Remaining candidates:
+
+- minimum/maximum map zoom and step;
 - label mode: all, short names, selected settlement, or hidden;
-- label font size and collision padding;
+- label collision padding;
 - territory layer, siege badge, and settlement marker toggles;
 - refresh interval for the composed atlas;
 - telemetry enabled, interval, log level, and sampled settlement count;
 - crash-report retention count.
+
+The first presentation slice is now implemented through the shared settings
+state, standalone XML, MCM, and the Strategic Map view model: legend
+visibility, width, height, top margin, icon/font sizes, marker spacing, and
+settlement-label visibility/font size. Remaining map-layer toggles and
+diagnostic controls can be added without changing the persistence pattern.
 
 Map viewport dimensions should remain presentation constants unless a proper
 layout scale is added; changing them from MCM can break controller navigation
