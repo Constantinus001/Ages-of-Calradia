@@ -111,7 +111,7 @@
              extensions for the custom shortcuts. -->
         <Widget DataSource="{MapTimeControl}" Id="ExpandedMapBarUnderlay" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="590" SuggestedHeight="60" HorizontalAlignment="Center" PositionXOffset="10" PositionYOffset="10" VerticalAlignment="Bottom" Sprite="MapBar\mapbar_center_frame" IsVisible="@IsCenterPanelEnabled">
           <Children>
-            <ButtonWidget Id="CampButton" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="31" HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="70" PositionYOffset="-12" Brush="SPOptions.Checkbox.Empty.Button" Command.Click="ExecuteOpenCamp" GamepadNavigationIndex="5">
+            <ButtonWidget Id="CampButton" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="31" HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="70" PositionYOffset="-12" Brush="SPOptions.Checkbox.Empty.Button" Command.Click="ExecuteOpenCamp" GamepadNavigationIndex="5" IsVisible="@IsRefugeSystemEnabled">
               <Children>
                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="MapTextBrushGal" Brush.FontSize="20" Brush.FontColor="#FFF2D0FF" Brush.TextHorizontalAlignment="Center" Text="C" />
               </Children>

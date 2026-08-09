@@ -24,7 +24,7 @@ namespace TwelveMonthCalendar
         [HarmonyPrepare]
         private static bool Prepare()
         {
-            return TargetMethod() != null;
+            return CalendarSettingsState.RefugeSystemEnabled && TargetMethod() != null;
         }
 
         [HarmonyPrefix]

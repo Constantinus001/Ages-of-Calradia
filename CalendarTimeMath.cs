@@ -41,6 +41,66 @@ namespace TwelveMonthCalendar
             get { return CalendarSettingsState.UseLeapYears ? DaysInYear + 0.2425 : DaysInYear; }
         }
 
+        internal static double NativeCampaignStartDay
+        {
+            // Native Bannerlord starts in year 1084 after one 21-day season.
+            get { return 1084d * NativeDaysInYear + NativeDaysInYear / SeasonsInYear; }
+        }
+
+        internal static double GregorianCampaignStartDay
+        {
+            get
+            {
+                return DaysBeforeYear(1084)
+                    + GetMonthStart(3, IsLeapYear(1084));
+            }
+        }
+
+        internal static double LegacyCalendarDayOffset
+        {
+            get { return GregorianCampaignStartDay - NativeCampaignStartDay; }
+        }
+
+        internal static bool LooksLikeNativeTimeBasis(CampaignTime time)
+        {
+            double rawDay = time.ToDays;
+            if (double.IsNaN(rawDay) || double.IsInfinity(rawDay))
+            {
+                return false;
+            }
+
+            return Math.Abs(rawDay - NativeCampaignStartDay)
+                < Math.Abs(rawDay - GregorianCampaignStartDay);
+        }
+
+        internal static double ToCalendarAbsoluteDays(CampaignTime time)
+        {
+            return ToCalendarAbsoluteDays(time.ToDays);
+        }
+
+        internal static double ToCalendarAbsoluteDays(double rawDay)
+        {
+            return rawDay + (CalendarSettingsState.IsLegacySaveAgeCompatibility
+                ? LegacyCalendarDayOffset
+                : 0d);
+        }
+
+        internal static CampaignTime FromCalendarAbsoluteDays(double calendarDay)
+        {
+            double rawDay = calendarDay - (CalendarSettingsState.IsLegacySaveAgeCompatibility
+                ? LegacyCalendarDayOffset
+                : 0d);
+            return CampaignTime.Days((float)rawDay);
+        }
+
+        internal static CampaignTime GetCampaignStartTime()
+        {
+            double startDay = CalendarSettingsState.IsLegacySaveAgeCompatibility
+                ? NativeCampaignStartDay
+                : GregorianCampaignStartDay;
+            return CampaignTime.Days((float)startDay) + CampaignTime.Hours(9f);
+        }
+
         internal static double DaysPerSeason
         {
             get { return AverageDaysInYear / SeasonsInYear; }
@@ -97,7 +157,7 @@ namespace TwelveMonthCalendar
 
         internal static int GetYear(CampaignTime time)
         {
-            double absoluteDays = time.ToDays;
+            double absoluteDays = ToCalendarAbsoluteDays(time);
             int year = (int)Math.Floor(absoluteDays / AverageDaysInYear);
 
             while (absoluteDays < DaysBeforeYear(year))
@@ -116,7 +176,7 @@ namespace TwelveMonthCalendar
         internal static int GetDayOfYear(CampaignTime time)
         {
             int year = GetYear(time);
-            long absoluteDay = (long)Math.Floor(time.ToDays);
+            long absoluteDay = (long)Math.Floor(ToCalendarAbsoluteDays(time));
             return (int)(absoluteDay - DaysBeforeYear(year));
         }
 
@@ -186,9 +246,10 @@ namespace TwelveMonthCalendar
             long targetAbsoluteDay = DaysBeforeYear(targetYear)
                 + GetMonthStart(targetMonth, targetLeapYear)
                 + targetDay - 1;
-            double fractionalDay = time.ToDays - Math.Floor(time.ToDays);
+            double calendarAbsoluteDays = ToCalendarAbsoluteDays(time);
+            double fractionalDay = calendarAbsoluteDays - Math.Floor(calendarAbsoluteDays);
 
-            return CampaignTime.Days((float)(targetAbsoluteDay + fractionalDay));
+            return FromCalendarAbsoluteDays(targetAbsoluteDay + fractionalDay);
         }
 
         internal static int GetSeason(CampaignTime time)
@@ -242,7 +303,73 @@ namespace TwelveMonthCalendar
 
         internal static float ElapsedYearsUntilNow(CampaignTime time)
         {
+            if (CalendarSettingsState.IsLegacySaveAgeCompatibility)
+            {
+                return GetLegacyCompatibleElapsedYearsAt(time, CampaignTime.Now);
+            }
+
             return (float)(ToYears(CampaignTime.Now) - ToYears(time));
+        }
+
+        /// <summary>
+        /// Calculates a hero's age across the native-to-Gregorian
+        /// compatibility boundary. Existing saves contain birth timestamps
+        /// measured with Bannerlord's 84-day year; after the first load, raw
+        /// CampaignTime continues forward while the calendar uses a 365-day
+        /// year. No hero data is rewritten, so the save remains loadable by
+        /// the game and by versions of the mod that predate this fix.
+        /// </summary>
+        internal static float GetLegacyCompatibleHeroAgeAt(
+            CampaignTime birthDay,
+            CampaignTime referenceTime)
+        {
+            return GetLegacyCompatibleElapsedYearsAt(birthDay, referenceTime);
+        }
+
+        /// <summary>
+        /// Preserves native 84-day elapsed-year history up to the first
+        /// compatible load, then advances the same span using calendar years.
+        /// This also covers engine systems that query elapsed years directly
+        /// instead of going through Hero.Age.
+        /// </summary>
+        internal static float GetLegacyCompatibleElapsedYearsAt(
+            CampaignTime startTime,
+            CampaignTime referenceTime)
+        {
+            double nowDay = referenceTime.ToDays;
+            double cutoverDay = CalendarSettingsState.LegacySaveAgeCutoverDay;
+            double startDay = startTime.ToDays;
+
+            if (double.IsNaN(nowDay) || double.IsInfinity(nowDay)
+                || double.IsNaN(cutoverDay) || double.IsInfinity(cutoverDay)
+                || double.IsNaN(startDay) || double.IsInfinity(startDay))
+            {
+                return 0f;
+            }
+
+            double ageInYears;
+            if (nowDay <= cutoverDay)
+            {
+                ageInYears = (nowDay - startDay) / NativeDaysInYear;
+            }
+            else if (startDay <= cutoverDay)
+            {
+                ageInYears = (cutoverDay - startDay) / NativeDaysInYear
+                    + (nowDay - cutoverDay) / AverageDaysInYear;
+            }
+            else
+            {
+                // A timestamp created after the compatibility boundary is
+                // already entirely in the Gregorian portion of the timeline.
+                ageInYears = (nowDay - startDay) / AverageDaysInYear;
+            }
+
+            if (double.IsNaN(ageInYears) || double.IsInfinity(ageInYears))
+            {
+                return 0f;
+            }
+
+            return (float)Math.Max(0d, ageInYears);
         }
 
         internal static float RemainingYearsFromNow(CampaignTime time)
@@ -253,8 +380,13 @@ namespace TwelveMonthCalendar
         internal static double ToYears(CampaignTime time)
         {
             int year = GetYear(time);
-            double dayWithinYear = time.ToDays - DaysBeforeYear(year);
+            double dayWithinYear = ToCalendarAbsoluteDays(time) - DaysBeforeYear(year);
             return year + dayWithinYear / GetYearLength(year);
+        }
+
+        internal static double DurationToYears(CampaignTime duration)
+        {
+            return duration.ToDays / AverageDaysInYear;
         }
 
         internal static float ElapsedSeasonsUntilNow(CampaignTime time)
@@ -273,10 +405,16 @@ namespace TwelveMonthCalendar
             int season = GetSeason(time);
             int seasonYear = GetSeasonYear(time, year, season);
             int seasonStart = GetSeasonStartDayOfYear(seasonYear, season);
-            double dayWithinSeason = time.ToDays - (DaysBeforeYear(seasonYear) + seasonStart);
+            double dayWithinSeason = ToCalendarAbsoluteDays(time)
+                - (DaysBeforeYear(seasonYear) + seasonStart);
             return seasonYear * SeasonsInYear
                 + season
                 + dayWithinSeason / GetSeasonLength(seasonYear, season);
+        }
+
+        internal static double DurationToSeasons(CampaignTime duration)
+        {
+            return duration.ToDays / DaysPerSeason;
         }
 
         internal static int GetSeasonYear(CampaignTime time)

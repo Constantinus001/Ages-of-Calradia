@@ -8,6 +8,58 @@ using TaleWorlds.CampaignSystem.CampaignBehaviors;
 namespace TwelveMonthCalendar
 {
     /// <summary>
+    /// Keeps heroes from appearing as children when a save created before the
+    /// calendar compatibility marker is opened. The native Hero.Age getter
+    /// uses CampaignTime.ElapsedYearsUntilNow, so it needs the same cutover
+    /// used by the calendar's save migration layer.
+    /// </summary>
+    [HarmonyPatch]
+    internal static class LegacySaveHeroAgePatch
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            MethodBase target = AccessTools.Method(typeof(Hero), "get_Age", Type.EmptyTypes);
+            if (target == null)
+            {
+                Diagnostics.Info("Legacy-save hero-age target was not found; native hero ages remain active.");
+                return new MethodBase[0];
+            }
+
+            return new[] { target };
+        }
+
+        [HarmonyPostfix]
+        private static void Postfix(Hero __instance, ref float __result)
+        {
+            if (!CalendarSettingsState.IsLegacySaveAgeCompatibility
+                || __instance == null
+                || CampaignOptions.IsLifeDeathCycleDisabled)
+            {
+                return;
+            }
+
+            try
+            {
+                CampaignTime referenceTime = __instance.IsAlive
+                    ? CampaignTime.Now
+                    : __instance.DeathDay;
+                if (referenceTime == CampaignTime.Never)
+                {
+                    return;
+                }
+
+                __result = CalendarTimeMath.GetLegacyCompatibleHeroAgeAt(
+                    __instance.BirthDay,
+                    referenceTime);
+            }
+            catch (Exception exception)
+            {
+                Diagnostics.Info("Legacy-save hero-age compatibility failed safely: " + exception.GetType().Name + ".");
+            }
+        }
+    }
+
+    /// <summary>
     /// Extends a new quest's deadline once, at the stable public StartQuest
     /// boundary. Existing saves are untouched and no issue-specific/private
     /// quest fields are accessed.
@@ -39,14 +91,40 @@ namespace TwelveMonthCalendar
             {
                 CampaignTime now = CampaignTime.Now;
                 CampaignTime dueTime = __instance.QuestDueTime;
+                // CampaignTime.Never is used by story quests with no deadline
+                // (including Villagers in Need and Establish your Clan). It
+                // is a sentinel, not a date; arithmetic on it overflows and
+                // makes QuestManager time the quest out on its next tick.
+                if (dueTime == CampaignTime.Never)
+                {
+                    return;
+                }
+
                 double nativeRemainingDays = dueTime.ToDays - now.ToDays;
-                if (nativeRemainingDays <= 0d)
+                if (double.IsNaN(nativeRemainingDays)
+                    || double.IsInfinity(nativeRemainingDays)
+                    || nativeRemainingDays <= 0d)
                 {
                     return;
                 }
 
                 double annualRemainingDays = nativeRemainingDays * CalendarAnnualBalance.DurationFactor;
-                __instance.ChangeQuestDueTime(now + CampaignTime.Days((float)annualRemainingDays));
+                if (double.IsNaN(annualRemainingDays)
+                    || double.IsInfinity(annualRemainingDays)
+                    || annualRemainingDays > float.MaxValue)
+                {
+                    return;
+                }
+
+                float safeAnnualRemainingDays = (float)annualRemainingDays;
+                if (float.IsNaN(safeAnnualRemainingDays)
+                    || float.IsInfinity(safeAnnualRemainingDays)
+                    || safeAnnualRemainingDays <= 0f)
+                {
+                    return;
+                }
+
+                __instance.ChangeQuestDueTime(now + CampaignTime.Days(safeAnnualRemainingDays));
                 CalendarAnnualBalanceDiagnostics.RecordQuestDeadline(nativeRemainingDays, annualRemainingDays);
             }
             catch (Exception exception)

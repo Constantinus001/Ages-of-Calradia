@@ -6,36 +6,17 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.SaveSystem;
 
 namespace TwelveMonthCalendar
 {
-    #pragma warning disable CS0618 // Intentional one-time read of obsolete v1.3 save data.
-
-    /// <summary>
-    /// Decode-only definition for saves created before the soft-profile update.
-    /// New saves never write this type, so they do not require the module just
-    /// to deserialize. Loading a legacy save once with this version and saving
-    /// it again removes the legacy module-owned data.
-    /// </summary>
-    [Obsolete("Legacy save migration type. New saves do not write it.")]
-    public sealed class CalendarSaveCompatibilityMarker
-    {
-        [SaveableField(1)]
-        public string ModuleId = "_TwelveMonthCalendar";
-
-        [SaveableField(2)]
-        public int SchemaVersion = 2;
-    }
-
     /// <summary>
     /// Snapshot of the settings that alter campaign simulation. Display-only
     /// choices deliberately do not live here, so players may still change date
     /// formats and names while a campaign is active without changing time.
-    ///
-    /// The SaveableField attributes remain only so this type can decode v1.3
-    /// saves during one-time migration. New saves store its serialized string,
-    /// not the type itself.
+    /// The profile is serialized into a primitive string. It is deliberately
+    /// not registered with Bannerlord's SaveableTypeDefiner system, allowing
+    /// the module to be removed without leaving a required custom CLR type in
+    /// the campaign save.
     /// </summary>
     public sealed class CalendarCampaignProfile
     {
@@ -43,69 +24,53 @@ namespace TwelveMonthCalendar
         // stored an additional TickMapTime multiplier and are converted once on
         // load so their old default of 1.00 becomes Bannerlord's native 4x
         // fast-forward speed rather than an unexpectedly slow 1x speed.
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = 5;
         private const string SerializedRootName = "CalendarCampaignProfile";
         private const int MaximumSerializedLength = 32768;
 
-        [SaveableField(1)]
         public int SchemaVersion = CurrentSchemaVersion;
 
-        [SaveableField(2)]
         public string CalendarSystem = "Gregorian12Month";
 
-        [SaveableField(3)]
         public bool UseLeapYears;
 
-        [SaveableField(4)]
         public string MonthLengthSignature = string.Empty;
 
-        [SaveableField(5)]
         public bool AutoCampaignTimeScale;
 
-        [SaveableField(6)]
         public float CampaignTimeScale;
 
-        [SaveableField(7)]
         public float NormalPlayTimeMultiplier;
 
-        [SaveableField(8)]
         public float FastForwardTimeMultiplier;
 
-        [SaveableField(9)]
         public bool UseCalendarMonthPregnancy;
 
-        [SaveableField(10)]
         public int PregnancyDurationMonths;
 
-        [SaveableField(11)]
         public float PregnancyDurationInDays;
 
-        [SaveableField(12)]
         public float RenownGainMultiplier;
 
-        [SaveableField(13)]
         public bool BalancePartyImpairment;
 
-        [SaveableField(14)]
         public bool BalancePrisonerRecruitment;
 
-        [SaveableField(15)]
         public bool BalanceNpcMarriage;
 
-        [SaveableField(16)]
         public bool BalanceMapTracks;
 
-        [SaveableField(17)]
         public bool BalanceQuestDeadlines;
 
-        [SaveableField(20)]
         public bool AnnualBalanceEnabled = true;
 
-        [SaveableField(18)]
         public string Fingerprint = string.Empty;
 
-        [SaveableField(19)]
         public float LordDeathRateMultiplier = CalendarSettingsState.DefaultLordDeathRateMultiplier;
+
+        // v5 marks profiles written after the native-to-Gregorian hero-age
+        // compatibility fix. Profiles from v1-v4 need the age cutover path.
+        public bool LegacyNativeAgeBasis;
 
         public static CalendarCampaignProfile Capture()
         {
@@ -129,7 +94,8 @@ namespace TwelveMonthCalendar
                 BalanceNpcMarriage = CalendarSettingsState.BalanceNpcMarriage,
                 BalanceMapTracks = CalendarSettingsState.BalanceMapTracks,
                 BalanceQuestDeadlines = CalendarSettingsState.BalanceQuestDeadlines,
-                AnnualBalanceEnabled = CalendarSettingsState.AnnualBalanceEnabled
+                AnnualBalanceEnabled = CalendarSettingsState.AnnualBalanceEnabled,
+                LegacyNativeAgeBasis = false
             };
             profile.RefreshFingerprint();
             return profile;
@@ -148,7 +114,7 @@ namespace TwelveMonthCalendar
                 return true;
             }
 
-            if (SchemaVersion != 1 && SchemaVersion != 2 && SchemaVersion != 3)
+            if (SchemaVersion != 1 && SchemaVersion != 2 && SchemaVersion != 3 && SchemaVersion != 4)
             {
                 return false;
             }
@@ -332,6 +298,7 @@ namespace TwelveMonthCalendar
             root.SetAttribute("BalanceMapTracks", BalanceMapTracks.ToString());
             root.SetAttribute("BalanceQuestDeadlines", BalanceQuestDeadlines.ToString());
             root.SetAttribute("AnnualBalanceEnabled", AnnualBalanceEnabled.ToString());
+            root.SetAttribute("LegacyNativeAgeBasis", LegacyNativeAgeBasis.ToString());
             root.SetAttribute("Fingerprint", Fingerprint ?? string.Empty);
             return document.OuterXml;
         }
@@ -388,6 +355,13 @@ namespace TwelveMonthCalendar
                     && !TryReadBoolean(root, "AnnualBalanceEnabled", out candidate.AnnualBalanceEnabled))
                 {
                     failure = "the serialized profile has a missing or invalid annual-balance setting.";
+                    return false;
+                }
+
+                if (candidate.SchemaVersion >= CurrentSchemaVersion
+                    && !TryReadBoolean(root, "LegacyNativeAgeBasis", out candidate.LegacyNativeAgeBasis))
+                {
+                    failure = "the serialized profile has a missing or invalid age-compatibility setting.";
                     return false;
                 }
 
@@ -455,7 +429,8 @@ namespace TwelveMonthCalendar
                     BalanceNpcMarriage.ToString(),
                     BalanceMapTracks.ToString(),
                     BalanceQuestDeadlines.ToString()
-                    , AnnualBalanceEnabled.ToString()
+                    , AnnualBalanceEnabled.ToString(),
+                    LegacyNativeAgeBasis.ToString()
                 });
 
             using (SHA256 sha256 = SHA256.Create())
@@ -515,25 +490,6 @@ namespace TwelveMonthCalendar
     }
 
     /// <summary>
-    /// Retained only to decode v1.3 saves which contain module-owned values.
-    /// The current campaign behavior saves a primitive string profile instead,
-    /// so merely enabling this registry does not lock new saves to the module.
-    /// </summary>
-    public sealed class TwelveMonthCalendarSaveDefiner : SaveableTypeDefiner
-    {
-        public TwelveMonthCalendarSaveDefiner()
-            : base(485013)
-        {
-        }
-
-        protected override void DefineClassTypes()
-        {
-            AddClassDefinition(typeof(CalendarSaveCompatibilityMarker), 1);
-            AddClassDefinition(typeof(CalendarCampaignProfile), 2);
-        }
-    }
-
-    /// <summary>
     /// Saves the simulation profile as a primitive string. This keeps campaigns
     /// internally consistent while the module is enabled, without embedding a
     /// module-owned type that blocks loading the save without the module.
@@ -542,10 +498,12 @@ namespace TwelveMonthCalendar
     {
         private const string SerializedProfileKey = "RealisticCalendarTweaks.CampaignProfileV3";
         private const string LegacySerializedProfileKey = "TwelveMonthCalendar.CampaignProfileV2";
-        private const string LegacyMarkerKey = "TwelveMonthCalendar.SaveCompatibilityMarker";
-        private const string LegacyProfileKey = "TwelveMonthCalendar.CampaignProfile";
+        private const string LegacyAgeCompatibilityKey = "RealisticCalendarTweaks.LegacyNativeAgeCompatibilityV1";
+        private const string LegacyAgeCutoverKey = "RealisticCalendarTweaks.LegacyNativeAgeCutoverDayV1";
 
         private string _serializedCampaignProfile = string.Empty;
+        private bool _legacyAgeCompatibility;
+        private string _legacyAgeCutoverDay = string.Empty;
 
         public override void RegisterEvents()
         {
@@ -555,9 +513,22 @@ namespace TwelveMonthCalendar
         {
             if (dataStore.IsLoading)
             {
-                RestoreLoadedProfile(dataStore);
+                bool legacyAgeCompatibilityWasPresent = dataStore.SyncData(
+                    LegacyAgeCompatibilityKey,
+                    ref _legacyAgeCompatibility);
+                dataStore.SyncData(
+                    LegacyAgeCutoverKey,
+                    ref _legacyAgeCutoverDay);
+                RestoreLoadedProfile(
+                    dataStore,
+                    legacyAgeCompatibilityWasPresent);
                 return;
             }
+
+            _legacyAgeCompatibility = CalendarSettingsState.IsLegacySaveAgeCompatibility;
+            _legacyAgeCutoverDay = GetLegacyAgeCutoverPayload();
+            dataStore.SyncData(LegacyAgeCompatibilityKey, ref _legacyAgeCompatibility);
+            dataStore.SyncData(LegacyAgeCutoverKey, ref _legacyAgeCutoverDay);
 
             CalendarCampaignProfile profile = CalendarCampaignProfile.Capture();
             _serializedCampaignProfile = profile.Serialize();
@@ -568,7 +539,9 @@ namespace TwelveMonthCalendar
                 + "; primitive payload only; no module-load marker written.");
         }
 
-        private void RestoreLoadedProfile(IDataStore dataStore)
+        private void RestoreLoadedProfile(
+            IDataStore dataStore,
+            bool legacyAgeCompatibilityWasPresent)
         {
             bool serializedProfileWasPresent = dataStore.SyncData(
                 SerializedProfileKey,
@@ -580,14 +553,6 @@ namespace TwelveMonthCalendar
                     ref _serializedCampaignProfile);
             }
 
-            // Read legacy keys only while loading. They are deliberately not
-            // synchronized on save, so a save made with this version drops the
-            // old module-owned marker and profile types.
-            CalendarSaveCompatibilityMarker legacyMarker = null;
-            CalendarCampaignProfile legacyProfile = null;
-            bool legacyMarkerWasPresent = dataStore.SyncData(LegacyMarkerKey, ref legacyMarker);
-            bool legacyProfileWasPresent = dataStore.SyncData(LegacyProfileKey, ref legacyProfile);
-
             CalendarCampaignProfile profile;
             string source;
             string failure = null;
@@ -598,14 +563,6 @@ namespace TwelveMonthCalendar
                     out failure))
             {
                 source = "soft saved profile";
-            }
-            else if (legacyProfileWasPresent
-                && legacyProfile != null
-                && legacyProfile.TryUpgradeLegacyProfile()
-                && legacyProfile.TryValidate(out failure))
-            {
-                profile = legacyProfile;
-                source = "legacy profile migrated to the soft profile format";
             }
             else
             {
@@ -620,24 +577,74 @@ namespace TwelveMonthCalendar
                 }
             }
 
+            bool legacyAgeCompatibility = legacyAgeCompatibilityWasPresent
+                ? _legacyAgeCompatibility
+                : profile.LegacyNativeAgeBasis
+                    || CalendarTimeMath.LooksLikeNativeTimeBasis(CampaignTime.Now);
+            if (legacyAgeCompatibility)
+            {
+                double cutoverDay;
+                if (!TryParseCutoverDay(_legacyAgeCutoverDay, out cutoverDay))
+                {
+                    cutoverDay = CampaignTime.Now.ToDays;
+                    _legacyAgeCutoverDay = cutoverDay.ToString("R", CultureInfo.InvariantCulture);
+                }
+
+                _legacyAgeCompatibility = true;
+                CalendarSettingsState.MarkLegacySaveAgeCompatibility(cutoverDay);
+            }
+            else
+            {
+                _legacyAgeCompatibility = false;
+                _legacyAgeCutoverDay = string.Empty;
+                CalendarSettingsState.MarkModernSaveAgeCompatibility();
+            }
+
             string differences = profile.DescribeDifferencesFromCurrentSettings();
             CalendarSettingsState.ApplyPersistedCampaignProfile(profile);
             CalendarSettingsState.Save();
             Diagnostics.Info(
                 "Calendar " + source + "."
-                + (legacyMarkerWasPresent
-                    ? " Legacy module marker will be removed on the next save."
-                    : string.Empty)
+                + (legacyAgeCompatibility
+                    ? " Legacy-save hero-age compatibility is active from campaign day "
+                        + _legacyAgeCutoverDay + "."
+                    : " Modern-save hero-age basis is active.")
                 + (string.IsNullOrWhiteSpace(differences)
                     ? string.Empty
                     : " Differences=" + differences + "."));
             CrashFlightRecorder.Record(
                 "CampaignProfile",
                 "Restored " + source + "; fingerprint=" + profile.Fingerprint
-                + (legacyMarkerWasPresent ? "; LegacyMarker=true" : string.Empty)
+                + "; LegacyAgeCompatibility=" + legacyAgeCompatibility
                 + (string.IsNullOrWhiteSpace(differences) ? string.Empty : "; Differences=" + differences));
+        }
+
+        private static bool TryParseCutoverDay(string value, out double cutoverDay)
+        {
+            return double.TryParse(
+                value,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out cutoverDay)
+                && !double.IsNaN(cutoverDay)
+                && !double.IsInfinity(cutoverDay);
+        }
+
+        private static string GetLegacyAgeCutoverPayload()
+        {
+            if (!CalendarSettingsState.IsLegacySaveAgeCompatibility)
+            {
+                return string.Empty;
+            }
+
+            double cutoverDay = CalendarSettingsState.LegacySaveAgeCutoverDay;
+            if (double.IsNaN(cutoverDay) || double.IsInfinity(cutoverDay))
+            {
+                return string.Empty;
+            }
+
+            return cutoverDay.ToString("R", CultureInfo.InvariantCulture);
         }
     }
 
-    #pragma warning restore CS0618
 }

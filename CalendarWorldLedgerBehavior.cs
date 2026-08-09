@@ -69,7 +69,7 @@ namespace TwelveMonthCalendar
                 string[] fields = entry.Split(new[] { '\t' }, 3);
                 double recordedDays;
                 if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
-                long day = (long)Math.Floor(recordedDays);
+                long day = ToCalendarDay(recordedDays);
                 if (day < firstDay) firstDay = day;
             }
 
@@ -87,7 +87,7 @@ namespace TwelveMonthCalendar
                 string[] fields = entry.Split(new[] { '\t' }, 3);
                 double recordedDays;
                 if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
-                long day = (long)Math.Floor(recordedDays);
+                long day = ToCalendarDay(recordedDays);
                 if (day >= firstDayInclusive && day < firstDayExclusive) count++;
             }
             return count;
@@ -107,7 +107,7 @@ namespace TwelveMonthCalendar
                 string[] fields = entry.Split(new[] { '\t' }, 3);
                 double recordedDays;
                 if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
-                long day = (long)Math.Floor(recordedDays);
+                long day = ToCalendarDay(recordedDays);
                 if (day < firstDayInclusive || day >= firstDayExclusive) continue;
                 matchingEntries.Add("[" + fields[1] + "] " + fields[2]);
             }
@@ -144,7 +144,7 @@ namespace TwelveMonthCalendar
                 string[] fields = entry.Split(new[] { '\t' }, 3);
                 double recordedDays;
                 if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
-                long day = (long)Math.Floor(recordedDays);
+                long day = ToCalendarDay(recordedDays);
                 if (day < firstDayInclusive || day >= firstDayExclusive) continue;
 
                 total++;
@@ -184,7 +184,7 @@ namespace TwelveMonthCalendar
                 string[] fields = entry.Split(new[] { '\t' }, 3);
                 double recordedDays;
                 if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
-                long day = (long)Math.Floor(recordedDays);
+                long day = ToCalendarDay(recordedDays);
                 if (day < firstDayInclusive || day >= firstDayExclusive) continue;
 
                 int categoryCount;
@@ -272,11 +272,12 @@ namespace TwelveMonthCalendar
                     {
                         double recordedDays;
                         if (!double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays)) continue;
-                        int recordedDay = (int)Math.Floor(recordedDays);
+                        int recordedDay = (int)ToCalendarDay(recordedDays);
                         if (recordedDay != previousDay)
                         {
                             if (text.Length > 0) text.AppendLine();
-                            text.Append(CalendarFormatter.Format(CampaignTime.Days(recordedDay))).AppendLine();
+                            text.Append(CalendarFormatter.Format(
+                                CalendarTimeMath.FromCalendarAbsoluteDays(recordedDay))).AppendLine();
                             previousDay = recordedDay;
                         }
                     }
@@ -363,12 +364,17 @@ namespace TwelveMonthCalendar
             {
                 string[] fields = active._entries[index].Split(new[] { '\t' }, 3);
                 double recordedDays;
-                if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays) || (long)Math.Floor(recordedDays) != absoluteDay || !MatchesFilter(fields[1], filter)) continue;
+                if (fields.Length != 3 || !double.TryParse(fields[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out recordedDays) || ToCalendarDay(recordedDays) != absoluteDay || !MatchesFilter(fields[1], filter)) continue;
                 if (summary.Length > 0) summary.AppendLine();
                 summary.Append('•').Append(' ').Append(fields[1]);
             }
 
             return summary.ToString();
+        }
+
+        private static long ToCalendarDay(double rawDay)
+        {
+            return (long)Math.Floor(CalendarTimeMath.ToCalendarAbsoluteDays(rawDay));
         }
 
         private void OnDailyTick()

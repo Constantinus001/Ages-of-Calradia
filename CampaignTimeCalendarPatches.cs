@@ -22,11 +22,10 @@ namespace TwelveMonthCalendar
                 return true;
             }
 
-            // Preserve Bannerlord's native campaign start as April 1 in 1084.
-            // With real-world boundaries, that date falls in Spring.
-            long startDay = CalendarTimeMath.DaysBeforeYear(1084)
-                + CalendarTimeMath.GetMonthStart(3, CalendarTimeMath.IsLeapYear(1084));
-            __result = CampaignTime.Days(startDay) + CampaignTime.Hours(9f);
+            // New campaigns use the Gregorian raw epoch. Existing native-basis
+            // saves retain their raw epoch and map it to the same visible
+            // April 1, 1084 start date.
+            __result = CalendarTimeMath.GetCampaignStartTime();
             return false;
         }
 
@@ -120,7 +119,7 @@ namespace TwelveMonthCalendar
                 return true;
             }
 
-            __result = CalendarTimeMath.ToSeasons(__instance);
+            __result = CalendarTimeMath.DurationToSeasons(__instance);
             return false;
         }
 
@@ -133,7 +132,7 @@ namespace TwelveMonthCalendar
                 return true;
             }
 
-            __result = CalendarTimeMath.ToYears(__instance);
+            __result = CalendarTimeMath.DurationToYears(__instance);
             return false;
         }
 
