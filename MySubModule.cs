@@ -104,6 +104,7 @@ namespace TwelveMonthCalendar
                 && game.GameType is Campaign
                 && gameStarterObject is CampaignGameStarter campaignStarter)
             {
+                CalendarSettingsState.BeginCampaignSession();
                 ClanFinanceModel nativeFinance = campaignStarter.GetModel<ClanFinanceModel>();
                 if (nativeFinance == null)
                 {
@@ -190,16 +191,17 @@ namespace TwelveMonthCalendar
                 campaignStarter.AddBehavior(new CalendarCampaignProfileBehavior());
                 campaignStarter.AddBehavior(new CalendarTreatyMigrationBehavior());
                 campaignStarter.AddBehavior(new CalendarWorldLedgerBehavior());
+#if STRATEGIC_PROVINCE_DIAGNOSTICS
                 campaignStarter.AddBehavior(new CalendarRefugeBehavior());
                 campaignStarter.AddBehavior(new CalendarCampBehavior());
+#endif
                 Diagnostics.Info("Calendar diagnostics behavior registered for campaign.");
 #if STRATEGIC_PROVINCE_DIAGNOSTICS
                 Diagnostics.Info("Strategic province diagnostics behavior registered; full province snapshots use StrategicProvinceDiagnostics.tsv.");
+                Diagnostics.Info("Test-only refuge and camp behaviors registered.");
 #endif
                 Diagnostics.Info("Calendar soft profile behavior registered; new saves write no calendar module-lock marker.");
                 Diagnostics.Info("Calendar treaty migration behavior registered for existing tribute agreements.");
-                Diagnostics.Info("Calendar refuge behavior registered with primitive save data and navigable-water validation.");
-                Diagnostics.Info("Calendar camp behavior registered for campaign-map menu testing.");
             }
         }
 

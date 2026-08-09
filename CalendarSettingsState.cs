@@ -117,6 +117,8 @@ namespace TwelveMonthCalendar
         private static bool _annualBalanceEnabled = true;
         private static bool _annualBalanceDiagnosticsEnabled = true;
         private static bool _campaignSessionStarted;
+        private static bool _legacySaveAgeCompatibility;
+        private static double _legacySaveAgeCutoverDay = double.NaN;
         private static readonly string[] _monthNames = (string[])DefaultMonthNames.Clone();
         private static readonly string[] _seasonNames = (string[])DefaultSeasonNames.Clone();
         private static readonly int[] _monthLengths = (int[])DefaultMonthLengths.Clone();
@@ -131,6 +133,22 @@ namespace TwelveMonthCalendar
         public static bool ExtendedCalendarEnabled
         {
             get { return true; }
+        }
+
+        /// <summary>
+        /// Camps and refuges are intentionally restricted to the diagnostics
+        /// test build until the feature is ready for the normal player archive.
+        /// </summary>
+        internal static bool RefugeSystemEnabled
+        {
+            get
+            {
+#if STRATEGIC_PROVINCE_DIAGNOSTICS
+                return true;
+#else
+                return false;
+#endif
+            }
         }
 
         public static bool UseLeapYears
@@ -393,6 +411,43 @@ namespace TwelveMonthCalendar
         public static bool AnnualRateBalanceEnabled
         {
             get { return ExtendedCalendarEnabled && AnnualBalanceEnabled; }
+        }
+
+        /// <summary>
+        /// True for campaigns created before the save-time age compatibility
+        /// marker was introduced. Their stored CampaignTime values use
+        /// Bannerlord's native 84-day year for the portion before the first
+        /// load with this version of the mod.
+        /// </summary>
+        internal static bool IsLegacySaveAgeCompatibility
+        {
+            get { lock (SyncRoot) return _legacySaveAgeCompatibility; }
+        }
+
+        internal static double LegacySaveAgeCutoverDay
+        {
+            get { lock (SyncRoot) return _legacySaveAgeCutoverDay; }
+        }
+
+        internal static void MarkLegacySaveAgeCompatibility(double cutoverDay)
+        {
+            lock (SyncRoot)
+            {
+                _legacySaveAgeCompatibility = true;
+                if (!double.IsNaN(cutoverDay) && !double.IsInfinity(cutoverDay))
+                {
+                    _legacySaveAgeCutoverDay = cutoverDay;
+                }
+            }
+        }
+
+        internal static void MarkModernSaveAgeCompatibility()
+        {
+            lock (SyncRoot)
+            {
+                _legacySaveAgeCompatibility = false;
+                _legacySaveAgeCutoverDay = double.NaN;
+            }
         }
 
         /// <summary>
@@ -882,6 +937,21 @@ namespace TwelveMonthCalendar
             lock (SyncRoot)
             {
                 _campaignSessionStarted = true;
+            }
+        }
+
+        /// <summary>
+        /// Clears campaign-owned runtime state before Bannerlord creates or
+        /// loads another campaign in the same process. SyncData restores the
+        /// saved compatibility mode immediately afterward for loaded games.
+        /// </summary>
+        internal static void BeginCampaignSession()
+        {
+            lock (SyncRoot)
+            {
+                _campaignSessionStarted = false;
+                _legacySaveAgeCompatibility = false;
+                _legacySaveAgeCutoverDay = double.NaN;
             }
         }
 

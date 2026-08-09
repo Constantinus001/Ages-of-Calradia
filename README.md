@@ -67,7 +67,7 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 
 Release archives contain the complete single runtime module: module XML, module
 data, README, Harmony, the MCM v5 core and calendar adapter, compiled module
-DLLs, UI prefab XML files, and any finished module-owned refuge scenes. The
+DLLs, and UI prefab XML files. The
 retired Better Time adapter and the old-module save bridge are intentionally
 excluded. Development and verification scripts, logs, debug symbols,
 unfinished scene-editor work, editor backups, and shader caches are
@@ -93,7 +93,9 @@ For the diagnostics-enabled **v1.5.6 Test** archive, run:
 
 This produces `artifacts\RealisticCalendarTweaks-v1.5.6-Test.zip`. It is for
 testers and includes strategic-province snapshot diagnostics plus every
-module-owned refuge/editor scene. Use the normal archive for players.
+module-owned refuge/editor scene. Camps and refuges are enabled only in this
+Test archive; their behaviors and map-bar button are disabled in the normal
+player archive. Use the normal archive for players.
 
 The build output is written to `bin\Win64_Shipping_Client`. Install the
 `RealisticCalendarTweaks` module folder in the game's `Modules` directory, then
@@ -102,15 +104,39 @@ enable **Realistic Calendar Tweaks** in the Bannerlord launcher.
 This changes the underlying campaign-time interpretation so hero aging, native
 four-season calculations, and campaign events created with
 `CampaignTime.Years()` follow the 365-day year. Day-based timers remain
-day-based. Start a new campaign with the module enabled.
+day-based. New campaigns can be started normally, and existing vanilla or
+older Realistic Calendar Tweaks saves are supported.
 
 ## Save compatibility
 
 New saves use a primitive soft profile rather than the calendar's former hard
-save-lock marker. This release intentionally does **not** ship the old
-`_TwelveMonthCalendar` module or a legacy save bridge. Keep v1.4.5 if an older
-calendar save still needs its one-time migration path. Bannerlord may still show
-its normal missing-module warning whenever any campaign mod is disabled.
+save-lock marker. Existing saves are not converted by rewriting hero records:
+the first load detects whether the raw campaign timestamp uses Bannerlord's
+native epoch or the mod's Gregorian epoch. Native saves receive a mapped
+calendar epoch and age cutover, preserving the visible 1084 calendar date and
+each hero's existing age while applying the 365-day rate to future aging.
+The cutover is persisted on the next save, so continuing the same campaign does
+not make characters appear as babies. Bannerlord may still show its normal
+missing-module warning whenever any campaign mod is disabled.
+
+Like TimeLord, the normal runtime assembly defines no `SaveableTypeDefiner` and
+writes no module-owned CLR objects into new saves. Calendar profiles, age
+cutovers, and the World Calendar ledger use primitive values. Players may
+disable the module, accept Bannerlord's normal
+missing-module warning, load the campaign, and save to a new slot to remove the
+module from later save metadata.
+
+Removing the module restores Bannerlord's native calendar and pacing
+immediately; it does not preserve the mod's Gregorian presentation or annual
+balance. Test-build users should retrieve anything kept in a refuge stash
+before switching builds or disabling the module. Saves
+from the old hard-marker era should first be migrated with v1.4.5; the normal
+runtime no longer registers those retired custom save types.
+
+Story quests that use Bannerlord's `CampaignTime.Never` no-deadline sentinel
+are left untouched by annual deadline balancing. This prevents quests such as
+`Inquire at Ostican`, `Establish your Clan`, and `Villagers in Need` from being
+mistakenly timed out immediately after the tutorial is skipped.
 
 Leap years use the Gregorian rule: divisible by 4, except century years unless
 they are also divisible by 400. The campaign's starting year, 1084, is treated

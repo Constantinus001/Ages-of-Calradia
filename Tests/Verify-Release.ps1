@@ -49,7 +49,13 @@ if ($LASTEXITCODE -ne 0) {
 Copy-Item -LiteralPath $harmonyPackageDll -Destination $harmonyDll -Force
 $mcmDll = Join-Path $runtimeBinDirectory 'RealisticCalendarTweaks.MCM.dll'
 $mcmCoreDll = Join-Path $runtimeBinDirectory 'MCMv5.dll'
-& (Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1') -ModuleRoot $ModuleRoot -CalendarAssemblyPath $mainDll
+$calendarMathVerifier = Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1'
+if ($IncludeStrategicProvinceDiagnostics) {
+    & $calendarMathVerifier -ModuleRoot $ModuleRoot -CalendarAssemblyPath $mainDll -ExpectRefugeSystemEnabled
+}
+else {
+    & $calendarMathVerifier -ModuleRoot $ModuleRoot -CalendarAssemblyPath $mainDll
+}
 
 $settlementBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'SettlementBalancePatches.cs')
 $dailyBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'DailyRateBalancePatches.cs')
@@ -190,13 +196,33 @@ if ($lordDeathSource -notmatch 'CalendarHeroDeathProbabilityModel' -or
     throw 'Lord mortality must use the public old-age and battle-survival model wrappers.'
 }
 $saveProfileSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarSaveCompatibility.cs')
+$playerPacingSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'PlayerPacingPatches.cs')
+$calendarTimeMathSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarTimeMath.cs')
+$campaignTimePatchesSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CampaignTimeCalendarPatches.cs')
+$worldLedgerViewModelSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarWorldLedgerVM.cs')
 if ($saveProfileSource -notmatch 'CalendarCampaignProfileBehavior' -or
     $saveProfileSource -notmatch 'primitive payload only; no module-load marker written' -or
-    $saveProfileSource -notmatch 'RealisticCalendarTweaks\.CampaignProfileV3') {
+    $saveProfileSource -notmatch 'RealisticCalendarTweaks\.CampaignProfileV3' -or
+    $saveProfileSource -match ':\s*SaveableTypeDefiner|using\s+TaleWorlds\.SaveSystem|\[Saveable(Field|Property)') {
     throw 'New saves must use the primitive soft campaign profile rather than a hard module-lock marker.'
+}
+if ($playerPacingSource -notmatch 'dueTime\s*==\s*CampaignTime\.Never' -or
+    $playerPacingSource -notmatch '__instance\.DeathDay' -or
+    $calendarTimeMathSource -notmatch 'GetLegacyCompatibleHeroAgeAt' -or
+    $calendarTimeMathSource -notmatch 'GetLegacyCompatibleElapsedYearsAt\(time, CampaignTime\.Now\)' -or
+    $calendarTimeMathSource -notmatch 'LooksLikeNativeTimeBasis' -or
+    $calendarTimeMathSource -notmatch 'ToCalendarAbsoluteDays' -or
+    $campaignTimePatchesSource -notmatch 'DurationToYears\(__instance\)' -or
+    $campaignTimePatchesSource -notmatch 'DurationToSeasons\(__instance\)' -or
+    $worldLedgerViewModelSource -match 'QuestDueTime\.ToDays' -or
+    $saveProfileSource -notmatch 'LegacyNativeAgeCutoverDayV1') {
+    throw 'Story-quest sentinels, native-to-Gregorian dates and hero ages, and offset-free durations must retain their save-compatibility guards.'
 }
 $campSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarCampBehavior.cs')
 $refugeSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeBehavior.cs')
+$subModuleSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MySubModule.cs')
+$settingsStateSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarSettingsState.cs')
+$mapBarDataSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MapBarSeasonDataSourcePatch.cs')
 $refugeCatalogSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'RefugeFortPrefabCatalog.cs')
 $refugeStewardSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeStewardInteraction.cs')
 $refugeMissionSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeMission.cs')
@@ -235,6 +261,11 @@ if ($refugeSource -notmatch 'battle_terrain_biome_130' -or
     $refugeSource -notmatch 'river_bt_aserai_01_4x4km' -or
     $refugeSource -notmatch 'river_bt_nord_01_4x4km') {
     throw 'Refuge scene selection must retain curated native land, river, and coast profiles.'
+}
+if ($subModuleSource -notmatch '#if STRATEGIC_PROVINCE_DIAGNOSTICS[\s\S]{0,180}AddBehavior\(new CalendarRefugeBehavior\(\)\)[\s\S]{0,120}AddBehavior\(new CalendarCampBehavior\(\)\)' -or
+    $settingsStateSource -notmatch 'RefugeSystemEnabled[\s\S]{0,180}#if STRATEGIC_PROVINCE_DIAGNOSTICS' -or
+    $mapBarDataSource -notmatch '!CalendarSettingsState\.RefugeSystemEnabled') {
+    throw 'Camp and refuge runtime behavior must remain disabled in production and enabled only in the diagnostics Test build.'
 }
 
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
@@ -328,6 +359,10 @@ foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRo
 }
 
 [xml]$mapBar = Get-Content -Raw -LiteralPath $mapBarXml
+$campButton = @($mapBar.SelectNodes('//ButtonWidget[@Id="CampButton"]'))
+if ($campButton.Count -ne 1 -or $campButton[0].IsVisible -ne '@IsRefugeSystemEnabled') {
+    throw 'The map-bar camp button must be hidden when the test-only refuge feature flag is disabled.'
+}
 $centerPanel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]'))
 if ($centerPanel.Count -ne 1 -or $centerPanel[0].HorizontalAlignment -ne 'Center' -or $centerPanel[0].PositionXOffset -ne '10' -or $centerPanel[0].VerticalAlignment -ne 'Bottom' -or $centerPanel[0].SuggestedWidth -ne '420' -or $centerPanel[0].SuggestedHeight -ne '60') {
     throw 'Map bar center panel must remain bottom-centered for resolution-independent placement.'

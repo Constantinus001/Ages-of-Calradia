@@ -135,7 +135,9 @@ namespace TwelveMonthCalendar
         {
             try
             {
-                if (Campaign.Current == null || MobileParty.MainParty == null)
+                if (!CalendarSettingsState.RefugeSystemEnabled
+                    || Campaign.Current == null
+                    || MobileParty.MainParty == null)
                 {
                     return;
                 }
@@ -146,6 +148,12 @@ namespace TwelveMonthCalendar
             {
                 Diagnostics.Error("Camp menu could not be opened from the map bar.", exception);
             }
+        }
+
+        [DataSourceProperty]
+        public bool IsRefugeSystemEnabled
+        {
+            get { return CalendarSettingsState.RefugeSystemEnabled; }
         }
 
         internal void RefreshSeason()

@@ -1118,18 +1118,18 @@ namespace TwelveMonthCalendar
             CampaignTime now = CampaignTime.Now;
             int currentYear = CalendarTimeMath.GetYear(now);
             int currentMonth = CalendarTimeMath.GetMonth(now);
-            long today = (long)Math.Floor(now.ToDays);
+            long today = (long)Math.Floor(CalendarTimeMath.ToCalendarAbsoluteDays(now));
             Dictionary<long, List<QuestBase>> questDueByDay = GetActiveQuestDeadlines(today);
             long futureCalendarEnd = today + CalendarFutureMonths * 31L;
             foreach (long dueDay in questDueByDay.Keys)
             {
                 futureCalendarEnd = Math.Max(futureCalendarEnd, dueDay);
             }
-            int lastVisibleYear = CalendarTimeMath.GetYear(CampaignTime.Days(futureCalendarEnd));
-            int lastVisibleMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(futureCalendarEnd));
+            int lastVisibleYear = CalendarTimeMath.GetYear(CalendarTimeMath.FromCalendarAbsoluteDays(futureCalendarEnd));
+            int lastVisibleMonth = CalendarTimeMath.GetMonth(CalendarTimeMath.FromCalendarAbsoluteDays(futureCalendarEnd));
             long firstRecordedDay = CalendarWorldLedgerBehavior.GetFirstRecordedDay(today);
-            int firstYear = CalendarTimeMath.GetYear(CampaignTime.Days(firstRecordedDay));
-            int firstMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(firstRecordedDay));
+            int firstYear = CalendarTimeMath.GetYear(CalendarTimeMath.FromCalendarAbsoluteDays(firstRecordedDay));
+            int firstMonth = CalendarTimeMath.GetMonth(CalendarTimeMath.FromCalendarAbsoluteDays(firstRecordedDay));
             if (_displayCalendarYear == int.MinValue || _displayCalendarMonth == int.MinValue)
             {
                 _displayCalendarYear = currentYear;
@@ -1227,10 +1227,10 @@ namespace TwelveMonthCalendar
             if (month > LastCalendarMonth) { month = FirstCalendarMonth; year++; }
             bool leapYear = CalendarTimeMath.IsLeapYear(year);
             long candidateStart = CalendarTimeMath.DaysBeforeYear(year) + CalendarTimeMath.GetMonthStart(month, leapYear);
-            long today = (long)Math.Floor(CampaignTime.Now.ToDays);
+            long today = (long)Math.Floor(CalendarTimeMath.ToCalendarAbsoluteDays(CampaignTime.Now));
             long firstRecordedDay = CalendarWorldLedgerBehavior.GetFirstRecordedDay(today);
-            int firstCalendarYear = CalendarTimeMath.GetYear(CampaignTime.Days(firstRecordedDay));
-            int firstCalendarMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(firstRecordedDay));
+            int firstCalendarYear = CalendarTimeMath.GetYear(CalendarTimeMath.FromCalendarAbsoluteDays(firstRecordedDay));
+            int firstCalendarMonth = CalendarTimeMath.GetMonth(CalendarTimeMath.FromCalendarAbsoluteDays(firstRecordedDay));
             bool firstCalendarLeapYear = CalendarTimeMath.IsLeapYear(firstCalendarYear);
             long firstVisibleMonthStart = CalendarTimeMath.DaysBeforeYear(firstCalendarYear)
                 + CalendarTimeMath.GetMonthStart(firstCalendarMonth, firstCalendarLeapYear);
@@ -1240,8 +1240,8 @@ namespace TwelveMonthCalendar
 
         private void ClampDisplayedCalendarMonth(long firstRecordedDay, long lastVisibleDay)
         {
-            int firstCalendarYear = CalendarTimeMath.GetYear(CampaignTime.Days(firstRecordedDay));
-            int firstCalendarMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(firstRecordedDay));
+            int firstCalendarYear = CalendarTimeMath.GetYear(CalendarTimeMath.FromCalendarAbsoluteDays(firstRecordedDay));
+            int firstCalendarMonth = CalendarTimeMath.GetMonth(CalendarTimeMath.FromCalendarAbsoluteDays(firstRecordedDay));
             bool firstCalendarLeapYear = CalendarTimeMath.IsLeapYear(firstCalendarYear);
             long firstVisibleMonthStart = CalendarTimeMath.DaysBeforeYear(firstCalendarYear)
                 + CalendarTimeMath.GetMonthStart(firstCalendarMonth, firstCalendarLeapYear);
@@ -1255,8 +1255,8 @@ namespace TwelveMonthCalendar
             }
             else if (displayedStart > lastVisibleDay)
             {
-                _displayCalendarYear = CalendarTimeMath.GetYear(CampaignTime.Days(lastVisibleDay));
-                _displayCalendarMonth = CalendarTimeMath.GetMonth(CampaignTime.Days(lastVisibleDay));
+                _displayCalendarYear = CalendarTimeMath.GetYear(CalendarTimeMath.FromCalendarAbsoluteDays(lastVisibleDay));
+                _displayCalendarMonth = CalendarTimeMath.GetMonth(CalendarTimeMath.FromCalendarAbsoluteDays(lastVisibleDay));
             }
         }
 
@@ -1293,10 +1293,11 @@ namespace TwelveMonthCalendar
         {
             long today = Campaign.Current == null
                 ? long.MinValue
-                : (long)Math.Floor(CampaignTime.Now.ToDays);
+                : (long)Math.Floor(CalendarTimeMath.ToCalendarAbsoluteDays(CampaignTime.Now));
             if (_selectedCalendarDay != long.MinValue)
             {
-                NotesTitle = CalendarFormatter.Format(CampaignTime.Days(_selectedCalendarDay)).ToUpperInvariant();
+                NotesTitle = CalendarFormatter.Format(
+                    CalendarTimeMath.FromCalendarAbsoluteDays(_selectedCalendarDay)).ToUpperInvariant();
                 string eventText = _selectedCalendarDay <= today
                     ? CalendarWorldLedgerBehavior.GetImportantEventsText(
                     _selectedCalendarDay,
@@ -1324,7 +1325,8 @@ namespace TwelveMonthCalendar
         private void SetMonthSummary(string monthTitle, long monthStart, long monthEnd)
         {
             int monthEvents = CalendarWorldLedgerBehavior.CountRecordedEntries(monthStart, monthEnd);
-            int questCount = CountQuestDeadlines(GetActiveQuestDeadlines((long)Math.Floor(CampaignTime.Now.ToDays)), monthStart, monthEnd);
+            int questCount = CountQuestDeadlines(GetActiveQuestDeadlines((long)Math.Floor(
+                CalendarTimeMath.ToCalendarAbsoluteDays(CampaignTime.Now))), monthStart, monthEnd);
             int monthCapacity = Math.Max(1, (int)(monthEnd - monthStart));
             int selectedMonthEvents = Math.Min(monthCapacity, monthEvents);
             MonthSummaryTitle = monthTitle + " MONTHLY SUMMARY (" + selectedMonthEvents + "/" + monthCapacity + "; " + questCount + " quest deadlines)";
@@ -1334,7 +1336,7 @@ namespace TwelveMonthCalendar
                 ? eventText
                 : "QUEST DEADLINES\n" + questText + "\n\n" + eventText;
 
-            int year = CalendarTimeMath.GetYear(CampaignTime.Days(monthStart));
+            int year = CalendarTimeMath.GetYear(CalendarTimeMath.FromCalendarAbsoluteDays(monthStart));
             int importantEventCount;
             int monthsWithEvents;
             YearSummaryText = BuildYearImportantSummary(
@@ -1424,7 +1426,8 @@ namespace TwelveMonthCalendar
             bool leapYear = CalendarTimeMath.IsLeapYear(year);
             int monthLength = CalendarTimeMath.GetMonthLength(month, leapYear);
             long monthStart = CalendarTimeMath.DaysBeforeYear(year) + CalendarTimeMath.GetMonthStart(month, leapYear);
-            int firstWeekday = (int)((monthStart % 7 + 7) % 7); long today = (long)Math.Floor(now.ToDays);
+            int firstWeekday = (int)((monthStart % 7 + 7) % 7);
+            long today = (long)Math.Floor(CalendarTimeMath.ToCalendarAbsoluteDays(now));
             Dictionary<long, List<QuestBase>> questDueByDay = GetActiveQuestDeadlines(today);
             MonthTitle = CalendarSettingsState.GetMonthName(month) + " " + year;
             for (int cell = 0; cell < 42; cell++)
@@ -1463,7 +1466,7 @@ namespace TwelveMonthCalendar
             foreach (QuestBase quest in Campaign.Current.QuestManager.Quests)
             {
                 if (quest == null || !quest.IsOngoing || quest.IsRemainingTimeHidden) continue;
-                double dueDays = quest.QuestDueTime.ToDays;
+                double dueDays = CalendarTimeMath.ToCalendarAbsoluteDays(quest.QuestDueTime);
                 if (double.IsNaN(dueDays) || double.IsInfinity(dueDays)) continue;
                 long dueDay = (long)Math.Floor(dueDays);
                 // A non-expiring quest is represented by an out-of-range date.
@@ -1514,7 +1517,8 @@ namespace TwelveMonthCalendar
 
         private static string GetQuestDeadlineText(long startDay, long endDay)
         {
-            Dictionary<long, List<QuestBase>> dueByDay = GetActiveQuestDeadlines((long)Math.Floor(CampaignTime.Now.ToDays));
+            Dictionary<long, List<QuestBase>> dueByDay = GetActiveQuestDeadlines((long)Math.Floor(
+                CalendarTimeMath.ToCalendarAbsoluteDays(CampaignTime.Now)));
             StringBuilder text = new StringBuilder();
             foreach (KeyValuePair<long, List<QuestBase>> entry in dueByDay)
             {
@@ -1522,7 +1526,8 @@ namespace TwelveMonthCalendar
                 foreach (QuestBase quest in entry.Value)
                 {
                     if (text.Length > 0) text.AppendLine();
-                    text.Append(CalendarFormatter.Format(CampaignTime.Days(entry.Key))).Append(" — ");
+                    text.Append(CalendarFormatter.Format(
+                        CalendarTimeMath.FromCalendarAbsoluteDays(entry.Key))).Append(" — ");
                     text.Append(quest.Title == null ? "Unnamed quest" : quest.Title.ToString());
                 }
             }

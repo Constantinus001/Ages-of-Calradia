@@ -9,6 +9,31 @@ All versions target Bannerlord Native v1.4.7.
 - Refined strategic-map zoom, panning, custom atlas rendering, and town/castle legend artwork.
 - Improved campaign-map visual-clock, weather, atmosphere, and colour-grade synchronization diagnostics.
 - Completed the MCM/native Calendar Options fallback split so each settings surface loads only when appropriate.
+- Packaged the optional MCM v5 core and adapter, with JSON settings registration
+  so the MCM page is discovered and persists its configuration correctly.
+- Fixed story quests that use `CampaignTime.Never` being timed out by annual
+  deadline balancing, including `Inquire at Ostican`, `Establish your Clan`,
+  and `Villagers in Need`.
+- Added native-save age compatibility. Existing heroes keep their age when a
+  campaign is continued, while future aging uses the 365-day calendar rate.
+- Applied that cutover to Bannerlord's general elapsed-year getter as well as
+  `Hero.Age`, covering simulation code that reads historical year spans.
+- Matched TimeLord's removable-save principle: the normal runtime now defines
+  no custom save types, and release verification rejects `SaveableTypeDefiner`
+  or `SaveableField` usage in the campaign-profile pipeline.
+- Disabled camps and refuges in the normal player build. Their campaign
+  behaviors, map-click patch, and map-bar button remain enabled in the
+  diagnostics Test build only.
+- Audited the save-age migration against Bannerlord's `Hero.Age` path: dead
+  heroes now use their death day as the compatibility reference, life/death-
+  disabled campaigns retain Bannerlord's fixed ages, and compatibility state
+  resets safely when another campaign starts in the same process.
+- Replaced profile-schema guessing with raw campaign-time basis detection.
+  Native saves now map their original epoch to April 1084, while campaigns
+  created under an older Gregorian build retain their existing epoch. World
+  Calendar events and quest deadlines use the same mapped day basis.
+- Kept elapsed durations separate from absolute-date epoch conversion so age,
+  season, and year spans cannot inherit the native-save calendar offset.
 
 ## v1.5.5 - GitHub-ready refuge and strategic-map release
 
@@ -19,17 +44,25 @@ All versions target Bannerlord Native v1.4.7.
 - Restored release documentation, corrected the strategic-map verification provider name, and strengthened release packaging validation.
 - Added a separate `v1.5.5-Test` archive that enables strategic-province snapshot diagnostics for tester builds only.
 
-## Unreleased hardening follow-up
+## v1.5.3 and v1.5.4
+
+- No standalone public releases were published under these version numbers.
+
+## v1.5.2 - Camps, refuges, and World Calendar strategic map
+
+- Added portable camps and player refuges, including persistent camp anchors,
+  construction-site surveying, staff roles, upgrades, and mission support.
+- Added the World Calendar strategic map with live settlement ownership,
+  province overlays, town/castle markers, siege information, and caravan
+  trade-priority coverage.
+- Added the strategic-map artwork, sprite data, source maps, and coverage tests
+  needed to render the new World Calendar view.
+
+## v1.5.1 - Settings and campaign-profile hardening
 
 - Added a save-persisted Annual Balance master switch that does not disable the calendar itself.
 - Migrates v1.5 schema-3 profiles with obsolete high fast-forward values safely to the supported 4x maximum.
 - Made standalone settings writes atomic and remove temporary files after a failed write.
-- Declared the MCM adapter in the module manifest, packaged the MCM v5 core as
-  a soft dependency, and restored JSON format registration so the optional MCM
-  UI discovers and persists the settings page correctly.
-- Split the native Calendar fallback into its own prefab: MCM sessions retain
-  Bannerlord's untouched Options layout, while no-MCM sessions load an enabled
-  Calendar tab without leaving a blank tab behind.
 
 ## v1.5.0 - Calendar settings and map-bar update
 
