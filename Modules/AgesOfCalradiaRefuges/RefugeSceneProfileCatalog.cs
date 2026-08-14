@@ -29,11 +29,6 @@ namespace TwelveMonthCalendar
 
     internal static class RefugeSceneProfileCatalog
     {
-        // Temporary production simplification: every refuge uses the one
-        // validated Palisade Ring scene until the water-biome navmeshes are
-        // authored. Campaign water access remains saved for its gameplay use.
-        internal const string SingleRefugeSceneId = "rct_refuge_temperate_land";
-
         private static readonly RefugeSceneProfile[] Profiles = BuildProfiles();
 
         private static readonly string[] RequiredSpawnMarkers =
@@ -71,15 +66,6 @@ namespace TwelveMonthCalendar
             string fortPrefabId,
             out string sceneId)
         {
-            string singleSceneReason;
-            if (IsReady(SingleRefugeSceneId, out singleSceneReason))
-            {
-                sceneId = SingleRefugeSceneId;
-                return true;
-            }
-
-            Diagnostics.Info("Single refuge scene is not ready. Scene="
-                + SingleRefugeSceneId + "; Reason=" + singleSceneReason + ".");
             for (int index = 0; index < Profiles.Length; index++)
             {
                 RefugeSceneProfile profile = Profiles[index];
@@ -111,17 +97,6 @@ namespace TwelveMonthCalendar
             RefugeWaterAccessType waterAccess,
             string fortPrefabId)
         {
-            string singleSceneReason;
-            if (IsReady(SingleRefugeSceneId, out singleSceneReason))
-            {
-                return "single-scene mode: " + SingleRefugeSceneId + "=ready";
-            }
-
-            if (!string.IsNullOrEmpty(singleSceneReason))
-            {
-                return "single-scene mode: " + SingleRefugeSceneId + "=" + singleSceneReason;
-            }
-
             for (int index = 0; index < Profiles.Length; index++)
             {
                 RefugeSceneProfile profile = Profiles[index];
