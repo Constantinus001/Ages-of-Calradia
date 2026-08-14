@@ -16,6 +16,8 @@ namespace TwelveMonthCalendar
         private const float StrategicMapDefaultZoom = 1f;
         private const float StrategicMapMaximumZoom = 5f;
         private const float StrategicMapZoomStep = 0.25f;
+        private const int StrategicPartyLegendMinimumHeight = 198;
+        private const int StrategicPartyLegendBaseHeight = 108;
         private const int FirstCalendarMonth = 0;
         private const int LastCalendarMonth = 11;
         private const int CalendarFutureMonths = 12;
@@ -270,8 +272,9 @@ namespace TwelveMonthCalendar
         }
         [DataSourceProperty] public bool ShowStrategicMapLegend { get { return CalendarSettingsState.StrategicMapShowLegend; } }
         [DataSourceProperty] public int StrategicMapLegendWidth { get { return CalendarSettingsState.StrategicMapLegendWidth; } }
-        [DataSourceProperty] public int StrategicMapLegendHeight { get { return CalendarSettingsState.StrategicMapLegendHeight; } }
+        [DataSourceProperty] public int StrategicMapLegendHeight { get { return Math.Max(StrategicPartyLegendMinimumHeight, CalendarSettingsState.StrategicMapLegendHeight); } }
         [DataSourceProperty] public int StrategicMapLegendMarginTop { get { return CalendarSettingsState.StrategicMapLegendMarginTop; } }
+        [DataSourceProperty] public int StrategicMapLegendSeparatorTop { get { return StrategicMapLegendMarginTop + StrategicMapLegendHeight + 2; } }
         [DataSourceProperty] public int StrategicMapLegendIconSize { get { return CalendarSettingsState.StrategicMapLegendIconSize; } }
         [DataSourceProperty] public int StrategicMapLegendFontSize { get { return CalendarSettingsState.StrategicMapLegendFontSize; } }
         [DataSourceProperty] public int StrategicMapLegendContentWidth { get { return Math.Max(160, CalendarSettingsState.StrategicMapLegendWidth - 12); } }
@@ -311,7 +314,11 @@ namespace TwelveMonthCalendar
         }
         [DataSourceProperty] public int StrategicSummaryScrollerHeight
         {
-            get { return HasSelectedStrategicSettlement ? 383 : 425; }
+            get
+            {
+                int legendExpansion = StrategicMapLegendHeight - StrategicPartyLegendBaseHeight;
+                return Math.Max(180, (HasSelectedStrategicSettlement ? 383 : 425) - legendExpansion);
+            }
         }
         [DataSourceProperty] public int StrategicSummaryScrollerMarginBottom
         {
@@ -421,7 +428,9 @@ namespace TwelveMonthCalendar
             ResolveStrategicMarkerSpacing(markerPoints);
             BuildStrategicProvinces(ownersBySettlementId, markerPoints);
             BuildStrategicContestedProvinces(besiegersBySettlementId);
+            BuildStrategicKingdomLabels(markerPoints);
             BuildStrategicMarkers(markerPoints);
+            RefreshStrategicFriendlyArmies();
         }
 
         // Keep each settlement's true anchor separately from its visible
@@ -562,7 +571,7 @@ namespace TwelveMonthCalendar
             return settlement.SiegeEvent.BesiegerCamp.MapFaction;
         }
 
-        private static bool TryGetReferenceAnchor(string settlementId, out Vec2 referenceAnchor)
+        internal static bool TryGetReferenceAnchor(string settlementId, out Vec2 referenceAnchor)
         {
             if (!string.IsNullOrEmpty(settlementId)
                 && TownReferenceAnchors.TryGetValue(settlementId, out referenceAnchor))
@@ -609,6 +618,28 @@ namespace TwelveMonthCalendar
             // Fit both output axes from the native campaign positions of our
             // authored town/castle anchors. This keeps village and third-party
             // settlement placement independent of any external map dataset.
+            double[] xCoefficients;
+            double[] yCoefficients;
+            if (!TryGetCampaignToReferenceProjection(out xCoefficients, out yCoefficients))
+            {
+                // Conservative fallback for very early campaign initialization
+                // or a total-conversion map with too few matching anchors.
+                return new Vec2(
+                    (campaignPosition.x * 2.23f) + 20f,
+                    (campaignPosition.y * -2.34f) + 1985f);
+            }
+
+            return new Vec2(
+                (float)((campaignPosition.x * xCoefficients[0])
+                    + (campaignPosition.y * xCoefficients[1])
+                    + xCoefficients[2]),
+                (float)((campaignPosition.x * yCoefficients[0])
+                    + (campaignPosition.y * yCoefficients[1])
+                    + yCoefficients[2]));
+        }
+
+        internal static bool TryGetCampaignToReferenceProjection(out double[] xCoefficients, out double[] yCoefficients)
+        {
             double[,] normal = new double[3, 3];
             double[] nativeX = new double[3];
             double[] nativeY = new double[3];
@@ -633,26 +664,25 @@ namespace TwelveMonthCalendar
                 samples++;
             }
 
-            double[] xCoefficients;
-            double[] yCoefficients;
             if (samples < 3
                 || !TrySolveThreeByThree(normal, nativeX, out xCoefficients)
                 || !TrySolveThreeByThree(normal, nativeY, out yCoefficients))
             {
-                // Conservative fallback for very early campaign initialization
-                // or a total-conversion map with too few matching anchors.
-                return new Vec2(
-                    (campaignPosition.x * 2.23f) + 20f,
-                    (campaignPosition.y * -2.34f) + 1985f);
+                xCoefficients = null;
+                yCoefficients = null;
+                return false;
             }
+            return true;
+        }
 
+        internal static Vec2 ProjectCampaignPositionToStrategicMap(Vec2 campaignPosition)
+        {
+            Vec2 projected = ProjectNativeSettlementPosition(campaignPosition);
             return new Vec2(
-                (float)((campaignPosition.x * xCoefficients[0])
-                    + (campaignPosition.y * xCoefficients[1])
-                    + xCoefficients[2]),
-                (float)((campaignPosition.x * yCoefficients[0])
-                    + (campaignPosition.y * yCoefficients[1])
-                    + yCoefficients[2]));
+                Math.Max(0f, Math.Min(CalendarStrategicMapLayout.SourceWidth,
+                    projected.x - CalendarStrategicMapLayout.CropLeft)),
+                Math.Max(0f, Math.Min(CalendarStrategicMapLayout.SourceHeight,
+                    projected.y - CalendarStrategicMapLayout.CropTop)));
         }
 
         private static bool TrySolveThreeByThree(double[,] matrix, double[] values, out double[] result)

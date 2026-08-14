@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{44D8EC3C-9916-4E33-8723-00D52653C7D9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>AgesOfCalradiaRefuges</RootNamespace>
+    <AssemblyName>AgesOfCalradiaRefuges</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <BannerlordDir Condition=" '$(BannerlordDir)' == '' and '$(BANNERLORD_DIR)' != '' ">$(BANNERLORD_DIR)</BannerlordDir>
+    <BannerlordDir Condition=" '$(BannerlordDir)' == '' ">C:\Program Files\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</BannerlordDir>
+    <NetStandardPath Condition=" '$(NetStandardPath)' == '' and '$(NETSTANDARD_PATH)' != '' ">$(NETSTANDARD_PATH)</NetStandardPath>
+    <NetStandardPath Condition=" '$(NetStandardPath)' == '' ">C:\Program Files\dotnet\sdk\3.1.426\Microsoft\Microsoft.NET.Build.Extensions\net461\lib\netstandard.dll</NetStandardPath>
+    <BaseModuleDirectory>..\..</BaseModuleDirectory>
+    <OutputPath>bin\Win64_Shipping_Client\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols><DebugType>full</DebugType><Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants><WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType><Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants><WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" /><Reference Include="System.Core" /><Reference Include="System.Xml" />
+    <Reference Include="System.ValueTuple"><HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ValueTuple.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="netstandard"><HintPath>$(NetStandardPath)</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="AgesOfCalradia"><HintPath>$(BaseModuleDirectory)\bin\Win64_Shipping_Client\AgesOfCalradia.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.CampaignSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Core"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Engine"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.DotNet"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.DotNet.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Engine.GauntletUI"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.GauntletUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.InputSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.GauntletUI"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.GauntletUI.Data"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.Data.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Library"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Localization"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.MountAndBlade"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.View"><HintPath>$(BannerlordDir)\Modules\Native\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.View.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.ObjectSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ObjectSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.ScreenSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ScreenSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="SandBox.View"><HintPath>$(BannerlordDir)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <Compile Include="AgesOfCalradiaRefugesSubModule.cs" />
+    <Compile Include="CalendarCampBehavior.cs" /><Compile Include="CalendarRefugeBehavior.cs" />
+    <Compile Include="CalendarRefugeBuilderHudView.cs" /><Compile Include="CalendarRefugeLayoutBuilderBehavior.cs" />
+    <Compile Include="CalendarRefugeMapClickPatch.cs" /><Compile Include="CalendarRefugeMission.cs" />
+    <Compile Include="CalendarRefugeStewardInteraction.cs" /><Compile Include="PortableCampAnchorStore.cs" />
+    <Compile Include="RefugeBuildingCatalog.cs" /><Compile Include="RefugeFortPrefabCatalog.cs" />
+    <Compile Include="RefugeSceneProfileCatalog.cs" /><Compile Include="RefugeStaffRole.cs" />
+    <Compile Include="RefugeUpgrade.cs" />
+    <Compile Include="$(BaseModuleDirectory)\Diagnostics.cs"><Link>Diagnostics.cs</Link></Compile>
+    <None Include="SubModule.xml" /><None Include="README.md" />
+    <None Include="ModuleData\RefugeSceneProfiles.xml" /><None Include="ModuleData\RefugeFortStyles.xml" />
+    <None Include="ModuleData\RefugeAnchors\verified_builtin_anchors.xml" />
+    <None Include="ModuleData\RefugeStyles\HillFort\style.xml" /><None Include="ModuleData\RefugeStyles\PalisadeRing\style.xml" /><None Include="ModuleData\RefugeStyles\Riverhold\style.xml" />
+    <None Include="GUI\Prefabs\RefugeBuilderHud.xml" />
+    <None Include="Prefabs\rct_refuge_fort_layout.xml" /><None Include="Prefabs\rct_refuge_fort_runtime_layout.xml" />
+    <None Include="Tests\Verify-RefugeModule.ps1" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

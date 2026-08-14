@@ -2,6 +2,15 @@
 
 All versions target Bannerlord Native v1.4.7.
 
+## Unreleased
+
+- Extracted camps, refuge persistence, missions, UI, prefabs, and scenes into
+  the optional `AgesOfCalradiaRefuges` module. Existing refuge save keys are
+  retained; load Refuges after Ages of Calradia to continue using a refuge.
+- Restored Bannerlord's native tournament scheduling. The calendar no longer
+  annualizes tournament start or resolution probabilities, preventing extended
+  periods with no newly created tournaments.
+
 ## v1.5.9 - Complete identity migration and campaign borders
 
 - Completed the internal migration to the `AgesOfCalradia` module ID,

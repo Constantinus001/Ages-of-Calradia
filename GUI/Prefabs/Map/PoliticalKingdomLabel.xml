@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <Widget DoNotAcceptEvents="true" IsVisible="@IsVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="360" SuggestedHeight="44" HorizontalAlignment="Left" VerticalAlignment="Top" PositionXOffset="@ScreenX" PositionYOffset="@ScreenY">
+      <Children>
+        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="27" Text="@Name" Color="#000000FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

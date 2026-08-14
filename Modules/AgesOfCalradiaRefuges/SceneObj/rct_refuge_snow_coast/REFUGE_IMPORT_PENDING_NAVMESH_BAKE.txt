@@ -1,0 +1,4 @@
+﻿Imported from rct_refuge_snow_coast.scene_fragment.xml on 2026-08-13 14:40:46.
+The base scene's native terrain and navmesh were copied intact. Open this scene
+in the Bannerlord Scene Editor and bake navmesh after confirming the refuge
+compound and spawn markers are on a dry, reachable area.

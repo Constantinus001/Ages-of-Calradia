@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <!-- Reuses the game's crate_a mesh, also used by the vanilla Stolen Goods item. -->
+  <Item id="aoc_logistics_supply" name="{=AocLogisticsSupply}Supply" mesh="crate_a" is_merchandise="true" weight="10" value="250" Type="Goods">
+    <Flags Civilian="true" />
+  </Item>
+</Items>

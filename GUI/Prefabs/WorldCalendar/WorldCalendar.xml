@@ -397,7 +397,30 @@
                               </Children>
                             </Widget>
                             <!-- Transparent province outline artwork sits above owner/siege fills, keeping boundaries readable without white land. -->
-                            <ImageWidget IsVisible="true" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="strategic_province_borders" />
+                              <ImageWidget IsVisible="true" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="strategic_province_borders" Color="#000000FF" />
+                            <!-- Gold country names follow the dominant connected cluster of each kingdom's live holdings. -->
+                            <Widget DataSource="{StrategicKingdomLabels}" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+                              <ItemTemplate>
+                                <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="300" SuggestedHeight="40" PositionXOffset="@X" PositionYOffset="@Y">
+                                  <Children>
+                                      <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="23" Text="@Name" Color="@GoldColor" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                  </Children>
+                                </Widget>
+                              </ItemTemplate>
+                            </Widget>
+                            <!-- One lightweight live marker per friendly or formally allied army leader. -->
+                            <Widget DataSource="{StrategicFriendlyArmies}" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+                              <ItemTemplate>
+                                <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="30" PositionXOffset="@X" PositionYOffset="@Y">
+                                  <Children>
+                                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="@ShadowColor" />
+                                    <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="16" SuggestedHeight="16" MarginLeft="2" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="@MarkerColor" />
+                                      <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="16" SuggestedHeight="16" MarginLeft="2" HorizontalAlignment="Left" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="11" Text="@Glyph" Color="#102018FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="145" MarginLeft="24" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@Name" Color="@GoldColor" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                                  </Children>
+                                </Widget>
+                              </ItemTemplate>
+                            </Widget>
                             <!-- One live, clickable marker for every town and castle. Its small button hit box captures a click; empty map space is still available for panning. -->
                             <Widget DataSource="{StrategicMarkers}" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                               <ItemTemplate>
@@ -467,9 +490,42 @@
                       </Children>
                     </ListPanel>
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Province colour = current owner" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="26">
+                          <Children>
+                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#72B7FFFF" />
+                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="11" Text="P" Color="#102018FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                          </Children>
+                        </Widget>
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="26" MarginLeft="20" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Player party" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                      </Children>
+                    </ListPanel>
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="26">
+                          <Children>
+                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#7DE8B0FF" />
+                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="11" Text="C" Color="#102018FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                          </Children>
+                        </Widget>
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="26" MarginLeft="20" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Clan party" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                      </Children>
+                    </ListPanel>
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="30" SuggestedHeight="26">
+                          <Children>
+                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#65E89AFF" />
+                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="20" SuggestedHeight="20" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="11" Text="A" Color="#102018FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                          </Children>
+                        </Widget>
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="26" MarginLeft="20" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Friendly army" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                      </Children>
+                    </ListPanel>
                   </Children>
                 </ListPanel>
-                <Widget IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="2" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="116" Sprite="BlankWhiteSquare" Color="#80652CFF" />
+                <Widget IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="250" SuggestedHeight="2" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="@StrategicMapLegendSeparatorTop" Sprite="BlankWhiteSquare" Color="#80652CFF" />
                 <ScrollablePanel Id="StrategicSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="238" SuggestedHeight="@StrategicSummaryScrollerHeight" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="@StrategicSummaryScrollerMarginBottom" InnerPanel="StrategicSummaryClip\StrategicSummaryBody" ClipRect="StrategicSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\StrategicSummaryScrollbar\Scrollbar" AutoHideScrollBars="true">
                   <Children>
                     <Widget Id="StrategicSummaryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="Ages of Calradia Logistics" /><Id value="AgesOfCalradiaLogistics" /><Version value="v0.1.0" />
+  <SingleplayerModule value="true" /><MultiplayerModule value="false" /><Official value="false" />
+  <DefaultModule value="false" /><ModuleCategory value="Singleplayer" /><ModuleType value="Community" />
+  <DependedModules>
+    <DependedModule Id="Native" DependentVersion="v1.4.7" /><DependedModule Id="SandBoxCore" DependentVersion="v1.4.7" />
+    <DependedModule Id="Sandbox" DependentVersion="v1.4.7" /><DependedModule Id="AgesOfCalradia" DependentVersion="v1.5.9" />
+  </DependedModules>
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Native" order="LoadBeforeThis" version="v1.4.7" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" version="v1.4.7" />
+    <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" version="v1.4.7" />
+    <DependedModuleMetadata id="AgesOfCalradia" order="LoadBeforeThis" version="v1.5.9" />
+    <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" version="v1.4.7" optional="true" />
+  </DependedModuleMetadatas>
+  <Xmls>
+    <XmlNode><XmlName id="Items" path="supply_items" /><IncludedGameTypes><GameType value="Campaign" /><GameType value="CampaignStoryMode" /></IncludedGameTypes></XmlNode>
+    <XmlNode><XmlName id="GameText" path="module_strings" /><IncludedGameTypes><GameType value="Campaign" /><GameType value="CampaignStoryMode" /></IncludedGameTypes></XmlNode>
+  </Xmls>
+  <SubModules>
+    <SubModule>
+      <Name value="Ages of Calradia Logistics" /><DLLName value="AgesOfCalradiaLogistics.dll" />
+      <SubModuleClassType value="AgesOfCalradiaLogistics.LogisticsSubModule" />
+      <Tags><Tag key="DedicatedServerType" value="none" /><Tag key="IsNoRenderModeElement" value="false" /></Tags>
+    </SubModule>
+  </SubModules>
+</Module>

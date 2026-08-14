@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.Map;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Engine;
 using TaleWorlds.Library;
+using SandBox.View.Map;
 
 namespace TwelveMonthCalendar
 {
     /// <summary>
-    /// Draws campaign-map kingdom borders using the same useful technique as
-    /// Artem's Better UI Visuals: a settlement Voronoi diagram projected onto
-    /// the live terrain and rendered as runtime vertex-coloured meshes.
+    /// Draws campaign-map kingdom borders from an independently calculated
+    /// settlement Voronoi diagram projected onto the live terrain and rendered
+    /// as runtime vertex-coloured meshes.
     ///
     /// The entities are scene visuals only. Nothing is written to campaign
     /// saves, and the whole layer can be rebuilt after a map-scene reload.
@@ -20,17 +22,24 @@ namespace TwelveMonthCalendar
     internal sealed class CampaignKingdomBorderBehavior : CampaignBehaviorBase
     {
         private const float MapPadding = 110f;
-        private const float BorderHeight = 1.5f;
-        private const float BorderWidth = 2.25f;
-        private const float BorderOffset = 1.35f;
-        private const float MinimumEdgeLength = 2f;
-        private const string BorderMaterial = "vertex_color_mat";
 
-        private readonly List<GameEntity> _borderEntities = new List<GameEntity>();
+        private readonly List<GameEntity> _territoryFillEntities = new List<GameEntity>();
+        private readonly List<GameEntity> _politicalFrontierEntities = new List<GameEntity>();
+        private CampaignPoliticalTerritoryFill.Builder _pendingFillBuilder;
+        private CampaignPoliticalOverlayView _politicalOverlayView;
         private Scene _mapScene;
         private bool _dirty = true;
         private bool _loggedFirstBuild;
         private bool _loggedSceneLookupFailure;
+        private string _lastOwnershipSignature;
+        private float _politicalLayerAlpha;
+        private bool _politicalEntitiesReady;
+        private List<PoliticalTerritoryCell> _pendingTerritoryCells;
+        private CampaignPoliticalTerritoryFill.NearestSiteIndex _politicalSiteIndex;
+        private float _pendingMinX;
+        private float _pendingMinY;
+        private float _pendingMaxX;
+        private float _pendingMaxY;
 
         public override void RegisterEvents()
         {
@@ -48,12 +57,12 @@ namespace TwelveMonthCalendar
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
-            _dirty = true;
+            MarkDirty();
         }
 
         private void OnGameLoadFinished()
         {
-            _dirty = true;
+            MarkDirty();
         }
 
         private void OnSettlementOwnerChanged(
@@ -64,38 +73,60 @@ namespace TwelveMonthCalendar
             Hero newOwner,
             ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail detail)
         {
-            _dirty = true;
+            MarkDirty();
         }
 
         private void OnDailyTick()
         {
-            // This also catches ownership transfers raised by another mod or
-            // by a game path that does not fire the public owner-change event.
-            _dirty = true;
+            // Catch ownership changes from mods that bypass the public event,
+            // without rebuilding a large terrain mesh every in-game day.
+            if (!string.Equals(
+                _lastOwnershipSignature,
+                BuildOwnershipSignature(),
+                StringComparison.Ordinal))
+            {
+                MarkDirty();
+            }
         }
 
         private void OnTick(float dt)
         {
-            if (!_dirty || Campaign.Current == null) return;
+            if (Campaign.Current == null) return;
+            EnsurePoliticalOverlayView();
+        }
+
+        internal bool HasVisiblePoliticalFill { get { return _territoryFillEntities.Count > 0; } }
+        internal bool HasCurrentPoliticalTopology { get { return !_dirty && _politicalSiteIndex != null; } }
+        internal int PoliticalBoundaryVersion { get; private set; }
+
+        internal void OnMapFrame(Camera camera)
+        {
+            if (Campaign.Current == null || camera == null) return;
+            float altitude = camera.Frame.origin.z;
+            SetPoliticalOverlayAlpha(Math.Max(0f, Math.Min(1f,
+                (altitude - CampaignPoliticalOverlayView.FadeStartAltitude)
+                / (CampaignPoliticalOverlayView.FadeEndAltitude - CampaignPoliticalOverlayView.FadeStartAltitude))));
+            if (!_dirty || _politicalOverlayView == null || !_politicalOverlayView.IsMapReady) return;
 
             Scene currentScene = TryGetCampaignMapScene();
             if (currentScene == null) return;
 
             if (!ReferenceEquals(currentScene, _mapScene))
             {
+                CampaignMapTerrainGridCache.ClearForScene(_mapScene);
                 ClearBorderEntities();
                 _mapScene = currentScene;
-                _dirty = true;
+                _pendingTerritoryCells = null;
             }
 
             try
             {
-                RebuildBorders();
+                if (!RebuildBorders()) return;
                 _dirty = false;
                 if (!_loggedFirstBuild)
                 {
                     _loggedFirstBuild = true;
-                    Diagnostics.Info("Campaign kingdom borders rendered from live settlement Voronoi cells.");
+                    Diagnostics.Info("Campaign political territory rendered from live settlement Voronoi ownership without frontier ribbons.");
                 }
             }
             catch (Exception exception)
@@ -104,16 +135,141 @@ namespace TwelveMonthCalendar
                 // campaign. Retry on a later frame after the scene settles.
                 Diagnostics.Error("Campaign kingdom borders could not be rendered safely.", exception);
                 ClearBorderEntities();
-                _dirty = true;
+                MarkDirty();
             }
         }
 
-        private void RebuildBorders()
+        private bool RebuildBorders()
         {
-            ClearBorderEntities();
+            if (_pendingTerritoryCells == null) PrepareTerritoryCells();
+            if (_pendingTerritoryCells == null || _pendingTerritoryCells.Count == 0) return true;
 
+            IMapScene mapScene = Campaign.Current == null ? null : Campaign.Current.MapSceneWrapper;
+            if (!CampaignMapTerrainGridCache.BeginOrAdvance(
+                _mapScene,
+                mapScene,
+                _pendingMinX,
+                _pendingMinY,
+                _pendingMaxX,
+                _pendingMaxY))
+            {
+                return false;
+            }
+
+            if (_pendingFillBuilder == null)
+            {
+                _pendingFillBuilder = CampaignPoliticalTerritoryFill.Begin(_pendingTerritoryCells);
+                if (_pendingFillBuilder == null) throw new InvalidOperationException("The political territory build could not be started.");
+            }
+            _pendingFillBuilder.Advance(_mapScene);
+            if (_pendingFillBuilder.IsFillComplete && !_pendingFillBuilder.FillEntitiesTaken)
+            {
+                List<GameEntity> fillReplacement = _pendingFillBuilder.TakeFillEntities();
+                if (fillReplacement.Count == 0) throw new InvalidOperationException("The political territory mesh contained no renderable land.");
+                ReplacePoliticalFillEntities(fillReplacement);
+                _politicalOverlayView.RebuildLabels();
+                Diagnostics.Info("Campaign political fill published before frontier completion: fillEntities="
+                    + _territoryFillEntities.Count + ".");
+            }
+            if (!_pendingFillBuilder.IsComplete) return false;
+
+            List<GameEntity> frontierReplacement = _pendingFillBuilder.TakeFrontierEntities();
+            int landSamples = _pendingFillBuilder.LandSampleCount;
+            int seaSamples = _pendingFillBuilder.SeaSampleCount;
+            int triangleCount = _pendingFillBuilder.RenderedTriangleCount;
+            int riverTriangleCount = _pendingFillBuilder.RiverRenderedTriangleCount;
+            int enclosedWaterTriangleCount = _pendingFillBuilder.EnclosedWaterRenderedTriangleCount;
+            int exteriorWaterTriangleRejectionCount = _pendingFillBuilder.ExteriorWaterTriangleRejectionCount;
+            int riverEntityCount = _pendingFillBuilder.RiverEntityCount;
+            int refinedCellCount = _pendingFillBuilder.RefinedCellCount;
+            int terrainReliefRefinedCellCount = _pendingFillBuilder.TerrainReliefRefinedCellCount;
+            int frontierSegmentCount = _pendingFillBuilder.FrontierRenderedSegmentCount;
+            int frontierEntityCount = _pendingFillBuilder.FrontierEntityCount;
+            int frontierCandidateSegmentCount = _pendingFillBuilder.FrontierCandidateSegmentCount;
+            int frontierUnsupportedSegmentCount = _pendingFillBuilder.FrontierUnsupportedSegmentCount;
+            int frontierProjectionRejectedSegmentCount = _pendingFillBuilder.FrontierProjectionRejectedSegmentCount;
+            int frontierSaddleCellCount = _pendingFillBuilder.FrontierSaddleCellCount;
+            int frontierAmbiguousCellCount = _pendingFillBuilder.FrontierAmbiguousCellCount;
+            int frontierCoastRefinedCellCount = _pendingFillBuilder.FrontierCoastRefinedCellCount;
+            int frontierExteriorWaterMidpointCount = _pendingFillBuilder.FrontierExteriorWaterMidpointCount;
+            int frontierSameOwnerWaterChordRejectionCount = _pendingFillBuilder.FrontierSameOwnerWaterChordRejectionCount;
+            string frontierBridgeDiagnostics = _pendingFillBuilder.FrontierBridgeDiagnostics;
+            long meshMilliseconds = _pendingFillBuilder.MeshMilliseconds;
+            long maximumBatchMilliseconds = _pendingFillBuilder.MaximumBatchMilliseconds;
+            _pendingFillBuilder = null;
+            ReplacePoliticalFrontierEntities(frontierReplacement);
+            Diagnostics.Info("Campaign political terrain grid prepared: cells=" + _pendingTerritoryCells.Count
+                + "; landSamples=" + landSamples
+                + "; seaSamples=" + seaSamples
+                + "; triangles=" + triangleCount
+                + "; riverTriangles=" + riverTriangleCount
+                + "; enclosedWaterTriangles=" + enclosedWaterTriangleCount
+                + "; exteriorWaterTriangleRejects=" + exteriorWaterTriangleRejectionCount
+                + "; riverEntities=" + riverEntityCount
+                + "; refinedCells=" + refinedCellCount
+                + "; terrainReliefRefinedCells=" + terrainReliefRefinedCellCount
+                + "; frontierSegments=" + frontierSegmentCount
+                + "; frontierCandidates=" + frontierCandidateSegmentCount
+                + "; frontierUnsupported=" + frontierUnsupportedSegmentCount
+                + "; frontierProjectionRejected=" + frontierProjectionRejectedSegmentCount
+                + "; frontierSaddleCells=" + frontierSaddleCellCount
+                + "; frontierAmbiguousCells=" + frontierAmbiguousCellCount
+                + "; frontierCoastRefinedCells=" + frontierCoastRefinedCellCount
+                + "; frontierExteriorWaterMidpoints=" + frontierExteriorWaterMidpointCount
+                + "; frontierSameOwnerWaterChordRejects=" + frontierSameOwnerWaterChordRejectionCount
+                + "; frontierBridgeDiagnostics=" + frontierBridgeDiagnostics
+                + "; frontierEntities=" + frontierEntityCount
+                + "; fillEntities=" + _territoryFillEntities.Count
+                + "; frontierEntityCount=" + _politicalFrontierEntities.Count
+                + "; heightSamples=" + CampaignMapTerrainGridCache.CompletedHeightSamples
+                + "; terrainSamples=" + CampaignMapTerrainGridCache.CompletedTerrainSamples
+                + "; nativeTopologyColumns=" + CampaignMapTerrainGridCache.NativeTopologyColumnsForDiagnostics
+                + "; nativeTopologyRows=" + CampaignMapTerrainGridCache.NativeTopologyRowsForDiagnostics
+                + "; nativeTopologySamples=" + CampaignMapTerrainGridCache.CompletedNativeTopologySamples
+                + "; cacheWallMilliseconds=" + CampaignMapTerrainGridCache.ElapsedMilliseconds
+                + "; heightNativeMilliseconds=" + CampaignMapTerrainGridCache.HeightNativeMilliseconds
+                + "; terrainNativeMilliseconds=" + CampaignMapTerrainGridCache.TerrainNativeMilliseconds
+                + "; exactHeightSamples=" + CampaignMapTerrainGridCache.ExactHeightSampleCount
+                + "; exactHeightNativeMilliseconds=" + CampaignMapTerrainGridCache.ExactHeightNativeMilliseconds
+                + "; openSeaHeightCeiling=" + CampaignMapTerrainGridCache.OpenSeaHeightCeiling.ToString("F3")
+                + "; openSeaHeightSamples=" + CampaignMapTerrainGridCache.OpenSeaHeightSampleCount
+                + "; baseLandCells=" + CampaignMapTerrainGridCache.BaseLandCellCount
+                + "; elevatedRecoveryCells=" + CampaignMapTerrainGridCache.ElevatedRecoveryCellCount
+                + "; retainedWaterCells=" + CampaignMapTerrainGridCache.RetainedWaterCellCount
+                + "; nativeRiverCells=" + CampaignMapTerrainGridCache.NativeRiverCellCount
+                + "; nativeWaterCells=" + CampaignMapTerrainGridCache.NativeWaterCellCount
+                + "; nativeLakeCells=" + CampaignMapTerrainGridCache.NativeLakeCellCount
+                + "; nativeCoastalSeaCells=" + CampaignMapTerrainGridCache.NativeCoastalSeaCellCount
+                + "; nativeOpenSeaCells=" + CampaignMapTerrainGridCache.NativeOpenSeaCellCount
+                + "; interiorNativeWaterCells=" + CampaignMapTerrainGridCache.InteriorNativeWaterCellCount
+                + "; exteriorNativeWaterCells=" + CampaignMapTerrainGridCache.ExteriorNativeWaterCellCount
+                + "; interiorNativeWaterComponents=" + CampaignMapTerrainGridCache.InteriorNativeWaterComponentCount
+                + "; largestInteriorNativeWaterComponent=" + CampaignMapTerrainGridCache.LargestInteriorNativeWaterComponentCellCount
+                + "; interiorNativeLakeCells=" + CampaignMapTerrainGridCache.InteriorNativeWaterLakeCellCount
+                + "; interiorNativeCoastalSeaCells=" + CampaignMapTerrainGridCache.InteriorNativeWaterCoastalSeaCellCount
+                + "; interiorNativeOpenSeaCells=" + CampaignMapTerrainGridCache.InteriorNativeWaterOpenSeaCellCount
+                + "; interiorNativeWaterFillAccepts=" + CampaignMapTerrainGridCache.InteriorNativeWaterFillAcceptanceCount
+                + "; interiorNativeWaterFrontierAccepts=" + CampaignMapTerrainGridCache.InteriorNativeWaterFrontierAcceptanceCount
+                + "; exteriorNativeWaterFillRejects=" + CampaignMapTerrainGridCache.ExteriorNativeWaterFillRejectionCount
+                + "; exteriorNativeWaterFrontierRejects=" + CampaignMapTerrainGridCache.ExteriorNativeWaterFrontierRejectionCount
+                + "; interiorNativeWaterLargestComponents=" + CampaignMapTerrainGridCache.InteriorNativeWaterComponentDiagnostics
+                + "; exactNativeTerrainProbes=" + CampaignMapTerrainGridCache.ExactNativeTerrainProbeCount
+                + "; exactProtectedWaterRejections=" + CampaignMapTerrainGridCache.ExactProtectedWaterRejectionCount
+                + "; meshMilliseconds=" + meshMilliseconds
+                + "; maximumBatchMilliseconds=" + maximumBatchMilliseconds + ".");
+            _pendingTerritoryCells = null;
+            _lastOwnershipSignature = BuildOwnershipSignature();
+            return true;
+        }
+
+        private void PrepareTerritoryCells()
+        {
             List<BorderSite> sites = BuildSites();
-            if (sites.Count < 2) return;
+            if (sites.Count < 2)
+            {
+                _pendingTerritoryCells = new List<PoliticalTerritoryCell>();
+                return;
+            }
 
             float minX = float.MaxValue;
             float minY = float.MaxValue;
@@ -132,36 +288,156 @@ namespace TwelveMonthCalendar
             maxX += MapPadding;
             maxY += MapPadding;
 
-            Dictionary<string, BorderEdge> uniqueEdges = new Dictionary<string, BorderEdge>(StringComparer.Ordinal);
+            List<PoliticalTerritoryCell> territoryCells = new List<PoliticalTerritoryCell>(sites.Count);
             for (int siteIndex = 0; siteIndex < sites.Count; siteIndex++)
             {
-                List<Vec2> cell = ClipCell(sites, siteIndex, minX, minY, maxX, maxY);
-                if (cell.Count < 2) continue;
+                territoryCells.Add(new PoliticalTerritoryCell(
+                    sites[siteIndex].Position,
+                    sites[siteIndex].FactionKey,
+                    sites[siteIndex].Color));
+            }
 
-                for (int pointIndex = 0; pointIndex < cell.Count; pointIndex++)
+            _pendingTerritoryCells = territoryCells;
+            _politicalSiteIndex = new CampaignPoliticalTerritoryFill.NearestSiteIndex(territoryCells);
+            _pendingMinX = minX;
+            _pendingMinY = minY;
+            _pendingMaxX = maxX;
+            _pendingMaxY = maxY;
+        }
+
+        private void MarkDirty()
+        {
+            CancelPendingFill();
+            _pendingTerritoryCells = null;
+            _politicalSiteIndex = null;
+            PoliticalBoundaryVersion++;
+            _dirty = true;
+        }
+
+        /// <summary>
+        /// Returns true only when the supplied short segment follows an active
+        /// political frontier. Requiring the same owner pair at both ends keeps
+        /// province contours visible where a political frontier merely crosses
+        /// them.
+        /// </summary>
+        internal bool IsAlignedWithPoliticalFrontier(Vec2 first, Vec2 second)
+        {
+            if (_politicalSiteIndex == null || !CampaignMapTerrainGridCache.IsReady) return false;
+            Vec2 direction = second - first;
+            if (direction.Normalize() < 0.001f) return false;
+            Vec2 normal = new Vec2(-direction.y, direction.x);
+            const float sideSampleDistance = 1.1f;
+            string leftOwner;
+            string rightOwner;
+            if (!TryGetPoliticalOwnerPair(first, normal, sideSampleDistance, out leftOwner, out rightOwner)) return false;
+
+            Vec2 midpoint = (first + second) * 0.5f;
+            string midpointLeft;
+            string midpointRight;
+            if (!TryGetPoliticalOwnerPair(midpoint, normal, sideSampleDistance, out midpointLeft, out midpointRight)
+                || !string.Equals(leftOwner, midpointLeft, StringComparison.Ordinal)
+                || !string.Equals(rightOwner, midpointRight, StringComparison.Ordinal)) return false;
+
+            string endLeft;
+            string endRight;
+            return TryGetPoliticalOwnerPair(second, normal, sideSampleDistance, out endLeft, out endRight)
+                && string.Equals(leftOwner, endLeft, StringComparison.Ordinal)
+                && string.Equals(rightOwner, endRight, StringComparison.Ordinal);
+        }
+
+        private bool TryGetPoliticalOwnerPair(
+            Vec2 point,
+            Vec2 normal,
+            float sideSampleDistance,
+            out string leftOwner,
+            out string rightOwner)
+        {
+            leftOwner = null;
+            rightOwner = null;
+            Vec2 leftPoint = point + normal * sideSampleDistance;
+            Vec2 rightPoint = point - normal * sideSampleDistance;
+            if (!CampaignMapTerrainGridCache.IsFrontierLandExact(leftPoint)
+                || !CampaignMapTerrainGridCache.IsFrontierLandExact(rightPoint)) return false;
+            PoliticalTerritoryCell left = _politicalSiteIndex.FindNearest(leftPoint);
+            PoliticalTerritoryCell right = _politicalSiteIndex.FindNearest(rightPoint);
+            leftOwner = left == null ? null : left.OwnerKey;
+            rightOwner = right == null ? null : right.OwnerKey;
+            return !string.IsNullOrEmpty(leftOwner)
+                && !string.IsNullOrEmpty(rightOwner)
+                && !string.Equals(leftOwner, rightOwner, StringComparison.Ordinal);
+        }
+
+        private static string BuildOwnershipSignature()
+        {
+            List<string> ownership = new List<string>();
+            foreach (Settlement settlement in Settlement.All)
+            {
+                if (settlement == null
+                    || (!settlement.IsTown && !settlement.IsCastle && !settlement.IsVillage)
+                    || settlement.OwnerClan == null)
                 {
-                    Vec2 first = cell[pointIndex];
-                    Vec2 second = cell[(pointIndex + 1) % cell.Count];
-                    if (DistanceSquared(first, second) < MinimumEdgeLength * MinimumEdgeLength) continue;
+                    continue;
+                }
 
-                    int neighborIndex = FindEdgeNeighbor(sites, siteIndex, first, second);
-                    if (neighborIndex < 0 || neighborIndex == siteIndex) continue;
-                    BorderSite firstSite = sites[siteIndex];
-                    BorderSite secondSite = sites[neighborIndex];
-                    if (string.Equals(firstSite.FactionKey, secondSite.FactionKey, StringComparison.Ordinal)) continue;
+                string factionId = settlement.OwnerClan.Kingdom != null
+                    ? "kingdom:" + settlement.OwnerClan.Kingdom.StringId
+                    : "clan:" + settlement.OwnerClan.StringId;
+                ownership.Add(settlement.StringId + "=" + factionId);
+            }
+            ownership.Sort(StringComparer.Ordinal);
+            return string.Join("|", ownership);
+        }
 
-                    string edgeKey = MakeEdgeKey(firstSite.Settlement.StringId, secondSite.Settlement.StringId, first, second);
-                    if (!uniqueEdges.ContainsKey(edgeKey))
-                    {
-                        uniqueEdges.Add(edgeKey, new BorderEdge(first, second, firstSite, secondSite));
-                    }
+        internal void SetPoliticalOverlayAlpha(float alpha)
+        {
+            float clamped = Math.Max(0f, Math.Min(1f, alpha));
+            bool alphaChanged = Math.Abs(clamped - _politicalLayerAlpha) > 0.002f;
+            _politicalLayerAlpha = clamped;
+            ApplyPoliticalEntityVisibility(alphaChanged);
+            ApplyFrontierZoomPresentation(alphaChanged);
+        }
+
+        private void ApplyPoliticalEntityVisibility(bool forceAlpha)
+        {
+            bool shouldRender = _politicalLayerAlpha > 0.001f;
+            bool readinessChanged = shouldRender != _politicalEntitiesReady;
+            if (!forceAlpha && !readinessChanged) return;
+            foreach (GameEntity entity in _territoryFillEntities)
+            {
+                if (entity == null) continue;
+                if (shouldRender)
+                {
+                    entity.SetAlpha(_politicalLayerAlpha * CampaignPoliticalTerritoryFill.PoliticalFillMaximumOpacity);
+                    if (readinessChanged) entity.SetVisibilityExcludeParents(true);
+                }
+                else if (readinessChanged)
+                {
+                    entity.SetVisibilityExcludeParents(false);
                 }
             }
+            _politicalEntitiesReady = shouldRender;
+        }
 
-            foreach (BorderEdge edge in uniqueEdges.Values)
+        private void ApplyFrontierZoomPresentation(bool updateHeight)
+        {
+            MatrixFrame frame = MatrixFrame.Identity;
+            frame.origin.z = -CampaignPoliticalTerritoryFill.CloseZoomFrontierDrop
+                * (1f - _politicalLayerAlpha);
+            foreach (GameEntity entity in _politicalFrontierEntities)
             {
-                RenderEdge(edge);
+                if (entity == null) continue;
+                if (updateHeight) entity.SetGlobalFrame(frame, true);
+                entity.SetAlpha(1f);
+                entity.SetVisibilityExcludeParents(true);
             }
+        }
+
+        private void EnsurePoliticalOverlayView()
+        {
+            MapScreen mapScreen = MapScreen.Instance;
+            if (mapScreen == null || (_politicalOverlayView != null && ReferenceEquals(_politicalOverlayView.MapScreen, mapScreen))) return;
+            _politicalOverlayView = mapScreen.AddMapView<CampaignPoliticalOverlayView>() as CampaignPoliticalOverlayView;
+            _politicalOverlayView?.AttachBehavior(this);
         }
 
         private List<BorderSite> BuildSites()
@@ -177,7 +453,7 @@ namespace TwelveMonthCalendar
                 }
 
                 Clan clan = settlement.OwnerClan;
-                string ownerKey = clan.Kingdom != null
+                string factionKey = clan.Kingdom != null
                     ? "kingdom:" + clan.Kingdom.StringId
                     : "clan:" + clan.StringId;
                 uint color = clan.Kingdom != null
@@ -185,229 +461,68 @@ namespace TwelveMonthCalendar
                     : clan.Color;
                 CampaignVec2 position = settlement.Position;
                 result.Add(new BorderSite(
-                    settlement,
                     new Vec2(position.X, position.Y),
-                    ownerKey,
+                    factionKey,
                     color));
-            }
-            return result;
-        }
-
-        private static List<Vec2> ClipCell(
-            List<BorderSite> sites,
-            int siteIndex,
-            float minX,
-            float minY,
-            float maxX,
-            float maxY)
-        {
-            BorderSite source = sites[siteIndex];
-            List<Vec2> polygon = new List<Vec2>
-            {
-                new Vec2(minX, minY),
-                new Vec2(maxX, minY),
-                new Vec2(maxX, maxY),
-                new Vec2(minX, maxY)
-            };
-
-            for (int otherIndex = 0; otherIndex < sites.Count && polygon.Count > 0; otherIndex++)
-            {
-                if (otherIndex == siteIndex) continue;
-
-                BorderSite other = sites[otherIndex];
-                float a = 2f * (other.Position.x - source.Position.x);
-                float b = 2f * (other.Position.y - source.Position.y);
-                float c = (other.Position.x * other.Position.x + other.Position.y * other.Position.y)
-                    - (source.Position.x * source.Position.x + source.Position.y * source.Position.y);
-                polygon = ClipPolygon(polygon, a, b, c);
-            }
-
-            return polygon;
-        }
-
-        private static List<Vec2> ClipPolygon(List<Vec2> polygon, float a, float b, float c)
-        {
-            const float epsilon = 0.001f;
-            List<Vec2> clipped = new List<Vec2>();
-            for (int index = 0; index < polygon.Count; index++)
-            {
-                Vec2 current = polygon[index];
-                Vec2 next = polygon[(index + 1) % polygon.Count];
-                float currentValue = a * current.x + b * current.y - c;
-                float nextValue = a * next.x + b * next.y - c;
-                bool currentInside = currentValue <= epsilon;
-                bool nextInside = nextValue <= epsilon;
-
-                if (currentInside) clipped.Add(current);
-                if (currentInside != nextInside)
-                {
-                    float denominator = currentValue - nextValue;
-                    if (Math.Abs(denominator) > 0.000001f)
-                    {
-                        float t = currentValue / denominator;
-                        clipped.Add(new Vec2(
-                            current.x + (next.x - current.x) * t,
-                            current.y + (next.y - current.y) * t));
-                    }
-                }
-            }
-            return clipped;
-        }
-
-        private static int FindEdgeNeighbor(List<BorderSite> sites, int sourceIndex, Vec2 first, Vec2 second)
-        {
-            Vec2 midpoint = new Vec2((first.x + second.x) * 0.5f, (first.y + second.y) * 0.5f);
-            float sourceDistance = DistanceSquared(midpoint, sites[sourceIndex].Position);
-            int neighborIndex = -1;
-            float bestDifference = float.MaxValue;
-            for (int index = 0; index < sites.Count; index++)
-            {
-                if (index == sourceIndex) continue;
-                float difference = Math.Abs(DistanceSquared(midpoint, sites[index].Position) - sourceDistance);
-                if (difference < bestDifference)
-                {
-                    bestDifference = difference;
-                    neighborIndex = index;
-                }
-            }
-
-            // Edges on the padded map rectangle have no settlement on their
-            // other side. A true Voronoi edge is nearly equidistant.
-            return bestDifference < 0.5f ? neighborIndex : -1;
-        }
-
-        private void RenderEdge(BorderEdge edge)
-        {
-            int subdivisions = Math.Max(2, (int)Math.Ceiling((float)Math.Sqrt(DistanceSquared(edge.First, edge.Second)) / 20f));
-            List<Vec2> centerLine = GenerateLinePoints(edge.First, edge.Second, subdivisions);
-            List<Vec2> firstSide = OffsetPolyline(centerLine, BorderOffset);
-            List<Vec2> secondSide = OffsetPolyline(centerLine, -BorderOffset);
-            AddLineEntity(SampleTerrainHeights(centerLine, BorderHeight), 5.5f, 0xB0000000u);
-            AddLineEntity(SampleTerrainHeights(firstSide, BorderHeight), BorderWidth, edge.FirstSite.Color);
-            AddLineEntity(SampleTerrainHeights(secondSide, BorderHeight), BorderWidth, edge.SecondSite.Color);
-        }
-
-        private void AddLineEntity(List<Vec3> points, float width, uint color)
-        {
-            Mesh mesh = CreateLineMesh(points, width, color);
-            if (mesh == null || _mapScene == null) return;
-
-            GameEntity entity = GameEntity.CreateEmpty(_mapScene, false, true, true);
-            if (entity == null) return;
-
-            MatrixFrame frame = MatrixFrame.Identity;
-            entity.SetGlobalFrame(frame, true);
-            entity.AddMesh(mesh, true);
-            entity.SetVisibilityExcludeParents(true);
-            entity.SetReadyToRender(true);
-            _borderEntities.Add(entity);
-        }
-
-        private static Mesh CreateLineMesh(List<Vec3> points, float width, uint color)
-        {
-            if (points == null || points.Count < 2) return null;
-
-            Mesh mesh = Mesh.CreateMesh(true);
-            if (mesh == null) return null;
-            mesh.SetMaterial(BorderMaterial);
-            UIntPtr lockHandle = mesh.LockEditDataWrite();
-            try
-            {
-                float halfWidth = width * 0.5f;
-                for (int index = 0; index < points.Count - 1; index++)
-                {
-                    Vec3 start = points[index];
-                    Vec3 end = points[index + 1];
-                    Vec2 direction = new Vec2(end.x - start.x, end.y - start.y);
-                    if (direction.Normalize() < 0.001f) continue;
-                    Vec2 normal = new Vec2(-direction.y * halfWidth, direction.x * halfWidth);
-
-                    Vec3 startLeft = new Vec3(start.x + normal.x, start.y + normal.y, start.z);
-                    Vec3 startRight = new Vec3(start.x - normal.x, start.y - normal.y, start.z);
-                    Vec3 endLeft = new Vec3(end.x + normal.x, end.y + normal.y, end.z);
-                    Vec3 endRight = new Vec3(end.x - normal.x, end.y - normal.y, end.z);
-                    Vec2 uv0 = new Vec2(0f, 0f);
-                    Vec2 uv1 = new Vec2(1f, 0f);
-                    Vec2 uv2 = new Vec2(1f, 1f);
-                    Vec2 uv3 = new Vec2(0f, 1f);
-
-                    mesh.AddTriangle(startLeft, endLeft, endRight, uv0, uv1, uv2, color, lockHandle);
-                    mesh.AddTriangle(startLeft, endRight, startRight, uv0, uv2, uv3, color, lockHandle);
-                }
-            }
-            finally
-            {
-                mesh.UnlockEditDataWrite(lockHandle);
-            }
-
-            mesh.ComputeNormals();
-            mesh.RecomputeBoundingBox();
-            return mesh;
-        }
-
-        private static List<Vec3> SampleTerrainHeights(List<Vec2> points, float heightOffset)
-        {
-            List<Vec3> result = new List<Vec3>();
-            foreach (Vec2 point in points)
-            {
-                float terrainHeight = 0f;
-                CampaignVec2 campaignPoint = new CampaignVec2(point, true);
-                if (Campaign.Current != null && Campaign.Current.MapSceneWrapper != null)
-                {
-                    Campaign.Current.MapSceneWrapper.GetHeightAtPoint(campaignPoint, ref terrainHeight);
-                }
-                result.Add(new Vec3(point.x, point.y, terrainHeight + heightOffset));
-            }
-            return result;
-        }
-
-        private static List<Vec2> GenerateLinePoints(Vec2 first, Vec2 second, int segments)
-        {
-            List<Vec2> points = new List<Vec2>();
-            int count = Math.Max(1, segments);
-            for (int index = 0; index <= count; index++)
-            {
-                float t = (float)index / count;
-                points.Add(new Vec2(
-                    first.x + (second.x - first.x) * t,
-                    first.y + (second.y - first.y) * t));
-            }
-            return points;
-        }
-
-        private static List<Vec2> OffsetPolyline(List<Vec2> points, float offset)
-        {
-            List<Vec2> result = new List<Vec2>();
-            for (int index = 0; index < points.Count; index++)
-            {
-                Vec2 previous = points[Math.Max(0, index - 1)];
-                Vec2 next = points[Math.Min(points.Count - 1, index + 1)];
-                Vec2 direction = new Vec2(next.x - previous.x, next.y - previous.y);
-                if (direction.Normalize() < 0.001f) continue;
-                Vec2 normal = new Vec2(-direction.y * offset, direction.x * offset);
-                result.Add(new Vec2(points[index].x + normal.x, points[index].y + normal.y));
             }
             return result;
         }
 
         private void ClearBorderEntities()
         {
-            foreach (GameEntity entity in _borderEntities)
+            CancelPendingFill();
+            ClearActiveBorderEntities();
+        }
+
+        private void ClearActiveBorderEntities()
+        {
+            ClearPoliticalFillEntities();
+            ClearPoliticalFrontierEntities();
+        }
+
+        private void ReplacePoliticalFillEntities(List<GameEntity> replacement)
+        {
+            ClearPoliticalFillEntities();
+            _territoryFillEntities.AddRange(replacement);
+            _politicalEntitiesReady = false;
+            ApplyPoliticalEntityVisibility(true);
+        }
+
+        private void ReplacePoliticalFrontierEntities(List<GameEntity> replacement)
+        {
+            ClearPoliticalFrontierEntities();
+            _politicalFrontierEntities.AddRange(replacement);
+            ApplyFrontierZoomPresentation(true);
+        }
+
+        private void ClearPoliticalFillEntities()
+        {
+            foreach (GameEntity entity in _territoryFillEntities)
             {
                 if (entity == null) continue;
-                try
-                {
-                    entity.Remove(0);
-                }
-                catch (Exception exception)
-                {
-                    // The engine may already have discarded this scene. The
-                    // managed list is still cleared below, so stale handles
-                    // cannot block the next scene rebuild.
-                    Diagnostics.Error("A campaign border entity could not be removed after the map scene changed.", exception);
-                }
+                try { entity.Remove(0); }
+                catch (Exception exception) { Diagnostics.Error("A political territory fill entity could not be removed.", exception); }
             }
-            _borderEntities.Clear();
+            _territoryFillEntities.Clear();
+            _politicalEntitiesReady = false;
+        }
+
+        private void ClearPoliticalFrontierEntities()
+        {
+            foreach (GameEntity entity in _politicalFrontierEntities)
+            {
+                if (entity == null) continue;
+                try { entity.Remove(0); }
+                catch (Exception exception) { Diagnostics.Error("A political frontier entity could not be removed.", exception); }
+            }
+            _politicalFrontierEntities.Clear();
+        }
+
+        private void CancelPendingFill()
+        {
+            if (_pendingFillBuilder == null) return;
+            _pendingFillBuilder.Cancel();
+            _pendingFillBuilder = null;
         }
 
         private Scene TryGetCampaignMapScene()
@@ -433,53 +548,18 @@ namespace TwelveMonthCalendar
             }
         }
 
-        private static float DistanceSquared(Vec2 first, Vec2 second)
-        {
-            float x = first.x - second.x;
-            float y = first.y - second.y;
-            return x * x + y * y;
-        }
-
-        private static string MakeEdgeKey(string firstId, string secondId, Vec2 first, Vec2 second)
-        {
-            string left = string.CompareOrdinal(firstId, secondId) < 0 ? firstId : secondId;
-            string right = string.CompareOrdinal(firstId, secondId) < 0 ? secondId : firstId;
-            Vec2 midpoint = new Vec2((first.x + second.x) * 0.5f, (first.y + second.y) * 0.5f);
-            return left + "|" + right + "|"
-                + Math.Round(midpoint.x, 2).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
-                + "|" + Math.Round(midpoint.y, 2).ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
-        }
-
         private sealed class BorderSite
         {
-            internal BorderSite(Settlement settlement, Vec2 position, string factionKey, uint color)
+            internal BorderSite(Vec2 position, string factionKey, uint color)
             {
-                Settlement = settlement;
                 Position = position;
                 FactionKey = factionKey;
                 Color = color;
             }
 
-            internal Settlement Settlement { get; private set; }
             internal Vec2 Position { get; private set; }
             internal string FactionKey { get; private set; }
             internal uint Color { get; private set; }
-        }
-
-        private sealed class BorderEdge
-        {
-            internal BorderEdge(Vec2 first, Vec2 second, BorderSite firstSite, BorderSite secondSite)
-            {
-                First = first;
-                Second = second;
-                FirstSite = firstSite;
-                SecondSite = secondSite;
-            }
-
-            internal Vec2 First { get; private set; }
-            internal Vec2 Second { get; private set; }
-            internal BorderSite FirstSite { get; private set; }
-            internal BorderSite SecondSite { get; private set; }
         }
     }
 }
