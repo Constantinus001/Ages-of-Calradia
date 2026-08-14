@@ -72,7 +72,7 @@ $settlementBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 
 $dailyBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'DailyRateBalancePatches.cs')
 $subModuleSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MySubModule.cs')
 $tournamentModelSource = Join-Path $ModuleRoot 'CalendarTournamentModel.cs'
-if (Test-Path -LiteralPath $tournamentModelSource -PathType Leaf -or
+if ((Test-Path -LiteralPath $tournamentModelSource -PathType Leaf) -or
     $subModuleSource -match 'CalendarTournamentModel') {
     throw 'Tournament scheduling must retain Bannerlord''s native TournamentModel; calendar annualization can suppress new tournament starts.'
 }
