@@ -338,11 +338,13 @@ foreach ($panelId in $goldFramedPanels) {
         throw "World Events panel is missing its gold frame: $panelId"
     }
 }
-foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot)) {
+foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot)) {
     if (-not (Test-Path -LiteralPath $directory -PathType Container)) {
         throw "Expected release runtime directory is missing: $directory"
     }
 }
+$runtimeContentDirectories = @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot) |
+    Where-Object { Test-Path -LiteralPath $_ -PathType Container }
 
 [xml]$mapBar = Get-Content -Raw -LiteralPath $mapBarXml
 $campButton = @($mapBar.SelectNodes('//ButtonWidget[@Id="CampButton"]'))
@@ -432,9 +434,8 @@ try {
         (Join-Path $moduleStage 'bin\Win64_Shipping_Client'), `
         (Join-Path $moduleStage 'SceneObj') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
-    Copy-Item -LiteralPath $moduleDataRoot -Destination $moduleStage -Recurse
+    Copy-Item -LiteralPath $runtimeContentDirectories -Destination $moduleStage -Recurse
     Copy-Item -LiteralPath $harmonyDll, $mainDll, $islandExclusionDll, $politicalSettingsDll, $mcmDll, $mcmCoreDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
-    Copy-Item -LiteralPath $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot -Destination $moduleStage -Recurse
     foreach ($sceneDirectory in $runtimeSceneDirectories) {
         Get-ChildItem -LiteralPath $sceneDirectory.FullName -Recurse -File |
             Where-Object { $_.FullName -notmatch '[\\/]ShaderCache[\\/]' } |
@@ -465,7 +466,7 @@ $expectedEntries = @(
     'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.MCM.dll',
     'AgesOfCalradia/bin/Win64_Shipping_Client/MCMv5.dll'
 )
-$runtimeDirectoryEntries = foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot)) {
+$runtimeDirectoryEntries = foreach ($directory in $runtimeContentDirectories) {
     $directoryName = Split-Path -Leaf $directory
     Get-ChildItem -LiteralPath $directory -Recurse -File | ForEach-Object {
         $relativePath = $_.FullName.Substring($directory.Length).TrimStart('\', '/')
