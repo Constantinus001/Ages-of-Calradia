@@ -4,6 +4,9 @@ All versions target Bannerlord Native v1.4.7.
 
 ## Unreleased
 
+- Released Ages of Calradia Refuges v0.1.1 with the restored nine-scene
+  climate and water-access matrix, original Native terrain foundations, and
+  save repair for refuges rewritten by the temporary single-scene build.
 - Released v1.5.10 with the separately loadable Refuges and Logistics source
   modules included in the repository.
 - Extracted camps, refuge persistence, missions, UI, prefabs, and scenes into

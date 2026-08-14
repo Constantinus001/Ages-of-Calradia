@@ -21,6 +21,9 @@ if ($manifest.Module.Id.value -ne 'AgesOfCalradiaRefuges' -or
     $manifest.Module.SubModules.SubModule.DLLName.value -ne 'AgesOfCalradiaRefuges.dll') {
     throw 'The refuge module manifest does not identify its standalone assembly.'
 }
+if ($manifest.Module.Version.value -ne 'v0.1.1') {
+    throw 'The refuge module manifest must identify the v0.1.1 nine-scene release.'
+}
 
 $dependencies = @($manifest.Module.DependedModules.DependedModule | ForEach-Object { $_.Id })
 if ($dependencies -notcontains 'AgesOfCalradia') {
