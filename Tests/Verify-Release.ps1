@@ -18,6 +18,8 @@ if (-not $AllowDirtySource) {
 
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
+$islandExclusionProject = Join-Path $ModuleRoot 'Builds\IslandExclusion\IslandExclusion.csproj'
+$politicalSettingsProject = Join-Path $ModuleRoot 'Builds\PoliticalSettingsBridge\PoliticalSettingsBridge.csproj'
 if ($IncludeStrategicProvinceDiagnostics) {
     $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\AgesOfCalradia_Test_Win64_Shipping_Client'
     dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /p:IncludeStrategicProvinceDiagnostics=true /p:DefineConstants=TRACE%3BSTRATEGIC_PROVINCE_DIAGNOSTICS /p:OutputPath='bin\AgesOfCalradia_Test_Win64_Shipping_Client\' /v:minimal
@@ -30,6 +32,20 @@ if ($LASTEXITCODE -ne 0) {
     throw "Main Release build failed with exit code $LASTEXITCODE."
 }
 $mainDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.dll'
+$islandExclusionDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.IslandExclusion.dll'
+$politicalSettingsDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.PoliticalSettingsBridge.dll'
+$embeddedModuleProjects = @($islandExclusionProject, $politicalSettingsProject)
+foreach ($project in $embeddedModuleProjects) {
+    dotnet msbuild $project /t:Rebuild /p:Configuration=Release /p:OutputPath=$runtimeBinDirectory /v:minimal
+    if ($LASTEXITCODE -ne 0) {
+        throw "Embedded module Release build failed: $project"
+    }
+}
+foreach ($embeddedDll in @($islandExclusionDll, $politicalSettingsDll)) {
+    if (-not (Test-Path -LiteralPath $embeddedDll -PathType Leaf)) {
+        throw "Embedded module output is missing: $embeddedDll"
+    }
+}
 $harmonyPackageDll = Join-Path $env:USERPROFILE '.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll'
 $harmonyDll = Join-Path $runtimeBinDirectory '0Harmony.dll'
 if (-not (Test-Path -LiteralPath $harmonyPackageDll -PathType Leaf)) {
@@ -265,7 +281,7 @@ else {
         -not (Test-Path -LiteralPath (Join-Path $_.FullName 'REFUGE_AUTHORING_REQUIRED.txt') -PathType Leaf)
     })
 }
-$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $mcmDll, $mcmCoreDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml, $worldCalendarXml, $worldCalendarSpriteData, $worldCalendarSpriteConfig, $worldCalendarMap, $worldCalendarSheet)
+$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $islandExclusionDll, $politicalSettingsDll, $mcmDll, $mcmCoreDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml, $worldCalendarXml, $worldCalendarSpriteData, $worldCalendarSpriteConfig, $worldCalendarMap, $worldCalendarSheet)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
@@ -412,7 +428,7 @@ try {
         (Join-Path $moduleStage 'SceneObj') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
     Copy-Item -LiteralPath $moduleDataRoot -Destination $moduleStage -Recurse
-    Copy-Item -LiteralPath $harmonyDll, $mainDll, $mcmDll, $mcmCoreDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
+    Copy-Item -LiteralPath $harmonyDll, $mainDll, $islandExclusionDll, $politicalSettingsDll, $mcmDll, $mcmCoreDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
     Copy-Item -LiteralPath $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot -Destination $moduleStage -Recurse
     foreach ($sceneDirectory in $runtimeSceneDirectories) {
         Get-ChildItem -LiteralPath $sceneDirectory.FullName -Recurse -File |
@@ -439,6 +455,8 @@ $expectedEntries = @(
     'AgesOfCalradia/ModuleData/module_strings.xml',
     'AgesOfCalradia/bin/Win64_Shipping_Client/0Harmony.dll',
     'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.dll',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.IslandExclusion.dll',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.PoliticalSettingsBridge.dll',
     'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.MCM.dll',
     'AgesOfCalradia/bin/Win64_Shipping_Client/MCMv5.dll'
 )

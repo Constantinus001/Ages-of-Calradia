@@ -13,13 +13,13 @@
     <DependedModule Id="Native" DependentVersion="v1.4.7" />
     <DependedModule Id="SandBoxCore" DependentVersion="v1.4.7" />
     <DependedModule Id="Sandbox" DependentVersion="v1.4.7" />
-    <DependedModule Id="AgesOfCalradia" DependentVersion="v1.5.9" />
+    <DependedModule Id="AgesOfCalradia" DependentVersion="v1.5.10" />
   </DependedModules>
   <DependedModuleMetadatas>
     <DependedModuleMetadata id="Native" order="LoadBeforeThis" version="v1.4.7" />
     <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" version="v1.4.7" />
     <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" version="v1.4.7" />
-    <DependedModuleMetadata id="AgesOfCalradia" order="LoadBeforeThis" version="v1.5.9" />
+    <DependedModuleMetadata id="AgesOfCalradia" order="LoadBeforeThis" version="v1.5.10" />
     <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" version="v1.4.7" optional="true" />
   </DependedModuleMetadatas>
   <SubModules>

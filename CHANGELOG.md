@@ -4,6 +4,8 @@ All versions target Bannerlord Native v1.4.7.
 
 ## Unreleased
 
+- Released v1.5.10 with the separately loadable Refuges and Logistics source
+  modules included in the repository.
 - Extracted camps, refuge persistence, missions, UI, prefabs, and scenes into
   the optional `AgesOfCalradiaRefuges` module. Existing refuge save keys are
   retained; load Refuges after Ages of Calradia to continue using a refuge.
