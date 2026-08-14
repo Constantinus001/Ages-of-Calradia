@@ -56,12 +56,8 @@ namespace AgesOfCalradia.IslandExclusion
         private static bool _maskBuildFailed;
         private static long _exactClassifierCalls;
         private static long _targetLakeRegionCalls;
-        private static long _nativeTerrainProbeSuccesses;
-        private static long _nativeTerrainProbeFailures;
         private static long _targetWaterMatches;
         private static long _forcedLakeFillCount;
-        private static long _alreadyFilledLakeWaterCount;
-        private static long _lakeProbeExceptions;
         private static long _battaniaWaterMatches;
         private static long _easternWaterMatches;
         private static bool _loggedFirstBattaniaMatch;
@@ -1260,15 +1256,12 @@ namespace AgesOfCalradia.IslandExclusion
             WriteLog(
                 "Target-lake diagnostics: exactCalls=" + _exactClassifierCalls
                 + "; regionCalls=" + regionCalls
-                + "; probeSuccess=" + _nativeTerrainProbeSuccesses
-                + "; probeFailure=" + _nativeTerrainProbeFailures
                 + "; waterMatches=" + _targetWaterMatches
                 + "; battaniaMatches=" + _battaniaWaterMatches
                 + "; easternMatches=" + _easternWaterMatches
                 + "; forcedFilled=" + _forcedLakeFillCount
-                + "; alreadyFilled=" + _alreadyFilledLakeWaterCount
                 + "; liftedTriangles=" + _liftedLakeTriangleCount
-                + "; exceptions=" + _lakeProbeExceptions + ".");
+                + ".");
         }
 
         private static void WriteTargetLakeProbeScan(

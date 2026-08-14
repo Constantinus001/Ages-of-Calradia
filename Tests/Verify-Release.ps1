@@ -241,7 +241,7 @@ $mapBarDataSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MapBar
 $refugeIntegrationSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeIntegration.cs')
 $mainProjectSource = Get-Content -Raw -LiteralPath $mainProject
 if ($subModuleSource -match 'CalendarRefugeBehavior|CalendarCampBehavior' -or
-    $mainProjectSource -match 'Compile Include="(CalendarRefuge|CalendarCampBehavior|PortableCampAnchorStore|Refuge)' -or
+    $mainProjectSource -match 'Compile Include="(?:CalendarRefuge(?:Behavior|BuilderHudView|LayoutBuilderBehavior|MapClickPatch|Mission|StewardInteraction)|CalendarCampBehavior|PortableCampAnchorStore|Refuge(?:BuildingCatalog|FortPrefabCatalog|SceneProfileCatalog|StaffRole|Upgrade))\.cs"' -or
     $settingsStateSource -notmatch 'RefugeSystemEnabled[\s\S]{0,100}return false;' -or
     $mapBarDataSource -notmatch 'CalendarRefugeIntegration\.TryOpenCamp' -or
     $refugeIntegrationSource -notmatch 'RegisterCampOpener' -or
