@@ -17,6 +17,7 @@ namespace TwelveMonthCalendar
         private readonly GauntletLayer _layer;
         private readonly CalendarWorldLedgerVM _dataSource;
         private int _lastOwnershipRevision = -1;
+        private float _friendlyArmyRefreshElapsed;
 
         private WorldCalendarScreen()
         {
@@ -70,6 +71,20 @@ namespace TwelveMonthCalendar
             if (_dataSource.IsStrategicMap && Input.IsMouseScrollChanged)
             {
                 _dataSource.AdjustStrategicMapZoomFromMouseWheel(Input.DeltaMouseScroll);
+            }
+
+            if (_dataSource.IsStrategicMap)
+            {
+                _friendlyArmyRefreshElapsed += dt;
+                if (_friendlyArmyRefreshElapsed >= 1f)
+                {
+                    _friendlyArmyRefreshElapsed = 0f;
+                    _dataSource.RefreshStrategicFriendlyArmies();
+                }
+            }
+            else
+            {
+                _friendlyArmyRefreshElapsed = 0f;
             }
 
             int ownershipRevision = CalendarWorldLedgerBehavior.OwnershipRevision;

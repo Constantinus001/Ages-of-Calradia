@@ -50,15 +50,16 @@ Copy-Item -LiteralPath $harmonyPackageDll -Destination $harmonyDll -Force
 $mcmDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.MCM.dll'
 $mcmCoreDll = Join-Path $runtimeBinDirectory 'MCMv5.dll'
 $calendarMathVerifier = Join-Path $PSScriptRoot 'Verify-CalendarMath.ps1'
-if ($IncludeStrategicProvinceDiagnostics) {
-    & $calendarMathVerifier -ModuleRoot $ModuleRoot -CalendarAssemblyPath $mainDll -ExpectRefugeSystemEnabled
-}
-else {
-    & $calendarMathVerifier -ModuleRoot $ModuleRoot -CalendarAssemblyPath $mainDll
-}
+& $calendarMathVerifier -ModuleRoot $ModuleRoot -CalendarAssemblyPath $mainDll
 
 $settlementBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'SettlementBalancePatches.cs')
 $dailyBalanceSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'DailyRateBalancePatches.cs')
+$subModuleSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MySubModule.cs')
+$tournamentModelSource = Join-Path $ModuleRoot 'CalendarTournamentModel.cs'
+if (Test-Path -LiteralPath $tournamentModelSource -PathType Leaf -or
+    $subModuleSource -match 'CalendarTournamentModel') {
+    throw 'Tournament scheduling must retain Bannerlord''s native TournamentModel; calendar annualization can suppress new tournament starts.'
+}
 if ($dailyBalanceSource -match 'SettlementDemandBalancePatch[\s\S]{0,500}BonusToFoodStores' -or
     $dailyBalanceSource -match 'SettlementBudgetBalancePatch[\s\S]{0,500}BonusToFoodStores') {
     throw 'Civilian food demand and market budget must share the Gregorian food cadence.'
@@ -218,54 +219,18 @@ if ($playerPacingSource -notmatch 'dueTime\s*==\s*CampaignTime\.Never' -or
     $saveProfileSource -notmatch 'LegacyNativeAgeCutoverDayV1') {
     throw 'Story-quest sentinels, native-to-Gregorian dates and hero ages, and offset-free durations must retain their save-compatibility guards.'
 }
-$campSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarCampBehavior.cs')
-$refugeSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeBehavior.cs')
 $subModuleSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MySubModule.cs')
 $settingsStateSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarSettingsState.cs')
 $mapBarDataSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'MapBarSeasonDataSourcePatch.cs')
-$refugeCatalogSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'RefugeFortPrefabCatalog.cs')
-$refugeStewardSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeStewardInteraction.cs')
-$refugeMissionSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeMission.cs')
-if ($campSource -notmatch 'Wait here for some time \(8 hours\)' -or
-    $campSource -notmatch 'realistic_calendar_camp_build_refuge' -or
-    $campSource -notmatch 'InformationManager\.ShowInquiry' -or
-    $campSource -notmatch 'OnCampMenuInit[\s\S]{0,180}ShowTemporaryCampVisual\(\)' -or
-    $campSource -match 'realistic_calendar_camp_order_(land|river|coast)_refuge' -or
-    $refugeSource -notmatch 'TrySurveyCurrentSite') {
-    throw 'Camp must create its temporary marker on entry and expose one surveyed, confirmed refuge-construction action.'
-}
-if ($refugeSource -notmatch 'AgesOfCalradia\.RefugeStashV2' -or
-    $refugeSource -notmatch 'TryOpenStash' -or
-    $refugeSource -notmatch 'ApplyRestBenefitIfAtRefuge' -or
-    $refugeSource -notmatch 'GetUpgradeConstructionHours' -or
-    $refugeStewardSource -notmatch 'TryOpenStash' -or
-    $refugeStewardSource -notmatch 'CalendarRefugeBehavior\.GetUpgradeConstructionHours') {
-    throw 'Refuge management must retain a persistent stash, refuge-only rest benefit, and one timed construction queue for all upgrades.'
-}
-if ($refugeMissionSource -notmatch 'NativeSceneProfiles' -or
-    $refugeMissionSource -notmatch 'river_bt_empirewest_01_4x4km' -or
-    $refugeMissionSource -notmatch 'river_bt_aserai_01_4x4km' -or
-    $refugeMissionSource -notmatch 'river_bt_nord_01_4x4km' -or
-    $refugeMissionSource -notmatch 'TryGetNativeSceneProfile' -or
-    $refugeMissionSource -notmatch 'TryFindOpenTerrainSpawnFrame' -or
-    $refugeMissionSource -notmatch 'TryProjectToClearTerrain' -or
-    (($refugeMissionSource + $refugeCatalogSource) -notmatch 'DefaultFortPrefabId = "rct_refuge_fort_layout"') -or
-    $refugeMissionSource -notmatch 'GetNavigationMeshForPosition' -or
-    $refugeMissionSource -notmatch 'SetMissionMode\(MissionMode\.StartUp' -or
-    $refugeMissionSource -match 'ActiveMissionObjects[\s\S]{0,200}SetDisabled') {
-    throw 'Native refuge profiles must use a clear-terrain search, the authored fort prefab, navmesh-based spawn checks, peaceful mission setup, and no blanket mission-object disabling.'
-}
-if ($refugeSource -notmatch 'battle_terrain_biome_130' -or
-    $refugeSource -notmatch 'river_bt_empirewest_01_4x4km' -or
-    $refugeSource -notmatch 'battle_terrain_coastal_02' -or
-    $refugeSource -notmatch 'river_bt_aserai_01_4x4km' -or
-    $refugeSource -notmatch 'river_bt_nord_01_4x4km') {
-    throw 'Refuge scene selection must retain curated native land, river, and coast profiles.'
-}
-if ($subModuleSource -notmatch '#if STRATEGIC_PROVINCE_DIAGNOSTICS[\s\S]{0,180}AddBehavior\(new CalendarRefugeBehavior\(\)\)[\s\S]{0,120}AddBehavior\(new CalendarCampBehavior\(\)\)' -or
-    $settingsStateSource -notmatch 'RefugeSystemEnabled[\s\S]{0,180}#if STRATEGIC_PROVINCE_DIAGNOSTICS' -or
-    $mapBarDataSource -notmatch '!CalendarSettingsState\.RefugeSystemEnabled') {
-    throw 'Camp and refuge runtime behavior must remain disabled in production and enabled only in the diagnostics Test build.'
+$refugeIntegrationSource = Get-Content -Raw -LiteralPath (Join-Path $ModuleRoot 'CalendarRefugeIntegration.cs')
+$mainProjectSource = Get-Content -Raw -LiteralPath $mainProject
+if ($subModuleSource -match 'CalendarRefugeBehavior|CalendarCampBehavior' -or
+    $mainProjectSource -match 'Compile Include="(CalendarRefuge|CalendarCampBehavior|PortableCampAnchorStore|Refuge)' -or
+    $settingsStateSource -notmatch 'RefugeSystemEnabled[\s\S]{0,100}return false;' -or
+    $mapBarDataSource -notmatch 'CalendarRefugeIntegration\.TryOpenCamp' -or
+    $refugeIntegrationSource -notmatch 'RegisterCampOpener' -or
+    $refugeIntegrationSource -notmatch 'IsWinter') {
+    throw 'The base module must remain refuge-free while providing only the optional Refuges integration seam.'
 }
 
 $moduleXml = Join-Path $ModuleRoot 'SubModule.xml'
@@ -361,7 +326,7 @@ foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRo
 [xml]$mapBar = Get-Content -Raw -LiteralPath $mapBarXml
 $campButton = @($mapBar.SelectNodes('//ButtonWidget[@Id="CampButton"]'))
 if ($campButton.Count -ne 1 -or $campButton[0].IsVisible -ne '@IsRefugeSystemEnabled') {
-    throw 'The map-bar camp button must be hidden when the test-only refuge feature flag is disabled.'
+    throw 'The map-bar camp button must be bound to the optional standalone refuge integration.'
 }
 $centerPanel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]'))
 if ($centerPanel.Count -ne 1 -or $centerPanel[0].HorizontalAlignment -ne 'Center' -or $centerPanel[0].PositionXOffset -ne '10' -or $centerPanel[0].VerticalAlignment -ne 'Bottom' -or $centerPanel[0].SuggestedWidth -ne '420' -or $centerPanel[0].SuggestedHeight -ne '60') {

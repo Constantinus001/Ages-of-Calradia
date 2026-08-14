@@ -367,6 +367,34 @@ namespace TwelveMonthCalendar
                     delegate { return CalendarSettingsState.AnnualBalanceDiagnosticsEnabled; },
                     delegate(bool value) { Apply(annualBalanceDiagnosticsEnabled: value); })
             };
+            List<IOptionData> politicalMapOptions = new List<IOptionData>
+            {
+                new CalendarNumericOptionData(
+                    "Control Fill Opacity",
+                    10f,
+                    100f,
+                    true,
+                    1,
+                    delegate { return CalendarSettingsState.PoliticalControlOpacityPercent; },
+                    delegate(float value) { Apply(politicalControlOpacityPercent: (int)value); }),
+                new CalendarNumericOptionData(
+                    "Control Color Brightness",
+                    25f,
+                    125f,
+                    true,
+                    1,
+                    delegate { return CalendarSettingsState.PoliticalControlBrightnessPercent; },
+                    delegate(float value) { Apply(politicalControlBrightnessPercent: (int)value); }),
+                new CalendarBooleanOptionData(
+                    "Keep Rivers and Lakes Solid",
+                    delegate { return CalendarSettingsState.PoliticalSolidWater; },
+                    delegate(bool value) { Apply(politicalSolidWater: value); }),
+                new CalendarActionOptionData(
+                    "Reset Political Map",
+                    "Reset Category",
+                    "Restores full opacity, normal brightness, and solid inland water.",
+                    ResetPoliticalMapCategory)
+            };
 
             List<IOptionData> options = new List<IOptionData>();
             options.AddRange(calendarOptions);
@@ -375,6 +403,7 @@ namespace TwelveMonthCalendar
             options.AddRange(lightingOptions);
             options.AddRange(lifeCycleOptions);
             options.AddRange(annualBalanceOptions);
+            options.AddRange(politicalMapOptions);
             options.AddRange(diagnosticsOptions);
 
             OptionCategory category = new OptionCategory(
@@ -387,6 +416,7 @@ namespace TwelveMonthCalendar
                     new OptionGroup(new TextObject("Lighting"), lightingOptions),
                     new OptionGroup(new TextObject("Life Cycle"), lifeCycleOptions),
                     new OptionGroup(new TextObject("Annual Balance"), annualBalanceOptions),
+                    new OptionGroup(new TextObject("Political Map"), politicalMapOptions),
                     new OptionGroup(new TextObject("Diagnostics"), diagnosticsOptions)
                 });
             _calendarOptions = new GroupedOptionCategoryVM(
@@ -857,7 +887,10 @@ namespace TwelveMonthCalendar
             bool? clockSynchronizedLighting = null,
             float? visualSunriseHour = null,
             float? visualSunsetHour = null,
-            float? visualLightingTransitionHours = null)
+            float? visualLightingTransitionHours = null,
+            int? politicalControlOpacityPercent = null,
+            int? politicalControlBrightnessPercent = null,
+            bool? politicalSolidWater = null)
         {
             bool requestedLeapYears = useLeapYears ?? CalendarSettingsState.UseLeapYears;
             bool requestedShowDayLabel = showDayLabel ?? CalendarSettingsState.ShowDayLabel;
@@ -904,6 +937,12 @@ namespace TwelveMonthCalendar
                 ?? CalendarSettingsState.VisualSunsetHour;
             float requestedVisualLightingTransitionHours = visualLightingTransitionHours
                 ?? CalendarSettingsState.VisualLightingTransitionHours;
+            int requestedPoliticalControlOpacity = politicalControlOpacityPercent
+                ?? CalendarSettingsState.PoliticalControlOpacityPercent;
+            int requestedPoliticalControlBrightness = politicalControlBrightnessPercent
+                ?? CalendarSettingsState.PoliticalControlBrightnessPercent;
+            bool requestedPoliticalSolidWater = politicalSolidWater
+                ?? CalendarSettingsState.PoliticalSolidWater;
 
             // Bannerlord initializes option controls by writing their current
             // value back to the data source. Do not treat those UI refreshes as
@@ -932,7 +971,10 @@ namespace TwelveMonthCalendar
                 && requestedClockSynchronizedLighting == CalendarSettingsState.ClockSynchronizedLighting
                 && NearlyEqual(requestedVisualSunriseHour, CalendarSettingsState.VisualSunriseHour)
                 && NearlyEqual(requestedVisualSunsetHour, CalendarSettingsState.VisualSunsetHour)
-                && NearlyEqual(requestedVisualLightingTransitionHours, CalendarSettingsState.VisualLightingTransitionHours))
+                && NearlyEqual(requestedVisualLightingTransitionHours, CalendarSettingsState.VisualLightingTransitionHours)
+                && requestedPoliticalControlOpacity == CalendarSettingsState.PoliticalControlOpacityPercent
+                && requestedPoliticalControlBrightness == CalendarSettingsState.PoliticalControlBrightnessPercent
+                && requestedPoliticalSolidWater == CalendarSettingsState.PoliticalSolidWater)
             {
                 return;
             }
@@ -963,7 +1005,10 @@ namespace TwelveMonthCalendar
                 clockSynchronizedLighting: requestedClockSynchronizedLighting,
                 visualSunriseHour: requestedVisualSunriseHour,
                 visualSunsetHour: requestedVisualSunsetHour,
-                visualLightingTransitionHours: requestedVisualLightingTransitionHours);
+                visualLightingTransitionHours: requestedVisualLightingTransitionHours,
+                politicalControlOpacityPercent: requestedPoliticalControlOpacity,
+                politicalControlBrightnessPercent: requestedPoliticalControlBrightness,
+                politicalSolidWater: requestedPoliticalSolidWater);
             CalendarSettingsState.Save();
         }
 
@@ -1061,6 +1106,15 @@ namespace TwelveMonthCalendar
         {
             Apply(annualBalanceEnabled: true, balancePartyImpairment: true, balancePrisonerRecruitment: true, balanceNpcMarriage: true, balanceMapTracks: true, balanceQuestDeadlines: true);
             CompleteCategoryReset("Annual Balance", "Annual Balance settings were reset. Existing quest deadlines are unchanged.");
+        }
+
+        private void ResetPoliticalMapCategory()
+        {
+            Apply(
+                politicalControlOpacityPercent: CalendarSettingsState.DefaultPoliticalControlOpacityPercent,
+                politicalControlBrightnessPercent: CalendarSettingsState.DefaultPoliticalControlBrightnessPercent,
+                politicalSolidWater: CalendarSettingsState.DefaultPoliticalSolidWater);
+            CompleteCategoryReset("Political Map", "Political Map settings were reset to full opacity, normal brightness, and solid inland water.");
         }
 
         private void CompleteCategoryReset(string category, string message)

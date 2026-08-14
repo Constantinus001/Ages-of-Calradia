@@ -50,6 +50,9 @@ namespace TwelveMonthCalendar
         public const float DefaultStrategicMapMarkerSpacing = 52f;
         public const bool DefaultStrategicMapShowSettlementLabels = true;
         public const int DefaultStrategicMapLabelFontSize = 12;
+        public const int DefaultPoliticalControlOpacityPercent = 100;
+        public const int DefaultPoliticalControlBrightnessPercent = 100;
+        public const bool DefaultPoliticalSolidWater = true;
         internal const float DefaultPregnancyDurationInDays = 273.75f;
         internal const int DefaultPregnancyDurationMonths = 9;
         internal const float DefaultRenownGainMultiplier = 0.5f;
@@ -102,6 +105,9 @@ namespace TwelveMonthCalendar
         private static float _strategicMapMarkerSpacing = DefaultStrategicMapMarkerSpacing;
         private static bool _strategicMapShowSettlementLabels = DefaultStrategicMapShowSettlementLabels;
         private static int _strategicMapLabelFontSize = DefaultStrategicMapLabelFontSize;
+        private static int _politicalControlOpacityPercent = DefaultPoliticalControlOpacityPercent;
+        private static int _politicalControlBrightnessPercent = DefaultPoliticalControlBrightnessPercent;
+        private static bool _politicalSolidWater = DefaultPoliticalSolidWater;
         private static string _dateFormat = DefaultDateFormat;
         private static int _nativeDaysInYear = DefaultNativeDaysInYear;
         private static float _pregnancyDurationInDays = DefaultPregnancyDurationInDays;
@@ -136,19 +142,12 @@ namespace TwelveMonthCalendar
         }
 
         /// <summary>
-        /// Camps and refuges are intentionally restricted to the diagnostics
-        /// test build until the feature is ready for the normal player archive.
+        /// Legacy compatibility flag. The refuge runtime now lives in the
+        /// optional Ages of Calradia Refuges module.
         /// </summary>
         internal static bool RefugeSystemEnabled
         {
-            get
-            {
-#if STRATEGIC_PROVINCE_DIAGNOSTICS
-                return true;
-#else
-                return false;
-#endif
-            }
+            get { return false; }
         }
 
         public static bool UseLeapYears
@@ -268,6 +267,21 @@ namespace TwelveMonthCalendar
         public static int StrategicMapLabelFontSize
         {
             get { lock (SyncRoot) return _strategicMapLabelFontSize; }
+        }
+
+        public static int PoliticalControlOpacityPercent
+        {
+            get { lock (SyncRoot) return _politicalControlOpacityPercent; }
+        }
+
+        public static int PoliticalControlBrightnessPercent
+        {
+            get { lock (SyncRoot) return _politicalControlBrightnessPercent; }
+        }
+
+        public static bool PoliticalSolidWater
+        {
+            get { lock (SyncRoot) return _politicalSolidWater; }
         }
 
         internal static bool IsCampaignProfileLocked
@@ -703,7 +717,10 @@ namespace TwelveMonthCalendar
             int? strategicMapLegendFontSize = null,
             float? strategicMapMarkerSpacing = null,
             bool? strategicMapShowSettlementLabels = null,
-            int? strategicMapLabelFontSize = null)
+            int? strategicMapLabelFontSize = null,
+            int? politicalControlOpacityPercent = null,
+            int? politicalControlBrightnessPercent = null,
+            bool? politicalSolidWater = null)
         {
             lock (SyncRoot)
             {
@@ -842,6 +859,17 @@ namespace TwelveMonthCalendar
                     8,
                     24,
                     DefaultStrategicMapLabelFontSize);
+                _politicalControlOpacityPercent = ClampInt(
+                    politicalControlOpacityPercent ?? _politicalControlOpacityPercent,
+                    10,
+                    100,
+                    DefaultPoliticalControlOpacityPercent);
+                _politicalControlBrightnessPercent = ClampInt(
+                    politicalControlBrightnessPercent ?? _politicalControlBrightnessPercent,
+                    25,
+                    125,
+                    DefaultPoliticalControlBrightnessPercent);
+                _politicalSolidWater = politicalSolidWater ?? _politicalSolidWater;
             }
 
             Diagnostics.Info(
@@ -907,7 +935,10 @@ namespace TwelveMonthCalendar
                 strategicMapLegendFontSize: DefaultStrategicMapLegendFontSize,
                 strategicMapMarkerSpacing: DefaultStrategicMapMarkerSpacing,
                 strategicMapShowSettlementLabels: DefaultStrategicMapShowSettlementLabels,
-                strategicMapLabelFontSize: DefaultStrategicMapLabelFontSize);
+                strategicMapLabelFontSize: DefaultStrategicMapLabelFontSize,
+                politicalControlOpacityPercent: DefaultPoliticalControlOpacityPercent,
+                politicalControlBrightnessPercent: DefaultPoliticalControlBrightnessPercent,
+                politicalSolidWater: DefaultPoliticalSolidWater);
             Save();
             Diagnostics.Info("Calendar settings reset to defaults.");
         }
@@ -1122,7 +1153,10 @@ namespace TwelveMonthCalendar
                     strategicMapLegendFontSize: ReadInt(root, "StrategicMapLegendFontSize", DefaultStrategicMapLegendFontSize),
                     strategicMapMarkerSpacing: ReadFloat(root, "StrategicMapMarkerSpacing", DefaultStrategicMapMarkerSpacing),
                     strategicMapShowSettlementLabels: ReadBoolean(root, "StrategicMapShowSettlementLabels", DefaultStrategicMapShowSettlementLabels),
-                    strategicMapLabelFontSize: ReadInt(root, "StrategicMapLabelFontSize", DefaultStrategicMapLabelFontSize));
+                    strategicMapLabelFontSize: ReadInt(root, "StrategicMapLabelFontSize", DefaultStrategicMapLabelFontSize),
+                    politicalControlOpacityPercent: ReadInt(root, "PoliticalControlOpacityPercent", DefaultPoliticalControlOpacityPercent),
+                    politicalControlBrightnessPercent: ReadInt(root, "PoliticalControlBrightnessPercent", DefaultPoliticalControlBrightnessPercent),
+                    politicalSolidWater: ReadBoolean(root, "PoliticalSolidWater", DefaultPoliticalSolidWater));
 
                 Diagnostics.Info(
                     string.Format(
@@ -1179,6 +1213,9 @@ namespace TwelveMonthCalendar
                 root.SetAttribute("StrategicMapMarkerSpacing", StrategicMapMarkerSpacing.ToString("R", CultureInfo.InvariantCulture));
                 root.SetAttribute("StrategicMapShowSettlementLabels", StrategicMapShowSettlementLabels.ToString());
                 root.SetAttribute("StrategicMapLabelFontSize", StrategicMapLabelFontSize.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("PoliticalControlOpacityPercent", PoliticalControlOpacityPercent.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("PoliticalControlBrightnessPercent", PoliticalControlBrightnessPercent.ToString(CultureInfo.InvariantCulture));
+                root.SetAttribute("PoliticalSolidWater", PoliticalSolidWater.ToString());
                 root.SetAttribute("DateFormat", DateFormat);
                 root.SetAttribute("NativeDaysInYear", NativeDaysInYear.ToString(CultureInfo.InvariantCulture));
                 root.SetAttribute("PregnancyDurationDays", PregnancyDurationInDays.ToString("R", CultureInfo.InvariantCulture));

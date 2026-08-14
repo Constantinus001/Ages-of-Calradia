@@ -24,8 +24,9 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.
   hero ages while applying the 365-day calendar to future time. Saves from the
   old hard-marker era must first be migrated with v1.4.5.
 
-The normal player archive does not enable the unfinished camp and refuge
-systems. Those systems are reserved for the diagnostics **Test** archive.
+The camp and refuge system is now distributed as the separate
+`AgesOfCalradiaRefuges` module. Load it after Ages of Calradia; the base module
+remains fully usable without it.
 
 ## Documentation location
 
@@ -116,11 +117,9 @@ For the diagnostics-enabled **v1.5.9 Test** archive, run:
 & .\Tests\Verify-Release.ps1 -IncludeStrategicProvinceDiagnostics
 ```
 
-This produces `artifacts\AgesOfCalradia-v1.5.9-Test.zip`. It is for
-testers and includes strategic-province snapshot diagnostics plus every
-module-owned refuge/editor scene. Camps and refuges are enabled only in this
-Test archive; their behaviors and map-bar button are disabled in the normal
-player archive. Use the normal archive for players.
+This produces `artifacts\AgesOfCalradia-v1.5.9-Test.zip`. It is for testers
+and includes strategic-province snapshot diagnostics. Refuge scenes and their
+runtime behavior are packaged by the separate `AgesOfCalradiaRefuges` module.
 
 The build output is written to `bin\Win64_Shipping_Client`. Install the
 `AgesOfCalradia` module folder in the game's `Modules` directory, then
@@ -156,8 +155,8 @@ module from later save metadata.
 
 Removing the module restores Bannerlord's native calendar and pacing
 immediately; it does not preserve the mod's Gregorian presentation or annual
-balance. Test-build users should retrieve anything kept in a refuge stash
-before switching builds or disabling the module. Saves
+balance. Before disabling `AgesOfCalradiaRefuges`, retrieve anything kept in a
+refuge stash. Saves
 from the old hard-marker era should first be migrated with v1.4.5; the normal
 runtime no longer registers those retired custom save types.
 

@@ -135,14 +135,13 @@ namespace TwelveMonthCalendar
         {
             try
             {
-                if (!CalendarSettingsState.RefugeSystemEnabled
-                    || Campaign.Current == null
+                if (Campaign.Current == null
                     || MobileParty.MainParty == null)
                 {
                     return;
                 }
 
-                GameMenu.ActivateGameMenu(CalendarCampBehavior.CampMenuId);
+                AgesOfCalradia.CalendarRefugeIntegration.TryOpenCamp();
             }
             catch (Exception exception)
             {
@@ -153,7 +152,7 @@ namespace TwelveMonthCalendar
         [DataSourceProperty]
         public bool IsRefugeSystemEnabled
         {
-            get { return CalendarSettingsState.RefugeSystemEnabled; }
+            get { return AgesOfCalradia.CalendarRefugeIntegration.IsAvailable; }
         }
 
         internal void RefreshSeason()

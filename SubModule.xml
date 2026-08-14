@@ -50,5 +50,23 @@
         <Tag key="IsNoRenderModeElement" value="false" />
       </Tags>
     </SubModule>
+    <SubModule>
+      <Name value="Ages of Calradia Island Exclusion" />
+      <DLLName value="AgesOfCalradia.IslandExclusion.dll" />
+      <SubModuleClassType value="AgesOfCalradia.IslandExclusion.IslandExclusionSubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+    <SubModule>
+      <Name value="Ages of Calradia Political Settings" />
+      <DLLName value="AgesOfCalradia.PoliticalSettingsBridge.dll" />
+      <SubModuleClassType value="AgesOfCalradia.PoliticalSettingsBridge.PoliticalSettingsBridgeSubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
   </SubModules>
 </Module>

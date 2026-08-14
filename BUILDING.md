@@ -16,4 +16,4 @@ MCM UI module remains optional.
 `NETSTANDARD_PATH` can override the legacy .NET Standard facade path when
 required by a different development machine.
 
-Run `Tests\Verify-Release.ps1` only from a clean committed source tree before publishing. It builds the main and optional MCM configuration, runs calendar and strategic-map checks, validates the complete single-module archive (including runtime ModuleData and complete refuge scenes), and scans the final archive with Microsoft Defender.
+Run `Tests\Verify-Release.ps1` only from a clean committed source tree before publishing. It builds the main and optional MCM configuration, runs calendar and strategic-map checks, validates the complete base-module archive, and scans the final archive with Microsoft Defender. Build and verify the separate `AgesOfCalradiaRefuges` module independently when publishing refuges.

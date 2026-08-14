@@ -1,5 +1,0 @@
-Open this module-owned copy in the Bannerlord Scene Editor.
-Place the selected refuge prefab on dry land.
-Add tags: rct_refuge_anchor, rct_refuge_layout, spawnpoint_player.
-Bake navmesh after the fort and collision are final.
-Validate the scene with tools\\Test-RefugeSceneProfiles.ps1 before enabling it.

@@ -144,6 +144,10 @@
       <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ModuleManager.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="SandBox.View">
+      <HintPath>$(BannerlordDir)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -158,21 +162,16 @@
     <Compile Include="CalendarTreatyMigrationBehavior.cs" />
     <Compile Include="CalendarWorldLedgerBehavior.cs" />
     <Compile Include="CampaignKingdomBorderBehavior.cs" />
+    <Compile Include="CampaignIslandCoordinateDiagnosticPatch.cs" />
+    <Compile Include="CampaignMapTerrainGridCache.cs" />
+    <Compile Include="CampaignPoliticalTerritoryFill.cs" />
+    <Compile Include="CampaignPoliticalOverlayView.cs" />
+    <Compile Include="CampaignStrategicLandMask.cs" />
     <Compile Include="StrategicMapZoomScrollablePanel.cs" />
-    <Compile Include="CalendarRefugeBehavior.cs" />
-    <Compile Include="PortableCampAnchorStore.cs" />
-    <Compile Include="RefugeFortPrefabCatalog.cs" />
-    <Compile Include="RefugeSceneProfileCatalog.cs" />
-    <Compile Include="RefugeUpgrade.cs" />
-    <Compile Include="RefugeStaffRole.cs" />
-    <Compile Include="RefugeBuildingCatalog.cs" />
-    <Compile Include="CalendarRefugeStewardInteraction.cs" />
-    <Compile Include="CalendarRefugeMission.cs" />
-    <Compile Include="CalendarRefugeLayoutBuilderBehavior.cs" />
-    <Compile Include="CalendarRefugeBuilderHudView.cs" />
-    <Compile Include="CalendarRefugeMapClickPatch.cs" />
-    <Compile Include="CalendarCampBehavior.cs" />
+    <Compile Include="CalendarRefugeIntegration.cs" />
     <Compile Include="CalendarWorldLedgerVM.cs" />
+    <Compile Include="CalendarStrategicKingdomLabels.cs" />
+    <Compile Include="CalendarStrategicFriendlyArmies.cs" />
     <Compile Include="CalendarWorldLedgerFixedStrategicLayers.cs" />
     <Compile Include="CalendarStrategicMapLayout.cs" />
     <Compile Include="CalendarStrategicSettlementReference.cs" />
@@ -210,7 +209,6 @@
     <Compile Include="CalendarLordDeathModels.cs" />
     <Compile Include="CalendarMapTrackModel.cs" />
     <Compile Include="CalendarPregnancyModel.cs" />
-    <Compile Include="CalendarTournamentModel.cs" />
     <Compile Include="CalendarSettlementPatrolModel.cs" />
     <Compile Include="PlayerPacingPatches.cs" />
     <Compile Include="DiplomacyBalancePatches.cs" />

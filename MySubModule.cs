@@ -192,14 +192,9 @@ namespace TwelveMonthCalendar
                 campaignStarter.AddBehavior(new CalendarTreatyMigrationBehavior());
                 campaignStarter.AddBehavior(new CalendarWorldLedgerBehavior());
                 campaignStarter.AddBehavior(new CampaignKingdomBorderBehavior());
-#if STRATEGIC_PROVINCE_DIAGNOSTICS
-                campaignStarter.AddBehavior(new CalendarRefugeBehavior());
-                campaignStarter.AddBehavior(new CalendarCampBehavior());
-#endif
                 Diagnostics.Info("Calendar diagnostics behavior registered for campaign.");
 #if STRATEGIC_PROVINCE_DIAGNOSTICS
                 Diagnostics.Info("Strategic province diagnostics behavior registered; full province snapshots use StrategicProvinceDiagnostics.tsv.");
-                Diagnostics.Info("Test-only refuge and camp behaviors registered.");
 #endif
                 Diagnostics.Info("Calendar soft profile behavior registered; new saves write no calendar module-lock marker.");
                 Diagnostics.Info("Calendar treaty migration behavior registered for existing tribute agreements.");
@@ -395,20 +390,10 @@ namespace TwelveMonthCalendar
                     + " of native after Bannerlord medicine, armor, age, and damage rules.");
             }
 
-            TournamentModel nativeTournament = campaignStarter.GetModel<TournamentModel>();
-            if (nativeTournament == null)
-            {
-                Diagnostics.Info("Annual tournament balance was not installed because Bannerlord did not provide a TournamentModel.");
-            }
-            else if (nativeTournament is CalendarTournamentModel)
-            {
-                Diagnostics.Info("Calendar tournament model was already installed.");
-            }
-            else
-            {
-                campaignStarter.AddModel(new CalendarTournamentModel(nativeTournament));
-                Diagnostics.Info("Calendar tournament wrapper installed; daily start/end chances are annualized for all towns.");
-            }
+            // Tournament start and resolution chance are managed by Bannerlord's
+            // campaign scheduler. Calendar-day annualization here made the start
+            // roll too infrequent, so tournaments intentionally retain their
+            // native model and cadence.
 
             SettlementPatrolModel nativePatrol = campaignStarter.GetModel<SettlementPatrolModel>();
             if (nativePatrol == null)

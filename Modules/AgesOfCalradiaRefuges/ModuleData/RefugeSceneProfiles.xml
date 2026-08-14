@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The map-profile matrix is retained for campaign compatibility. Runtime
+  currently routes every profile to rct_refuge_temperate_land while the water
+  scene navmeshes are unfinished; saved river/coast access remains intact.
+-->
+<refuge_scene_profiles version="1">
+  <profile climate="temperate" water="plain" scene_id="rct_refuge_temperate_land" foundation_scene="battle_terrain_biome_130" />
+  <profile climate="temperate" water="river" scene_id="rct_refuge_temperate_river" foundation_scene="river_bt_empirewest_01_4x4km" />
+  <profile climate="temperate" water="coast" scene_id="rct_refuge_temperate_coast" foundation_scene="river_bt_vlandia_02_4x4km" />
+  <profile climate="sturgian" water="plain" scene_id="rct_refuge_snow_land" foundation_scene="battle_terrain_006" />
+  <profile climate="sturgian" water="river" scene_id="rct_refuge_snow_river" foundation_scene="river_bt_nord_01_4x4km" />
+  <profile climate="sturgian" water="coast" scene_id="rct_refuge_snow_coast" foundation_scene="river_bt_nord_02_4x4km" />
+  <profile climate="desert" water="plain" scene_id="rct_refuge_desert_land" foundation_scene="battle_terrain_009" />
+  <profile climate="desert" water="river" scene_id="rct_refuge_desert_river" foundation_scene="river_bt_aserai_01_4x4km" />
+  <profile climate="desert" water="coast" scene_id="rct_refuge_desert_coast" foundation_scene="river_bt_aserai_02_4x4km" />
+</refuge_scene_profiles>

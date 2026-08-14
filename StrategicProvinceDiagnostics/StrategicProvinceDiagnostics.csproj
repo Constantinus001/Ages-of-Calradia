@@ -78,6 +78,9 @@
     <Compile Include="StrategicProvinceDiagnosticsSubModule.cs" />
     <Compile Include="StrategicProvinceDiagnosticsBehavior.cs" />
     <Compile Include="StrategicProvinceDiagnosticsLog.cs" />
+    <Compile Include="..\Diagnostics.cs">
+      <Link>Diagnostics.cs</Link>
+    </Compile>
     <!-- Keep the diagnostics build synchronized with the live 133-region manifest. -->
     <Compile Include="..\CalendarStrategicMapLayout.cs">
       <Link>CalendarStrategicMapLayout.cs</Link>

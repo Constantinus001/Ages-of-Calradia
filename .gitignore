@@ -16,6 +16,10 @@ artifacts/
 # Local editor recovery data and one-off investigation tools
 EditorBackups/
 SceneObj/**/ShaderCache/
+SceneObj/**/ShaderCache/**
+SceneObj/**/*.pre-*
+**/SceneObj/**/ShaderCache/**
+**/SceneObj/**/*.pre-*
 
 # Local reverse-engineering helpers and their generated files
 tools/
