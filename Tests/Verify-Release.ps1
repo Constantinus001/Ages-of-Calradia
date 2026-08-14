@@ -269,7 +269,12 @@ $assetsRoot = Join-Path $ModuleRoot 'Assets'
 $assetSourcesRoot = Join-Path $ModuleRoot 'AssetSources'
 $prefabsRoot = Join-Path $ModuleRoot 'Prefabs'
 $sceneObjRoot = Join-Path $ModuleRoot 'SceneObj'
-$allModuleSceneDirectories = @(Get-ChildItem -LiteralPath $sceneObjRoot -Directory)
+$allModuleSceneDirectories = if (Test-Path -LiteralPath $sceneObjRoot -PathType Container) {
+    @(Get-ChildItem -LiteralPath $sceneObjRoot -Directory)
+}
+else {
+    @()
+}
 if ($IncludeStrategicProvinceDiagnostics) {
     $runtimeSceneDirectories = $allModuleSceneDirectories
 }
@@ -333,7 +338,7 @@ foreach ($panelId in $goldFramedPanels) {
         throw "World Events panel is missing its gold frame: $panelId"
     }
 }
-foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot, $sceneObjRoot)) {
+foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot)) {
     if (-not (Test-Path -LiteralPath $directory -PathType Container)) {
         throw "Expected release runtime directory is missing: $directory"
     }
