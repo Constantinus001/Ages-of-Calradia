@@ -556,14 +556,29 @@ namespace TwelveMonthCalendar
 
             string sceneId = _state.SceneId;
             RefugeSceneClimate climate;
-            if (_state.State == RefugeConstructionState.Complete
-                && !string.Equals(sceneId, RefugeSceneProfileCatalog.SingleRefugeSceneId, StringComparison.Ordinal))
+            if (_state.State == RefugeConstructionState.Complete)
             {
-                sceneId = RefugeSceneProfileCatalog.SingleRefugeSceneId;
-                _state = _state.WithSceneId(sceneId);
-                _serializedState = Serialize(_state);
-                Diagnostics.Info("Refuge save migrated to single-scene mode. Scene=" + sceneId
-                    + "; Access=" + _state.WaterAccess + ".");
+                RefugeSceneClimate siteClimate = GetSceneClimateForSite(MobileParty.MainParty);
+                RefugeSceneProfile savedProfile;
+                if (RefugeSceneProfileCatalog.TryGetProfile(sceneId, out savedProfile)
+                    && (savedProfile.Climate != siteClimate
+                        || savedProfile.WaterAccess != _state.WaterAccess))
+                {
+                    string restoredSceneId;
+                    if (RefugeSceneProfileCatalog.TryGetReadySceneId(
+                            siteClimate,
+                            _state.WaterAccess,
+                            _state.FortPrefabId,
+                            out restoredSceneId))
+                    {
+                        sceneId = restoredSceneId;
+                        _state = _state.WithSceneId(sceneId);
+                        _serializedState = Serialize(_state);
+                        Diagnostics.Info("Refuge save restored to its climate/access scene profile. Scene="
+                            + sceneId + "; Climate=" + siteClimate
+                            + "; Access=" + _state.WaterAccess + ".");
+                    }
+                }
             }
 
             if (_state.State == RefugeConstructionState.Camp)
