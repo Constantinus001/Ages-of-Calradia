@@ -68,15 +68,11 @@ cannot fall through or path into water/cliffs.
 
 ## Current asset status
 
-The repository currently has working folders/templates for the six river and
-coast default profiles. The three land profiles are still required:
-
-- `rct_refuge_temperate_land`
-- `rct_refuge_snow_land`
-- `rct_refuge_desert_land`
-
-Existing folders can be used as authoring references, but they are not assumed
-release-ready until the validator passes.
+The repository contains imported folders for all nine default profiles, and
+runtime selection uses the matching climate/access profile. Each folder still
+contains `REFUGE_IMPORT_PENDING_NAVMESH_BAKE.txt`; it remains editor work until
+its compound placement, collision, and navmesh have been inspected and baked
+in the Bannerlord Scene Editor.
 
 ## Editor workflow
 
@@ -93,7 +89,7 @@ release-ready until the validator passes.
    marking a scene complete.
 
 ```powershell
-& .\tools\Test-RefugeSceneProfiles.ps1
+& .\Tests\Verify-RefugeModule.ps1
 ```
 
 ## Runtime behavior to test
@@ -114,7 +110,7 @@ the campaign map.
 
 ## Acceptance criteria
 
-- `tools/Test-RefugeSceneProfiles.ps1` exits with code 0.
+- `Tests\Verify-RefugeModule.ps1` exits with code 0.
 - The Release build succeeds.
 - All nine Palisade Ring profiles are complete.
 - No native test fallback is required for a finished profile.

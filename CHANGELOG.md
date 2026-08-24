@@ -71,6 +71,9 @@ retain the target documented in their own manifests.
   the same native IL hash audit for every patched original.
 - Hardened optional Logistics scene-prop spawning so a missing native wagon or
   supply-pile prefab degrades with diagnostics instead of crashing the battle.
+- Released Ages of Calradia Refuges v0.1.1 with the restored nine-scene
+  climate and water-access matrix, original Native terrain foundations, and
+  save repair for refuges rewritten by the temporary single-scene build.
 - Released v1.5.10 with the separately loadable Refuges and Logistics source
   modules included in the repository.
 - Extracted camps, refuge persistence, missions, UI, prefabs, and scenes into
