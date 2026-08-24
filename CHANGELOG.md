@@ -1,9 +1,76 @@
 # Changelog
 
-All versions target Bannerlord Native v1.4.7.
+- Removed `AgesOfCalradia.PoliticalSettingsBridge.dll` from active registration and release packaging. Video and runtime-log inspection proved that this sidecar postfixed every political fill mesh, replaced the main assembly's material after construction, and forced 25% brightness despite the saved 100% setting; this is why prior main-DLL renderer changes produced no visual difference. Political opacity and brightness now come directly from `CalendarSettingsState` inside the main assembly, and the flat fill material can no longer be overwritten after construction.
+- Reverted the attempted Battania-lake topology extension after runtime diagnostics proved it recovered `100,498` edge-connected water probes and visibly filled coastal channels and bays. River-connected exterior water remains rejected by the prior classifier; the interrupted river-shore expansion was removed as well.
+- Made the opaque political material explicitly flat and isolated from the campaign terrain's later render layers: its private `vertex_color_mat` copy does not use sun or dynamic lighting, receive sun or dynamic shadows, cast shadows, or accept environment decals. Faction frontiers retain their accepted material and geometry.
+- Made the political territory layer fully opaque by the same `650` camera altitude that reveals kingdom labels. The smooth close-to-political transition remains between altitudes `580` and `650`, and frontier geometry is unchanged.
+- Strengthened political-mesh terrain conformity by retaining the Kingdom Frontiers-style `IMapScene.GetHeightAtPoint` fill surface, then improving beyond its uniform grid: each adaptive cell checks its center and four edge midpoints, with one additional terrain-only refinement level where the sampled surface bends through the political mesh. This remains as protection against real terrain intersections, although runtime comparison proved it was not the cause of the reported river and mountain shading. The accepted frontier geometry and classifier remain unchanged, and exact island exclusions still run first.
 
-## Unreleased
+Current development targets Bannerlord Native v1.4.8. Historical releases
+retain the target documented in their own manifests.
 
+## v1.5.11 — 2026-08-23
+
+- Preserved the user-approved political renderer exactly as compiled in main
+  DLL SHA-256 `560F1B5181F8CC2EFE51564D8675FD3089E722606FA55B0B166D36ECD9868D8E`.
+  Calendar fixes 1-6 now ship as the isolated
+  `AgesOfCalradia.Approved560CalendarFixes.dll` sidecar, which refuses to load
+  against any other main DLL and contains no political-renderer targets.
+- Fixed the startup crash by pairing the immutable approved main DLL with its
+  matching Island Exclusion and Native Lake Fill registrations, then placing
+  all new calendar fixes in a separately validated sidecar.
+- Synchronized the configurable campaign-time multiplier at
+  `Campaign.TickMapTime`, so the displayed clock and simulation delta used by
+  movement, siege preparation, and siege-engine construction can no longer
+  advance at different rates.
+- Fixed tournament droughts by rotating Bannerlord's native three-week town
+  gate throughout each extended season and annualizing eligible start and end
+  rolls exactly once.
+- Fixed scene-notification date failures by formatting marriage, allegiance,
+  kingdom, birth, death, and similar popup dates through the Gregorian
+  calendar instead of Bannerlord's 21-day ordinal table.
+- Applied workshop cadence conversion to the native production-speed input so
+  workshop perks, policies, and building modifiers remain intact, and removed
+  the obsolete private workshop-context patch.
+- Made party-screen troop and total wages display explicit effective
+  calendar-day values, rebuilt finance explanation lines through the public
+  API, and removed a second native-finance wrapper conversion that could make
+  UI totals disagree with the wallet delta.
+- Corrected the post-peace cooldown from 100 to the annual-equivalent 87
+  calendar days and added monthly active-war and active-tournament telemetry.
+- Kept town names permanently visible and increased their label size on the
+  World Events UI strategic map, while normal campaign-map settlement names
+  disappear at the altitude-580 political-overview cutoff.
+- Integrated the approved southwestern and northern-chain island exclusions
+  into the main assembly, enforced them against final political-fill triangles,
+  removed the separate Island Exclusion submodule from release packaging, and
+  suppress only those exact islands in frontier topology so their coastline
+  outlines disappear without creating broad false borders.
+- Restored campaign frontier classification, sampling distance, and refinement
+  behavior from the archived August 10 13:52 accepted political-map assembly;
+  later separate water-channel frontier tracing is no longer used for rendering.
+- Recovered authored inland political terrain at the Kingdom Frontiers 2.6
+  map-height threshold while keeping exact island exclusions and low open sea.
+  Political coverage remains settlement-bounded because full campaign-map
+  bounds assign decorative outer terrain to kingdoms and create false borders.
+- Refreshed the numeric map clock and sundial for every changed campaign-time
+  value during fast-forward, removing the former three-minute display batching
+  that made the clock appear to skip.
+- Promoted every active module manifest to Bannerlord v1.4.8 after a live
+  campaign safety audit validated all 96 calendar targets and registered all
+  core patches without disabling an optional patch.
+- Consolidated generated UI sprite authority into
+  `GUI/Ages Of CalradiaSpriteData.xml` and removed the stale duplicate that
+  could override current strategic-map and World Events atlas coordinates.
+- Moved standalone settings to the player's Bannerlord configuration folder,
+  with automatic migration from the former module-root file.
+- Corrected World Events war-casualty labels, excluded mounts and other
+  non-human agents from hero combat records, and isolated abandoned character
+  creation choices from the next character's backstory.
+- Cached the v1.4.8 calendar target safety verdict so Harmony does not repeat
+  the same native IL hash audit for every patched original.
+- Hardened optional Logistics scene-prop spawning so a missing native wagon or
+  supply-pile prefab degrades with diagnostics instead of crashing the battle.
 - Released Ages of Calradia Refuges v0.1.1 with the restored nine-scene
   climate and water-access matrix, original Native terrain foundations, and
   save repair for refuges rewritten by the temporary single-scene build.
@@ -12,9 +79,6 @@ All versions target Bannerlord Native v1.4.7.
 - Extracted camps, refuge persistence, missions, UI, prefabs, and scenes into
   the optional `AgesOfCalradiaRefuges` module. Existing refuge save keys are
   retained; load Refuges after Ages of Calradia to continue using a refuge.
-- Restored Bannerlord's native tournament scheduling. The calendar no longer
-  annualizes tournament start or resolution probabilities, preventing extended
-  periods with no newly created tournaments.
 
 ## v1.5.9 - Complete identity migration and campaign borders
 

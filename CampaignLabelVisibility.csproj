@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E8F5CB57-D374-4F3C-A380-7470772AFB2E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>AgesOfCalradia.CampaignLabelVisibility</RootNamespace>
+    <AssemblyName>AgesOfCalradia.CampaignLabelVisibility</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <Deterministic>true</Deterministic>
+    <BannerlordDir Condition=" '$(BannerlordDir)' == '' ">C:\Program Files\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</BannerlordDir>
+    <OutputPath>tmp\campaign-label-visibility\bin\Win64_Shipping_Client\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="0Harmony">
+      <HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Library">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade">
+      <HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <Compile Include="CampaignLabelVisibilitySubModule.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

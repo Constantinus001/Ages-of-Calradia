@@ -1,19 +1,31 @@
 # Current best build
 
-The current user-approved baseline is:
+Accepted by the user on 2026-08-23 and published as v1.5.11.
 
-`backups/Deploy-20260810-195835-BEST-1352-AllIslandExclusions`
+## Approved archives
 
-Single release archive:
+- Release: `artifacts/AgesOfCalradia-v1.5.11.zip`
+  - Size: 38,185,985 bytes (36.42 MiB)
+  - SHA-256: `C2155E7D8A519D87FE080AD6EDDBE79AC351556CF2D3EE962EC26B4E3DF3AEE6`
+- Test: `artifacts/AgesOfCalradia-v1.5.11-Test.zip`
+  - SHA-256: `8FB203D63B9FF9BF3E9905A72E3B5FF537F127CA914AC35C6ABFE19098398622`
 
-`backups/Deploy-20260810-195835-BEST-1352-AllIslandExclusions.zip`
+## Immutable visual baseline
 
-ZIP SHA-256: `14271DD25BC7F70B50E3E6BDCD2AE4381B1E945364EA467C6DB6330ECC9BF821`
+`bin/Win64_Shipping_Client/AgesOfCalradia.dll`
 
-It packages the untouched August 10 13:52 main DLL together with the approved
-high-resolution southwestern and northern-chain island-exclusion sidecar and its
-required `SubModule.xml` entry.
+SHA-256: `560F1B5181F8CC2EFE51564D8675FD3089E722606FA55B0B166D36ECD9868D8E`
 
-Do not replace the main DLL from the current source tree when restoring this
-baseline. Restore all files from the package together and verify them against
-`BUILD_MANIFEST.md`.
+This exact main DLL contains the user-approved political fill. Do not rebuild
+or replace it when restoring or extending v1.5.11.
+
+Calendar and UI corrections are isolated in sidecars:
+
+- `AgesOfCalradia.Approved560CalendarFixes.dll`
+  - SHA-256: `10DCD1C896272B2EAD045C7C575293ADD66742C81F7CFD43199558311AB3EF37`
+- `AgesOfCalradia.CampaignLabelVisibility.dll`
+  - SHA-256: `59F9773D7F0B224FCA0109D0BAC8C9FECCD5ECC3663A0D683D0B6E97D06FDCD5`
+
+The release package excludes diagnostics and symbols. The test package adds
+World Events alignment diagnostics plus matching PDBs for the two rebuilt
+sidecars; it deliberately excludes the mismatched current-source main PDB.
