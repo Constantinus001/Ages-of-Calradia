@@ -9,6 +9,24 @@
 Current development targets Bannerlord Native v1.4.8. Historical releases
 retain the target documented in their own manifests.
 
+## v1.5.12 — 2026-08-25
+
+- Preserved the accepted `560F1B51...` main DLL and `59F9773D...` campaign-label
+  sidecar byte-for-byte, preventing any return of the rejected solid political
+  fill or the startup-crash build.
+- Added a hash-locked town-food correction that annualizes direct settlement
+  production and consumption once while retaining Bannerlord's complete market
+  food contribution. Full food markets are therefore counted instead of being
+  divided or discarded at the calendar wrapper.
+- Retained the combined tournament, workshop perk/policy, wage UI, finance
+  double-scaling, war cooldown, scene-date, synchronized siege-time, save-age,
+  and strategic/campaign city-label corrections from the approved build.
+- Versioned the compatibility sidecar as `1.5.12.0` and strengthened its loader
+  test to require all 15 fixes, the food math contract, save-age compatibility,
+  removal of superseded patches, and zero political-renderer targets.
+- Added a production package gate that rejects changed approved DLLs,
+  diagnostics, logs, and symbols.
+
 ## v1.5.11 — 2026-08-23
 
 - Preserved the user-approved political renderer exactly as compiled in main
