@@ -52,8 +52,25 @@ foreach ($original in [HarmonyLib.Harmony]::GetAllPatchedMethods()) {
 
 $patched | Sort-Object Target | Format-Table -AutoSize
 $count = ($patched | Measure-Object -Property PatchCount -Sum).Sum
-if ($count -lt 14) {
-    throw "Expected at least 14 compatibility patches; found $count."
+if ($count -lt 15) {
+    throw "Expected at least 15 compatibility patches; found $count."
+}
+
+$foodFix = $sidecar.GetType(
+    'AgesOfCalradia.Approved560CalendarFixes.TownMarketFoodAccountingFix',
+    $true)
+$combine = $foodFix.GetMethod(
+    'CombineForVerification',
+    [Reflection.BindingFlags]'Static,NonPublic')
+$directOnly = [single]$combine.Invoke($null, @([single]-10, [single]-2, $false, [single]0.23))
+$withMarket = [single]$combine.Invoke($null, @([single]-10, [single]-2, $true, [single]0.23))
+if ([Math]::Abs($directOnly - [single]-2.3) -gt 0.0001 -or
+    [Math]::Abs($withMarket - [single]5.7) -gt 0.0001) {
+    throw "Town food accounting must scale direct balance once and retain the full market contribution: direct=$directOnly market=$withMarket"
+}
+
+if ($null -eq $approvedMain.GetType('TwelveMonthCalendar.LegacySaveHeroAgePatch', $false)) {
+    throw 'The approved main DLL no longer contains the save-age compatibility patch.'
 }
 if (@($patched | Where-Object {
     $_.Target -match 'Political|Territory|Island|Lake|Texture|Mesh'
@@ -77,4 +94,4 @@ foreach ($original in [HarmonyLib.Harmony]::GetAllPatchedMethods()) {
     }
 }
 
-Write-Output "PASS: approved main + sidecar load registered $count fixes, removed superseded patches, and touched zero renderer targets."
+Write-Output "PASS: approved main + v1.5.12 sidecar registered $count fixes, preserved market food and save-age compatibility, removed superseded patches, and touched zero renderer targets."

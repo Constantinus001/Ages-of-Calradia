@@ -8,10 +8,12 @@ using System.Security.Cryptography;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
 using TaleWorlds.CampaignSystem.Election;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.SceneInformationPopupTypes;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.CampaignSystem.TournamentGames;
 using TaleWorlds.CampaignSystem.ViewModelCollection.Party;
 using TaleWorlds.Localization;
@@ -77,6 +79,7 @@ namespace AgesOfCalradia.Approved560CalendarFixes
         private static Type _timeMathType;
         private static Type _formatterType;
         private static Type _financeModelType;
+        private static Type _settlementFoodModelType;
         private static Type _strategicMarkerType;
         private static PropertyInfo _extendedEnabled;
         private static PropertyInfo _annualEnabled;
@@ -84,8 +87,10 @@ namespace AgesOfCalradia.Approved560CalendarFixes
         private static PropertyInfo _campaignMultiplier;
         private static MethodInfo _format;
         private static FieldInfo _nativeFinance;
+        private static FieldInfo _nativeSettlementFood;
 
         internal static Type FinanceModelType { get { return _financeModelType; } }
+        internal static Type SettlementFoodModelType { get { return _settlementFoodModelType; } }
         internal static Type StrategicMarkerType { get { return _strategicMarkerType; } }
 
         internal static void Validate()
@@ -109,6 +114,7 @@ namespace AgesOfCalradia.Approved560CalendarFixes
             _timeMathType = RequireType(approved, "TwelveMonthCalendar.CalendarTimeMath");
             _formatterType = RequireType(approved, "TwelveMonthCalendar.CalendarFormatter");
             _financeModelType = RequireType(approved, "TwelveMonthCalendar.CalendarClanFinanceModel");
+            _settlementFoodModelType = RequireType(approved, "TwelveMonthCalendar.CalendarSettlementFoodModel");
             _strategicMarkerType = RequireType(approved, "TwelveMonthCalendar.CalendarWorldStrategicMarkerVM");
 
             _extendedEnabled = RequireProperty(_settingsType, "ExtendedCalendarEnabled");
@@ -128,6 +134,11 @@ namespace AgesOfCalradia.Approved560CalendarFixes
                 BindingFlags.Instance | BindingFlags.NonPublic);
             if (_nativeFinance == null)
                 throw new MissingFieldException(_financeModelType.FullName, "_native");
+            _nativeSettlementFood = _settlementFoodModelType.GetField(
+                "_native",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            if (_nativeSettlementFood == null)
+                throw new MissingFieldException(_settlementFoodModelType.FullName, "_native");
         }
 
         internal static bool ExtendedEnabled
@@ -162,6 +173,13 @@ namespace AgesOfCalradia.Approved560CalendarFixes
                 && _nativeFinance.GetValue(instance) is DefaultClanFinanceModel;
         }
 
+        internal static SettlementFoodModel GetNativeSettlementFood(object instance)
+        {
+            return instance == null || _nativeSettlementFood == null
+                ? null
+                : _nativeSettlementFood.GetValue(instance) as SettlementFoodModel;
+        }
+
         internal static float ScaleDailyProbability(float probability)
         {
             if (!ExtendedEnabled) return probability;
@@ -190,6 +208,7 @@ namespace AgesOfCalradia.Approved560CalendarFixes
     {
         internal static MethodInfo CampaignTickMapTime;
         internal static MethodInfo WorkshopConversionSpeed;
+        internal static MethodInfo TownFoodStocksChange;
         internal static MethodInfo RandomWarDecision;
         internal static ConstructorInfo StrategicMarkerConstructor;
 
@@ -199,6 +218,9 @@ namespace AgesOfCalradia.Approved560CalendarFixes
             WorkshopConversionSpeed = AccessTools.Method(
                 typeof(DefaultWorkshopModel),
                 "GetEffectiveConversionSpeedOfProduction");
+            TownFoodStocksChange = AccessTools.Method(
+                ApprovedCalendarBridge.SettlementFoodModelType,
+                "CalculateTownFoodStocksChange");
             RandomWarDecision = AccessTools.Method(
                 typeof(KingdomDecisionProposalBehavior),
                 "GetRandomWarDecision");
@@ -209,6 +231,10 @@ namespace AgesOfCalradia.Approved560CalendarFixes
             if (CampaignTickMapTime == null) throw new MissingMethodException("Campaign.TickMapTime(float)");
             if (WorkshopConversionSpeed == null)
                 throw new MissingMethodException("DefaultWorkshopModel.GetEffectiveConversionSpeedOfProduction");
+            if (TownFoodStocksChange == null)
+                throw new MissingMethodException(
+                    ApprovedCalendarBridge.SettlementFoodModelType.FullName,
+                    "CalculateTownFoodStocksChange");
             if (RandomWarDecision == null)
                 throw new MissingMethodException("KingdomDecisionProposalBehavior.GetRandomWarDecision");
             if (StrategicMarkerConstructor == null)
@@ -278,6 +304,97 @@ namespace AgesOfCalradia.Approved560CalendarFixes
         {
             if (ApprovedCalendarBridge.AnnualEnabled)
                 speed *= ApprovedCalendarBridge.Factor;
+        }
+    }
+
+    // Native target: the approved main DLL's
+    // CalendarSettlementFoodModel.CalculateTownFoodStocksChange wrapper.
+    // Purpose: preserve Bannerlord's physical market-food contribution while
+    // annualizing direct production and consumption exactly once. The prefix
+    // is hash-locked to 560F1B51 and falls back to the approved implementation
+    // when its native model cannot be resolved. Verify-Approved560CalendarFixes
+    // checks target registration and the direct/market scaling contract.
+    [HarmonyPatch]
+    internal static class TownMarketFoodAccountingFix
+    {
+        private static MethodBase TargetMethod()
+        {
+            return CalendarFixTargets.TownFoodStocksChange;
+        }
+
+        private static bool Prefix(
+            object __instance,
+            Town town,
+            bool includeMarketStocks,
+            bool includeDescriptions,
+            ref ExplainedNumber __result)
+        {
+            if (!ApprovedCalendarBridge.AnnualEnabled)
+            {
+                return true;
+            }
+
+            SettlementFoodModel native = ApprovedCalendarBridge.GetNativeSettlementFood(__instance);
+            if (native == null || town == null)
+            {
+                return true;
+            }
+
+            ExplainedNumber direct = native.CalculateTownFoodStocksChange(
+                town,
+                includeMarketStocks: false,
+                includeDescriptions: includeDescriptions);
+            float nativeDirect = direct.ResultNumber;
+            ScaleDirectBalance(ref direct);
+            if (includeMarketStocks)
+            {
+                float nativeWithMarket = native.CalculateTownFoodStocksChange(
+                    town,
+                    includeMarketStocks: true,
+                    includeDescriptions: false).ResultNumber;
+                direct.Add(
+                    nativeWithMarket - nativeDirect,
+                    includeDescriptions
+                        ? new TextObject("{=AoCMarketFoodContribution}Food available in market")
+                        : null);
+            }
+
+            __result = direct;
+            return false;
+        }
+
+        internal static float CombineForVerification(
+            float nativeDirect,
+            float nativeWithMarket,
+            bool includeMarketStocks,
+            float factor)
+        {
+            return nativeDirect * factor
+                + (includeMarketStocks ? nativeWithMarket - nativeDirect : 0f);
+        }
+
+        private static void ScaleDirectBalance(ref ExplainedNumber value)
+        {
+            float factor = ApprovedCalendarBridge.Factor;
+            float scaledResult = value.ResultNumber * factor;
+            if (!value.IncludeDescriptions)
+            {
+                value = new ExplainedNumber(scaledResult, false, null);
+                return;
+            }
+
+            ExplainedNumber scaled = new ExplainedNumber(0f, true, null);
+            foreach (var line in value.GetLines())
+            {
+                scaled.Add(line.number * factor, new TextObject("{=!}" + line.name));
+            }
+            if (scaled.GetLines().Count == 0 && Math.Abs(scaledResult) > 0.0001f)
+            {
+                scaled.Add(
+                    scaledResult,
+                    new TextObject("{=AoCCalendarCadence}Calendar cadence"));
+            }
+            value = scaled;
         }
     }
 
