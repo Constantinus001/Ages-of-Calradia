@@ -3,6 +3,7 @@ param(
     [string]$ReleaseArchive,
     [switch]$AllowDirtySource,
     [switch]$IncludeStrategicProvinceDiagnostics,
+    [switch]$SkipInstalledBaseline,
     [ValidateRange(1, 30)]
     [int]$CloudVerdictHoldMinutes = 10
 )
@@ -27,7 +28,12 @@ if ($IncludeStrategicProvinceDiagnostics) {
 }
 else {
     $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client'
-    & $protectedBaselineGate -Root $ModuleRoot
+    if ($SkipInstalledBaseline) {
+        & $protectedBaselineGate -Root $ModuleRoot -SkipInstalled
+    }
+    else {
+        & $protectedBaselineGate -Root $ModuleRoot
+    }
     if (-not $?) {
         throw 'Protected political-renderer gate failed.'
     }

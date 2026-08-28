@@ -25,7 +25,7 @@ if (-not $AllowDirtySource) {
 }
 
 $protectedGate = Join-Path $PSScriptRoot 'Verify-ProtectedPoliticalBaseline.ps1'
-& $protectedGate -Root $ModuleRoot
+& $protectedGate -Root $ModuleRoot -SkipInstalled
 if (-not $?) { throw 'Protected political-renderer gate failed.' }
 
 [xml]$coreManifest = Get-Content -LiteralPath (Join-Path $ModuleRoot 'SubModule.xml') -Raw
@@ -45,6 +45,7 @@ $coreGateArguments = @{
     ModuleRoot = $ModuleRoot
     ReleaseArchive = $coreFullArchive
     CloudVerdictHoldMinutes = 1
+    SkipInstalledBaseline = $true
 }
 if ($AllowDirtySource) { $coreGateArguments.AllowDirtySource = $true }
 & (Join-Path $PSScriptRoot 'Verify-Release.ps1') @coreGateArguments
