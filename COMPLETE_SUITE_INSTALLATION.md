@@ -2,10 +2,10 @@
 
 This archive contains the complete player runtime for Bannerlord v1.4.8:
 
-- `Ages Of Calradia` — AOC Core, calendar, World Events UI, political and
+- `AOC CORE` — AOC Core, calendar, World Events UI, political and
   strategic maps, compatibility fixes, and optional MCM integration.
-- `AgesOfCalradiaSystemsLR` — Logistics and Refuges.
-- `AgesOfCalradiaSystemsRS` — Religions, population, census/map modes, and
+- `AOC L&R` — Logistics and Refuges.
+- `AOC R&S` — Religions, population, census/map modes, and
   hereditary succession.
 
 ## Installation

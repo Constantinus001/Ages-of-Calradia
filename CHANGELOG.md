@@ -1,5 +1,10 @@
 # Changelog
 
+## Complete Suite v1.0.1 — 2026-08-28
+
+- Renamed the packaged module folders to `AOC CORE`, `AOC L&R`, and `AOC R&S`.
+- Preserved the existing internal module IDs, dependencies, and save contracts.
+
 ## Complete Suite v1.0.0 — 2026-08-28
 
 - Added one install-ready GitHub package containing AOC Core v1.5.14,

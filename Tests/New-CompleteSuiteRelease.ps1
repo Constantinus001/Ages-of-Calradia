@@ -7,7 +7,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$suiteVersion = 'v1.0.0'
+$suiteVersion = 'v1.0.1'
 $artifactsRoot = [IO.Path]::GetFullPath((Join-Path $ModuleRoot 'artifacts'))
 if ([string]::IsNullOrWhiteSpace($OutputArchive)) {
     $OutputArchive = Join-Path $artifactsRoot "Ages-of-Calradia-Complete-Suite-$suiteVersion.zip"
@@ -77,21 +77,21 @@ try {
     if (-not (Test-Path -LiteralPath $coreExtractedModule -PathType Container)) {
         throw 'Slim Core archive did not contain the expected module root.'
     }
-    Copy-Item -LiteralPath $coreExtractedModule -Destination (Join-Path $modulesStage 'Ages Of Calradia') -Recurse
-    Copy-Item -LiteralPath (Join-Path $lrExtract 'Modules\AgesOfCalradiaSystemsLR') -Destination $modulesStage -Recurse
-    Copy-Item -LiteralPath (Join-Path $rsExtract 'Modules\AgesOfCalradiaSystemsRS') -Destination $modulesStage -Recurse
+    Copy-Item -LiteralPath $coreExtractedModule -Destination (Join-Path $modulesStage 'AOC CORE') -Recurse
+    Copy-Item -LiteralPath (Join-Path $lrExtract 'Modules\AgesOfCalradiaSystemsLR') -Destination (Join-Path $modulesStage 'AOC L&R') -Recurse
+    Copy-Item -LiteralPath (Join-Path $rsExtract 'Modules\AgesOfCalradiaSystemsRS') -Destination (Join-Path $modulesStage 'AOC R&S') -Recurse
     Copy-Item -LiteralPath (Join-Path $ModuleRoot 'COMPLETE_SUITE_INSTALLATION.md') -Destination $releaseRoot
 
-    $expectedFolders = @('Ages Of Calradia', 'AgesOfCalradiaSystemsLR', 'AgesOfCalradiaSystemsRS')
+    $expectedFolders = @('AOC CORE', 'AOC L&R', 'AOC R&S')
     $actualFolders = @(Get-ChildItem -LiteralPath $modulesStage -Directory | Select-Object -ExpandProperty Name | Sort-Object)
     if (Compare-Object -ReferenceObject ($expectedFolders | Sort-Object) -DifferenceObject $actualFolders) {
         throw 'Complete suite must contain exactly Core, Systems L & R, and Systems R & S.'
     }
 
     $expectedIds = @{
-        'Ages Of Calradia' = 'AgesOfCalradia'
-        'AgesOfCalradiaSystemsLR' = 'AgesOfCalradiaSystemsLR'
-        'AgesOfCalradiaSystemsRS' = 'AgesOfCalradiaSystemsRS'
+        'AOC CORE' = 'AgesOfCalradia'
+        'AOC L&R' = 'AgesOfCalradiaSystemsLR'
+        'AOC R&S' = 'AgesOfCalradiaSystemsRS'
     }
     foreach ($folder in $expectedFolders) {
         $modulePath = Join-Path $modulesStage $folder
@@ -106,7 +106,7 @@ try {
         }
     }
 
-    $corePath = Join-Path $modulesStage 'Ages Of Calradia'
+    $corePath = Join-Path $modulesStage 'AOC CORE'
     $approvedCoreHash = '560F1B5181F8CC2EFE51564D8675FD3089E722606FA55B0B166D36ECD9868D8E'
     $approvedWorldEventsHash = 'E7013CF2B18B381119CC7479F0840BC423CD59565913BD22BBFC1E0C55A82E5E'
     if ((Get-FileHash -LiteralPath (Join-Path $corePath 'bin\Win64_Shipping_Client\AgesOfCalradia.dll') -Algorithm SHA256).Hash -ne $approvedCoreHash) {
@@ -127,7 +127,7 @@ try {
         }
     }
 
-    $lrRoot = Join-Path $modulesStage 'AgesOfCalradiaSystemsLR'
+    $lrRoot = Join-Path $modulesStage 'AOC L&R'
     foreach ($scene in @(
         'rct_refuge_temperate_land','rct_refuge_temperate_river','rct_refuge_temperate_coast',
         'rct_refuge_snow_land','rct_refuge_snow_river','rct_refuge_snow_coast',
@@ -139,7 +139,7 @@ try {
         }
     }
 
-    $rsRoot = Join-Path $modulesStage 'AgesOfCalradiaSystemsRS'
+    $rsRoot = Join-Path $modulesStage 'AOC R&S'
     foreach ($file in @(
         'ModuleData\religions.json','ModuleData\holy_sites.json',
         'GUI\Prefabs\AocStrategicMapModes.xml',
