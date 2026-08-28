@@ -60,12 +60,13 @@ if ($summary.LocalName -ne 'WorldEventsRowSnapScrollablePanel' -or
     $summary.RowStride -ne '119' -or
     $summary.WidthSizePolicy -ne 'Fixed' -or $summary.SuggestedWidth -ne '285' -or
     $summary.HeightSizePolicy -ne 'StretchToParent' -or
-    $summary.MarginTop -ne '@StrategicSummaryContentTop' -or
-    $summary.MarginBottom -ne '@StrategicSummaryScrollerMarginBottom' -or
+    $summary.MarginTop -ne '273' -or
+    $summary.MarginBottom -ne '60' -or
     $summaryBody.SuggestedWidth -ne '248' -or $summaryBody.MarginLeft -ne '10' -or
     $summaryScrollbar.HeightSizePolicy -ne 'StretchToParent' -or
-    $summaryScrollbar.MarginTop -ne '@StrategicSummaryContentTop' -or
-    $summaryScrollbar.MarginBottom -ne '@StrategicSummaryScrollerMarginBottom') {
+    $summaryScrollbar.MarginTop -ne '273' -or
+    $summaryScrollbar.MarginBottom -ne '60' -or
+    $summaryHeading.MarginTop -ne '244') {
     throw 'Strategic Map ledger failed: summary text and scrollbar do not share the approved lower aperture.'
 }
 if ($summaryScrollbar.LocalName -ne 'ScrollbarWidget' -or

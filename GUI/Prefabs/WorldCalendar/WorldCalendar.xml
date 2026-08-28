@@ -1253,9 +1253,12 @@
                 <Widget IsVisible="false" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="33" MarginLeft="4" MarginRight="4" MarginTop="4" Sprite="BlankWhiteSquare_9" Color="#21180FE8" />
                 <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="4" Brush="Popup.Button.Text" Brush.FontSize="16" Text="WAR ROOM LEDGER" Color="#D8BD83FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
                 <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="227" SuggestedHeight="1" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="37" Sprite="BlankWhiteSquare_9" Color="#8A6738FF" />
-                <Widget IsVisible="false" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@StrategicMapLegendContentWidth" SuggestedHeight="@StrategicMapLegendHeight" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="@StrategicMapLegendContentTop"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" AlphaFactor="0.62" /><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4" Sprite="BlankWhiteSquare_9" Color="#17110CD8" /></Children></Widget>
-                <Widget IsVisible="false" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="7" MarginRight="7" MarginTop="@StrategicMapLegendSeparatorTop" MarginBottom="7"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" AlphaFactor="0.58" /><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4" Sprite="BlankWhiteSquare_9" Color="#100C09D4" /></Children></Widget>
-                <ListPanel IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@StrategicMapLegendContentWidth" SuggestedHeight="@StrategicMapLegendHeight" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="@StrategicMapLegendContentTop" StackLayout.LayoutMethod="VerticalTopToBottom">
+                <Widget IsVisible="false" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@StrategicMapLegendContentWidth" SuggestedHeight="176" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="40"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" AlphaFactor="0.62" /><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4" Sprite="BlankWhiteSquare_9" Color="#17110CD8" /></Children></Widget>
+                <Widget IsVisible="false" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="7" MarginRight="7" MarginTop="244" MarginBottom="7"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" AlphaFactor="0.58" /><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4" Sprite="BlankWhiteSquare_9" Color="#100C09D4" /></Children></Widget>
+                <!-- The authored foreground mask clears this panel only through
+                     display y=217. Keep the complete legend at y=40..216 so the
+                     baked cabinet divider cannot paint over the party key. -->
+                <ListPanel IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="@StrategicMapLegendContentWidth" SuggestedHeight="176" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="40" StackLayout.LayoutMethod="VerticalTopToBottom">
                   <Children>
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="MAP LEGEND" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
                     <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="@StrategicMapLegendIconSize" StackLayout.LayoutMethod="HorizontalLeftToRight">
@@ -1273,47 +1276,48 @@
                       </Children>
                     </ListPanel>
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="19" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Province colour = current owner" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
-                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="23" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Approx. scale: 1 unit = 1.4 km" Color="#E8D19EFF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="21" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
-                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="23">
+                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="21">
                           <Children>
                             <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="17" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#72B7FFFF" />
                             <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="17" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="10" Text="P" Color="#102018FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
                           </Children>
                         </Widget>
-                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="148" SuggestedHeight="23" MarginLeft="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Player party" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="148" SuggestedHeight="21" MarginLeft="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Player party" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
                       </Children>
                     </ListPanel>
-                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="23" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="21" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
-                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="23">
+                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="21">
                           <Children>
                             <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="17" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#7DE8B0FF" />
                             <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="17" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="10" Text="C" Color="#102018FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
                           </Children>
                         </Widget>
-                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="148" SuggestedHeight="23" MarginLeft="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Clan party" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="148" SuggestedHeight="21" MarginLeft="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Clan party" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
                       </Children>
                     </ListPanel>
-                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="23" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                    <ListPanel DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="21" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
-                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="23">
+                        <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="21">
                           <Children>
                             <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="17" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="BlankWhiteSquare" Color="#65E89AFF" />
                             <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="17" SuggestedHeight="17" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="10" Text="A" Color="#102018FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
                           </Children>
                         </Widget>
-                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="148" SuggestedHeight="23" MarginLeft="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Friendly army" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="148" SuggestedHeight="21" MarginLeft="17" Brush="Popup.Button.Text" Brush.FontSize="@StrategicMapLegendFontSize" Text="Friendly army" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
                       </Children>
                     </ListPanel>
                   </Children>
                 </ListPanel>
-                <Widget IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="218" SuggestedHeight="2" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="@StrategicMapLegendSeparatorTop" Sprite="BlankWhiteSquare" Color="#5C4325FF" />
+                <Widget IsVisible="@ShowStrategicMapLegend" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="218" SuggestedHeight="2" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="244" Sprite="BlankWhiteSquare" Color="#5C4325FF" />
                 <!-- The ledger title is outside the moving viewport.  Scrolling can
                      move only the live cards/details, never the title or legend. -->
-                <TextWidget Id="StrategicSummaryHeading" IsVisible="@ShowStrategicKingdomRows" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="248" SuggestedHeight="27" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="31" MarginTop="@StrategicMapLegendSeparatorTop" Brush="Popup.Button.Text" Brush.FontSize="15" Text="KINGDOM SUMMARY" Color="#F0D69AFF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
-                <TextWidget Id="StrategicSettlementHeading" IsVisible="@ShowStrategicSettlementDetails" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="248" SuggestedHeight="27" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="31" MarginTop="@StrategicMapLegendSeparatorTop" Brush="Popup.Button.Text" Brush.FontSize="13" Text="SETTLEMENT RECORD" Color="#D8BD83FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
-                <WorldEventsRowSnapScrollablePanel Id="StrategicSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="285" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="@StrategicSummaryContentTop" MarginBottom="@StrategicSummaryScrollerMarginBottom" InnerPanel="StrategicSummaryClip\StrategicSummaryBody" ClipRect="StrategicSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\StrategicSummaryScrollbar" AutoHideScrollBars="false" AutoHideScrollBarHandle="false" OnlyAcceptScrollEventIfCanScroll="true" RowStride="119" ResetOnShow="true">
+                <TextWidget Id="StrategicSummaryHeading" IsVisible="@ShowStrategicKingdomRows" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="248" SuggestedHeight="27" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="31" MarginTop="244" Brush="Popup.Button.Text" Brush.FontSize="15" Text="KINGDOM SUMMARY" Color="#F0D69AFF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                <TextWidget Id="StrategicSettlementHeading" IsVisible="@ShowStrategicSettlementDetails" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="248" SuggestedHeight="27" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="31" MarginTop="244" Brush="Popup.Button.Text" Brush.FontSize="13" Text="SETTLEMENT RECORD" Color="#D8BD83FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                <WorldEventsRowSnapScrollablePanel Id="StrategicSummaryScroller" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="285" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="273" MarginBottom="60" InnerPanel="StrategicSummaryClip\StrategicSummaryBody" ClipRect="StrategicSummaryClip" MouseScrollAxis="Vertical" VerticalScrollbar="..\StrategicSummaryScrollbar" AutoHideScrollBars="false" AutoHideScrollBarHandle="false" OnlyAcceptScrollEventIfCanScroll="true" RowStride="119" ResetOnShow="true">
                   <Children>
                     <Widget Id="StrategicSummaryClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                       <Children>
@@ -1340,6 +1344,13 @@
                               </ItemTemplate>
                             </ListPanel>
                             <TextWidget Id="StrategicSummaryText" IsVisible="@ShowStrategicSettlementDetails" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" MarginTop="4" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@StrategicText" Color="#F1E2C3FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                            <TextWidget IsVisible="@ShowStrategicSettlementDetails" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="21" MarginTop="7" Brush="Popup.Button.Text" Brush.FontSize="11" Text="DISTANCE SURVEY" Color="#D8BD83FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
+                            <TextWidget IsVisible="@ShowStrategicSettlementDetails" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" Brush="Popup.Button.Text" Brush.FontSize="11" Text="@StrategicDistanceText" Color="#F1E2C3FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                            <ButtonWidget IsVisible="@ShowStrategicSettlementDetails" DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="27" MarginTop="5" Sprite="StdAssets\Popup\button_default" Command.Click="ExecuteSetStrategicDistanceOrigin">
+                              <Children>
+                                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="10" Text="@StrategicDistanceActionText" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                              </Children>
+                            </ButtonWidget>
                             <TextWidget IsVisible="@HasSelectedStrategicSettlement" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="21" MarginTop="5" Brush="Popup.Button.Text" Brush.FontSize="11" Text="BOUND VILLAGES" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" />
                             <ListPanel DataSource="{SelectedStrategicVillages}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
                               <ItemTemplate>
@@ -1376,7 +1387,7 @@
                     </Widget>
                   </Children>
                 </WorldEventsRowSnapScrollablePanel>
-                <ScrollbarWidget Id="StrategicSummaryScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="13" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="17" MarginTop="@StrategicSummaryContentTop" MarginBottom="@StrategicSummaryScrollerMarginBottom" AlignmentAxis="Vertical" Handle="StrategicSummaryScrollbarHandle" MaxValue="100" MinValue="0">
+                <ScrollbarWidget Id="StrategicSummaryScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="13" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="17" MarginTop="273" MarginBottom="60" AlignmentAxis="Vertical" Handle="StrategicSummaryScrollbarHandle" MaxValue="100" MinValue="0">
                   <Children>
                     <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="5" HorizontalAlignment="Center" MarginTop="7" MarginBottom="7" Sprite="BlankWhiteSquare_9" Color="#3A2918FF" />
                     <Widget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center" MarginTop="8" MarginBottom="8" Sprite="BlankWhiteSquare" Color="#C6964DFF" />

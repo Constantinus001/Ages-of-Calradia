@@ -35,6 +35,15 @@ Before changing code, read [`docs/CODE_QUALITY.md`](docs/CODE_QUALITY.md).
 
 ## Project-specific cautions
 
+- **Protected political renderer:** `bin/Win64_Shipping_Client/AgesOfCalradia.dll`
+  is an immutable user-approved artifact. Its required SHA-256 is
+  `560F1B5181F8CC2EFE51564D8675FD3089E722606FA55B0B166D36ECD9868D8E`.
+  The approved `GUI\Prefabs\WorldCalendar\WorldCalendar.xml` is also immutable
+  at SHA-256 `E7013CF2B18B381119CC7479F0840BC423CD59565913BD22BBFC1E0C55A82E5E`.
+  Never rebuild, replace, copy over, or deploy either protected artifact. Never
+  fold new systems into them. Religion, population, strategic-map modes, and
+  later features must ship in separate sidecar/module assemblies. Run
+  `Tests\Verify-ProtectedPoliticalBaseline.ps1` before any deployment or release.
 - Bannerlord APIs are version-sensitive; verify Harmony targets and optional
   integrations before relying on them.
 - Native game calls, reflection, texture creation, mission setup, and save

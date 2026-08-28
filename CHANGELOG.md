@@ -1,5 +1,27 @@
 # Changelog
 
+## v1.5.14 — 2026-08-28
+
+- Preserved the user-approved core renderer exactly at SHA-256 `560F1B51...`
+  and the approved World Events prefab at `E7013CF2...`.
+- Corrected Gregorian town food accounting: food production, demand, workshop
+  conversion, and market smoothing use their coordinated native cadence, then
+  only the final town food surplus or deficit is annualized once.
+- Restored the complete World Events runtime asset set and correct v2/v6 shell
+  composition, while excluding unused legacy tab and shell experiments from
+  the player archive.
+- Restored World Events ledger mouse-wheel and scrollbar support through the
+  production compatibility sidecar, without shipping diagnostics.
+- Kept the Strategic Map legend inside the authored foreground aperture so the
+  player, clan, and friendly-army keys no longer overlap the kingdom summary.
+- Added AM/PM beneath the campaign-map clock while preserving the configured
+  12-hour or 24-hour time display.
+- Bundled the single supported Harmony 2.4.2 runtime. Do not enable a separate
+  Bannerlord.Harmony module alongside Ages of Calradia.
+
+- Updated Ages of Calradia's single bundled Harmony provider from 2.2.2 to
+  2.4.2. The separate Bannerlord.Harmony module must remain disabled when using
+  this package so the same Harmony assembly is not loaded twice.
 - Removed `AgesOfCalradia.PoliticalSettingsBridge.dll` from active registration and release packaging. Video and runtime-log inspection proved that this sidecar postfixed every political fill mesh, replaced the main assembly's material after construction, and forced 25% brightness despite the saved 100% setting; this is why prior main-DLL renderer changes produced no visual difference. Political opacity and brightness now come directly from `CalendarSettingsState` inside the main assembly, and the flat fill material can no longer be overwritten after construction.
 - Reverted the attempted Battania-lake topology extension after runtime diagnostics proved it recovered `100,498` edge-connected water probes and visibly filled coastal channels and bays. River-connected exterior water remains rejected by the prior classifier; the interrupted river-shore expansion was removed as well.
 - Made the opaque political material explicitly flat and isolated from the campaign terrain's later render layers: its private `vertex_color_mat` copy does not use sun or dynamic lighting, receive sun or dynamic shadows, cast shadows, or accept environment decals. Faction frontiers retain their accepted material and geometry.
@@ -8,6 +30,19 @@
 
 Current development targets Bannerlord Native v1.4.8. Historical releases
 retain the target documented in their own manifests.
+
+## Rejected v1.5.13 experiment — 2026-08-27 (never release)
+
+- Added Political, Culture, Religion, and Population modes to the World Events
+  strategic map, with clickable controls and `1`–`4` keyboard bindings.
+- Added an optional reflection bridge to the Religions module's monthly
+  demographic snapshot, preserving core startup when that module is disabled.
+- Recovered the deployed World Events behavior contracts into source and
+  restored character-origin, combat-record, messenger, and war-statistics
+  compilation coverage.
+- Rejected and rolled back after it altered the approved island exclusions and
+  World Events composition. Production remains on the hash-locked v1.5.12 main
+  DLL and prefab; future map modes must use a separate integration sidecar.
 
 ## v1.5.12 — 2026-08-25
 

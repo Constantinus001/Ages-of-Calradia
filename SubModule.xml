@@ -2,7 +2,7 @@
 <Module>
   <Name value="Ages of Calradia" />
   <Id value="AgesOfCalradia" />
-  <Version value="v1.5.12" />
+  <Version value="v1.5.14" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <Official value="false" />
@@ -65,7 +65,7 @@
       </Tags>
     </SubModule>
     <SubModule>
-      <Name value="Ages of Calradia v1.5.12 Combined Fixes" />
+      <Name value="Ages of Calradia v1.5.14 Combined Fixes" />
       <DLLName value="AgesOfCalradia.Approved560CalendarFixes.dll" />
       <SubModuleClassType value="AgesOfCalradia.Approved560CalendarFixes.Approved560CalendarFixesSubModule" />
       <Tags>

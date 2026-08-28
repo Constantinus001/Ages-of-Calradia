@@ -6,6 +6,8 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Cryptography;
 using HarmonyLib;
+using TaleWorlds.GauntletUI;
+using TaleWorlds.GauntletUI.BaseTypes;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
@@ -14,8 +16,10 @@ using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.SceneInformationPopupTypes;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.CampaignSystem.Settlements.Workshops;
 using TaleWorlds.CampaignSystem.TournamentGames;
 using TaleWorlds.CampaignSystem.ViewModelCollection.Party;
+using TaleWorlds.Core;
 using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 
@@ -45,6 +49,11 @@ namespace AgesOfCalradia.Approved560CalendarFixes
                     "TwelveMonthCalendar.MapTimeTrackerPatch",
                     "TwelveMonthCalendar.WorkshopProductionBalancePatch",
                     "TwelveMonthCalendar.WorkshopFoodContextPatch",
+                    "TwelveMonthCalendar.VillageFoodProductionBalancePatch",
+                    "TwelveMonthCalendar.VillageProductionBalancePatch",
+                    "TwelveMonthCalendar.SettlementDemandBalancePatch",
+                    "TwelveMonthCalendar.SettlementBudgetBalancePatch",
+                    "TwelveMonthCalendar.SettlementMarketSmoothingBalancePatch",
                     "TwelveMonthCalendar.KingdomWarCooldownPatch");
             }
             catch (Exception exception)
@@ -67,6 +76,75 @@ namespace AgesOfCalradia.Approved560CalendarFixes
                 _harmony = null;
             }
             base.OnSubModuleUnloaded();
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class MapClockMeridiemLayoutPatch
+    {
+        private static PropertyInfo _timeOfDayProperty;
+
+        private static MethodBase TargetMethod()
+        {
+            Assembly approved = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => string.Equals(
+                    a.GetName().Name,
+                    "AgesOfCalradia",
+                    StringComparison.Ordinal));
+            Type clockType = approved == null
+                ? null
+                : approved.GetType("TwelveMonthCalendar.CalendarMapTimeControlVM", false);
+            if (clockType == null)
+                throw new TypeLoadException("TwelveMonthCalendar.CalendarMapTimeControlVM");
+
+            _timeOfDayProperty = clockType.GetProperty(
+                "TimeOfDay",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (_timeOfDayProperty == null || !_timeOfDayProperty.CanRead || !_timeOfDayProperty.CanWrite)
+                throw new MissingMemberException(clockType.FullName, "TimeOfDay");
+
+            MethodInfo refreshClock = clockType.GetMethod(
+                "RefreshClock",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                Type.EmptyTypes,
+                null);
+            if (refreshClock == null)
+                throw new MissingMethodException(clockType.FullName, "RefreshClock");
+            return refreshClock;
+        }
+
+        private static void Postfix(object __instance)
+        {
+            if (__instance == null || Campaign.Current == null || _timeOfDayProperty == null)
+                return;
+
+            string current = _timeOfDayProperty.GetValue(__instance, null) as string;
+            if (string.IsNullOrWhiteSpace(current))
+                return;
+
+            double hourInDay = CampaignTime.Now.ToHours % CampaignTime.HoursInDay;
+            if (hourInDay < 0d)
+                hourInDay += CampaignTime.HoursInDay;
+            string formatted = FormatForVerification(current, (int)Math.Floor(hourInDay));
+            _timeOfDayProperty.SetValue(__instance, formatted, null);
+        }
+
+        internal static string FormatForVerification(string current, int hour)
+        {
+            string clock = (current ?? string.Empty).Replace("\r", string.Empty);
+            int newline = clock.IndexOf('\n');
+            if (newline >= 0)
+                clock = clock.Substring(0, newline);
+            clock = clock.Trim();
+            if (clock.EndsWith(" AM", StringComparison.OrdinalIgnoreCase)
+                || clock.EndsWith(" PM", StringComparison.OrdinalIgnoreCase))
+            {
+                clock = clock.Substring(0, clock.Length - 3).TrimEnd();
+            }
+
+            int normalizedHour = ((hour % 24) + 24) % 24;
+            return clock + "\n" + (normalizedHour < 12 ? "AM" : "PM");
         }
     }
 
@@ -209,6 +287,9 @@ namespace AgesOfCalradia.Approved560CalendarFixes
         internal static MethodInfo CampaignTickMapTime;
         internal static MethodInfo WorkshopConversionSpeed;
         internal static MethodInfo TownFoodStocksChange;
+        internal static MethodInfo VillageProduction;
+        internal static MethodInfo SettlementDemand;
+        internal static MethodInfo SettlementSupplyDemand;
         internal static MethodInfo RandomWarDecision;
         internal static ConstructorInfo StrategicMarkerConstructor;
 
@@ -221,6 +302,22 @@ namespace AgesOfCalradia.Approved560CalendarFixes
             TownFoodStocksChange = AccessTools.Method(
                 ApprovedCalendarBridge.SettlementFoodModelType,
                 "CalculateTownFoodStocksChange");
+            VillageProduction = AccessTools.Method(
+                typeof(DefaultVillageProductionCalculatorModel),
+                "CalculateDailyProductionAmount",
+                new[] { typeof(Village), typeof(ItemObject) });
+            SettlementDemand = AccessTools.Method(
+                typeof(DefaultSettlementEconomyModel),
+                "GetDailyDemandForCategory",
+                new[] { typeof(Town), typeof(ItemCategory), typeof(int) });
+            SettlementSupplyDemand = AccessTools.Method(
+                typeof(DefaultSettlementEconomyModel),
+                "GetSupplyDemandForCategory",
+                new[]
+                {
+                    typeof(Town), typeof(ItemCategory), typeof(float),
+                    typeof(float), typeof(float), typeof(float)
+                });
             RandomWarDecision = AccessTools.Method(
                 typeof(KingdomDecisionProposalBehavior),
                 "GetRandomWarDecision");
@@ -235,6 +332,15 @@ namespace AgesOfCalradia.Approved560CalendarFixes
                 throw new MissingMethodException(
                     ApprovedCalendarBridge.SettlementFoodModelType.FullName,
                     "CalculateTownFoodStocksChange");
+            if (VillageProduction == null)
+                throw new MissingMethodException(
+                    "DefaultVillageProductionCalculatorModel.CalculateDailyProductionAmount(Village, ItemObject)");
+            if (SettlementDemand == null)
+                throw new MissingMethodException(
+                    "DefaultSettlementEconomyModel.GetDailyDemandForCategory(Town, ItemCategory, int)");
+            if (SettlementSupplyDemand == null)
+                throw new MissingMethodException(
+                    "DefaultSettlementEconomyModel.GetSupplyDemandForCategory(Town, ItemCategory, float, float, float, float)");
             if (RandomWarDecision == null)
                 throw new MissingMethodException("KingdomDecisionProposalBehavior.GetRandomWarDecision");
             if (StrategicMarkerConstructor == null)
@@ -300,20 +406,138 @@ namespace AgesOfCalradia.Approved560CalendarFixes
     {
         private static MethodBase TargetMethod() { return CalendarFixTargets.WorkshopConversionSpeed; }
 
-        private static void Prefix(ref float speed)
+        private static void Prefix(Workshop workshop, ref float speed)
         {
-            if (ApprovedCalendarBridge.AnnualEnabled)
+            // Food workshops remain on Bannerlord's native daily cadence in
+            // the vanilla-food test mode. Other workshops retain the annual
+            // conversion installed by v1.5.12.
+            if (ApprovedCalendarBridge.AnnualEnabled
+                && !VanillaFoodCadence.ProducesFood(workshop))
                 speed *= ApprovedCalendarBridge.Factor;
+        }
+    }
+
+    internal static class VanillaFoodCadence
+    {
+        internal static bool IsFood(ItemCategory category)
+        {
+            return category != null
+                && category.Properties == ItemCategory.Property.BonusToFoodStores;
+        }
+
+        internal static bool ProducesFood(Workshop workshop)
+        {
+            if (workshop == null || workshop.WorkshopType == null)
+                return false;
+
+            foreach (WorkshopType.Production production in workshop.WorkshopType.Productions)
+            {
+                foreach (var output in production.Outputs)
+                {
+                    if (IsFood(output.Item1))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        internal static float ScaleDemandForVerification(float nativeDemand, bool isFood, float factor)
+        {
+            return isFood ? nativeDemand : nativeDemand * factor;
+        }
+
+        internal static float ScaleFinalForVerification(float nativeResult, float factor)
+        {
+            return nativeResult * factor;
+        }
+
+        internal static void ScaleFinal(ref ExplainedNumber value)
+        {
+            float factor = ApprovedCalendarBridge.Factor;
+            float scaledResult = value.ResultNumber * factor;
+            if (!value.IncludeDescriptions)
+            {
+                value = new ExplainedNumber(scaledResult, false, null);
+                return;
+            }
+
+            ExplainedNumber scaled = new ExplainedNumber(0f, true, null);
+            foreach (var line in value.GetLines())
+                scaled.Add(line.number * factor, new TextObject("{=!}" + line.name));
+            if (scaled.GetLines().Count == 0 && Math.Abs(scaledResult) > 0.0001f)
+                scaled.Add(scaledResult, new TextObject("{=AoCCalendarCadence}Calendar cadence"));
+            value = scaled;
+        }
+    }
+
+    // Native target: DefaultVillageProductionCalculatorModel's discrete food
+    // production method. Its legacy annual postfix is retired at startup, so
+    // this method intentionally has no replacement: village food goods remain
+    // on the native daily cadence. The category-aware production patch below
+    // preserves annual conversion for non-food village outputs.
+    [HarmonyPatch(typeof(DefaultVillageProductionCalculatorModel), "CalculateDailyProductionAmount")]
+    internal static class FoodAwareVillageProductionFix
+    {
+        private static void Postfix(ItemObject item, ref ExplainedNumber __result)
+        {
+            if (!ApprovedCalendarBridge.AnnualEnabled
+                || item == null
+                || VanillaFoodCadence.IsFood(item.ItemCategory))
+                return;
+
+            VanillaFoodCadence.ScaleFinal(ref __result);
+        }
+    }
+
+    // Native target: DefaultSettlementEconomyModel.GetDailyDemandForCategory.
+    // Food demand stays vanilla; non-food demand keeps one annual conversion.
+    // The legacy budget postfix is retired because Bannerlord derives budget
+    // directly from this demand and scaling the budget again was factor^2.
+    [HarmonyPatch(typeof(DefaultSettlementEconomyModel), "GetDailyDemandForCategory")]
+    internal static class FoodAwareSettlementDemandFix
+    {
+        private static void Postfix(ItemCategory category, ref float __result)
+        {
+            if (ApprovedCalendarBridge.AnnualEnabled && !VanillaFoodCadence.IsFood(category))
+                __result *= ApprovedCalendarBridge.Factor;
+        }
+    }
+
+    // Native target: DefaultSettlementEconomyModel.GetSupplyDemandForCategory.
+    // Food prices retain native smoothing because their production and demand
+    // both run at native cadence. Non-food categories retain Gregorian annual
+    // smoothing. If the signature changes, startup validation disables the
+    // whole sidecar before any legacy patch is removed.
+    [HarmonyPatch(typeof(DefaultSettlementEconomyModel), "GetSupplyDemandForCategory")]
+    internal static class FoodAwareMarketSmoothingFix
+    {
+        private static void Postfix(
+            ItemCategory category,
+            float dailySupply,
+            float dailyDemand,
+            float oldSupply,
+            float oldDemand,
+            ref ValueTuple<float, float> __result)
+        {
+            if (!ApprovedCalendarBridge.AnnualEnabled || VanillaFoodCadence.IsFood(category))
+                return;
+
+            const float nativeDailySmoothing = 0.15f;
+            float factor = ApprovedCalendarBridge.Factor;
+            float smoothing = 1f - (float)Math.Pow(1f - nativeDailySmoothing, factor);
+            float supply = Math.Max(0.1f, oldSupply * (1f - smoothing) + dailySupply * smoothing);
+            float demand = oldDemand * (1f - smoothing) + dailyDemand * smoothing;
+            __result = new ValueTuple<float, float>(supply, demand);
         }
     }
 
     // Native target: the approved main DLL's
     // CalendarSettlementFoodModel.CalculateTownFoodStocksChange wrapper.
-    // Purpose: preserve Bannerlord's physical market-food contribution while
-    // annualizing direct production and consumption exactly once. The prefix
+    // Purpose: run the complete food calculation with native daily values,
+    // then annualize only its final surplus or deficit. The prefix
     // is hash-locked to 560F1B51 and falls back to the approved implementation
     // when its native model cannot be resolved. Verify-Approved560CalendarFixes
-    // checks target registration and the direct/market scaling contract.
+    // checks target registration and the final-result scaling contract.
     [HarmonyPatch]
     internal static class TownMarketFoodAccountingFix
     {
@@ -340,26 +564,12 @@ namespace AgesOfCalradia.Approved560CalendarFixes
                 return true;
             }
 
-            ExplainedNumber direct = native.CalculateTownFoodStocksChange(
+            ExplainedNumber nativeResult = native.CalculateTownFoodStocksChange(
                 town,
-                includeMarketStocks: false,
+                includeMarketStocks: includeMarketStocks,
                 includeDescriptions: includeDescriptions);
-            float nativeDirect = direct.ResultNumber;
-            ScaleDirectBalance(ref direct);
-            if (includeMarketStocks)
-            {
-                float nativeWithMarket = native.CalculateTownFoodStocksChange(
-                    town,
-                    includeMarketStocks: true,
-                    includeDescriptions: false).ResultNumber;
-                direct.Add(
-                    nativeWithMarket - nativeDirect,
-                    includeDescriptions
-                        ? new TextObject("{=AoCMarketFoodContribution}Food available in market")
-                        : null);
-            }
-
-            __result = direct;
+            VanillaFoodCadence.ScaleFinal(ref nativeResult);
+            __result = nativeResult;
             return false;
         }
 
@@ -369,32 +579,8 @@ namespace AgesOfCalradia.Approved560CalendarFixes
             bool includeMarketStocks,
             float factor)
         {
-            return nativeDirect * factor
-                + (includeMarketStocks ? nativeWithMarket - nativeDirect : 0f);
-        }
-
-        private static void ScaleDirectBalance(ref ExplainedNumber value)
-        {
-            float factor = ApprovedCalendarBridge.Factor;
-            float scaledResult = value.ResultNumber * factor;
-            if (!value.IncludeDescriptions)
-            {
-                value = new ExplainedNumber(scaledResult, false, null);
-                return;
-            }
-
-            ExplainedNumber scaled = new ExplainedNumber(0f, true, null);
-            foreach (var line in value.GetLines())
-            {
-                scaled.Add(line.number * factor, new TextObject("{=!}" + line.name));
-            }
-            if (scaled.GetLines().Count == 0 && Math.Abs(scaledResult) > 0.0001f)
-            {
-                scaled.Add(
-                    scaledResult,
-                    new TextObject("{=AoCCalendarCadence}Calendar cadence"));
-            }
-            value = scaled;
+            float selected = includeMarketStocks ? nativeWithMarket : nativeDirect;
+            return VanillaFoodCadence.ScaleFinalForVerification(selected, factor);
         }
     }
 
@@ -588,6 +774,79 @@ namespace AgesOfCalradia.Approved560CalendarFixes
             {
                 __args[7] = true;
             }
+        }
+    }
+
+    /// <summary>
+    /// Runtime widget required by the reviewed UI REDESIGN prefab. The test
+    /// build originally supplied it from the alignment-diagnostics assembly;
+    /// keeping the focused widget here makes release scrolling functional
+    /// without shipping diagnostics or changing the approved main DLL.
+    /// </summary>
+    public sealed class WorldEventsRowSnapScrollablePanel : ScrollablePanel
+    {
+        private float _rowStride = 1f;
+        private float _wheelTarget;
+        private bool _hasWheelTarget;
+        private bool _resetOnShow;
+        private bool _wasVisible;
+        private float _previousInnerHeight;
+
+        public WorldEventsRowSnapScrollablePanel(UIContext context) : base(context) { }
+
+        [Editor(false)]
+        public float RowStride
+        {
+            get { return _rowStride; }
+            set { _rowStride = Math.Max(1f, value); }
+        }
+
+        [Editor(false)]
+        public bool ResetOnShow
+        {
+            get { return _resetOnShow; }
+            set { _resetOnShow = value; }
+        }
+
+        protected override void OnUpdate(float dt)
+        {
+            base.OnUpdate(dt);
+
+            float innerHeight = InnerPanel == null ? 0f : InnerPanel.Size.Y;
+            bool contentBecameReady = _previousInnerHeight <= 0.5f && innerHeight > 0.5f;
+            if (_resetOnShow && IsVisible && (!_wasVisible || contentBecameReady))
+            {
+                float minimum = VerticalScrollbar == null ? 0f : VerticalScrollbar.MinValue;
+                if (VerticalScrollbar != null) VerticalScrollbar.SetValueForced(minimum);
+                if (InnerPanel != null) InnerPanel.ScaledPositionYOffset = -minimum;
+                _wheelTarget = minimum;
+                _hasWheelTarget = true;
+            }
+
+            _wasVisible = IsVisible;
+            _previousInnerHeight = innerHeight;
+        }
+
+        protected override bool OnPreviewMouseScroll()
+        {
+            return true;
+        }
+
+        protected override void OnMouseScroll()
+        {
+            if (VerticalScrollbar == null || EventManager.DeltaMouseScroll == 0f)
+                return;
+
+            float current = VerticalScrollbar.ValueFloat;
+            if (!_hasWheelTarget || Math.Abs(current - _wheelTarget) > _rowStride)
+                _wheelTarget = (float)Math.Round(current / _rowStride) * _rowStride;
+
+            float direction = EventManager.DeltaMouseScroll < 0f ? 1f : -1f;
+            _wheelTarget = Math.Max(
+                VerticalScrollbar.MinValue,
+                Math.Min(VerticalScrollbar.MaxValue, _wheelTarget + direction * _rowStride));
+            _hasWheelTarget = true;
+            SetVerticalScrollTarget(_wheelTarget, 0.10f);
         }
     }
 }

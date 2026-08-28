@@ -20,6 +20,14 @@ SHA-256: `560F1B5181F8CC2EFE51564D8675FD3089E722606FA55B0B166D36ECD9868D8E`
 This exact main DLL contains the user-approved political fill. Do not rebuild
 or replace it when restoring or extending v1.5.12.
 
+This is a hard architectural boundary, not a recommendation. All new systems,
+including religion, population, and World Events map modes, must be implemented
+as separate modules or sidecars. Run
+`Tests\Verify-ProtectedPoliticalBaseline.ps1` before deployment.
+
+The approved World Events prefab is protected by the same gate at SHA-256
+`E7013CF2B18B381119CC7479F0840BC423CD59565913BD22BBFC1E0C55A82E5E`.
+
 Calendar and UI corrections are isolated in sidecars:
 
 - `AgesOfCalradia.Approved560CalendarFixes.dll`

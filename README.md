@@ -2,6 +2,34 @@
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.9.
 
+## PERMANENT PROTECTED-CORE RULE — DO NOT MODIFY
+
+The following approved Ages of Calradia systems and files must never be
+modified, replaced, rebuilt, resized, patched, or overwritten for any feature:
+
+- the installed and release `AgesOfCalradia.dll` core binary;
+- `GUI/Prefabs/WorldCalendar/WorldCalendar.xml` and the established World
+  Events interface, dimensions, positions, artwork, and original tabs;
+- political borders, province geometry, political-map rendering, land masks,
+  coastlines, islands, and all island-exclusion behavior;
+- the approved strategic-map political baseline and its assets.
+
+This rule remains binding even when a later request appears to authorize a UI,
+map, border, Census, religion, population, or strategic-map change. New
+features must be implemented only through a separate sidecar module or overlay
+that does not replace, resize, or redraw protected elements. If that is not
+possible, implementation must stop and explicit permission must be requested;
+the protected core must not be changed as a workaround.
+
+Before and after every deployment, verify these approved SHA-256 hashes:
+
+- `AgesOfCalradia.dll`:
+  `560F1B5181F8CC2EFE51564D8675FD3089E722606FA55B0B166D36ECD9868D8E`
+- `GUI/Prefabs/WorldCalendar/WorldCalendar.xml`:
+  `E7013CF2B18B381119CC7479F0840BC423CD59565913BD22BBFC1E0C55A82E5E`
+
+Any mismatch is a failed deployment and must be rolled back before testing.
+
 ## Current player features
 
 - **Gregorian campaign calendar:** a 365-day year, twelve named months,
@@ -91,9 +119,10 @@ other native messages that rely on `CampaignTime.ToString()` use the same format
 
 ## Build and release verification
 
-Release archives contain the complete single runtime module: module XML, module
-data, README, Harmony, the MCM v5 core and calendar adapter, compiled module
-DLLs, and UI prefab XML files. The
+Release archives contain the complete Ages runtime module: module XML, module
+data, README, bundled Harmony 2.4.2, the MCM v5 core and calendar adapter,
+compiled module DLLs, and UI prefab XML files. Do not enable a separate
+Bannerlord.Harmony module alongside this bundled build. The
 retired Better Time adapter and the old-module save bridge are intentionally
 excluded. Development and verification scripts, logs, debug symbols,
 unfinished scene-editor work, editor backups, and shader caches are
@@ -172,8 +201,12 @@ as a leap year.
 The time multiplier slows the campaign clock, not the number of days in the
 calendar. Daily settlement, progression, and finance rates are reduced per
 campaign day by the native-84-day to 365-day ratio, preserving their
-approximate annual rates. Party map speed remains at native values, and
-pregnancy defaults to nine calendar months from the moment conception starts.
+approximate annual rates. Land-party map speed uses the Strategic Map's
+geographic scale with a moderate 1.5x gameplay pace, preserves native terrain,
+weather, cargo, and party-size modifiers, and cannot exceed the equivalent of
+30 mph. Small parties therefore retain their native speed advantage without
+changing bandit pursuit AI. Naval movement remains native. Pregnancy defaults
+to nine calendar months from the moment conception starts.
 
 Native diplomacy is scaled by the same ratio. This preserves the usual annual
 frequency of AI peace, war, alliance, trade, policy, and annexation proposals.

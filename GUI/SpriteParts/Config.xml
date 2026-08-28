@@ -1,8 +1,24 @@
 <Config>
   <SpriteCategory Name="ui_world_calendar">
-    <AlwaysLoad />
   </SpriteCategory>
   <SpriteCategory Name="rct_legend_markers_v2">
+  </SpriteCategory>
+  <SpriteCategory Name="ui_world_events">
+    <AlwaysLoad />
+  </SpriteCategory>
+  <SpriteCategory Name="ui_world_events_v2">
+    <AlwaysLoad />
+  </SpriteCategory>
+  <SpriteCategory Name="ui_world_events_v3">
+    <AlwaysLoad />
+  </SpriteCategory>
+  <SpriteCategory Name="ui_world_events_v4">
+    <AlwaysLoad />
+  </SpriteCategory>
+  <SpriteCategory Name="ui_world_events_v5">
+    <AlwaysLoad />
+  </SpriteCategory>
+  <SpriteCategory Name="ui_world_events_v6">
     <AlwaysLoad />
   </SpriteCategory>
 </Config>
