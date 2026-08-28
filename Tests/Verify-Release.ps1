@@ -18,35 +18,42 @@ if (-not $AllowDirtySource) {
 
 $mainProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.csproj'
 $mcmProject = Join-Path $ModuleRoot 'TwelveMonthCalendar.MCM.csproj'
-$islandExclusionProject = Join-Path $ModuleRoot 'Builds\IslandExclusion\IslandExclusion.csproj'
-$politicalSettingsProject = Join-Path $ModuleRoot 'Builds\PoliticalSettingsBridge\PoliticalSettingsBridge.csproj'
+$approvedFixesProject = Join-Path $ModuleRoot 'Builds\Approved560CalendarFixes\Approved560CalendarFixes.csproj'
+$campaignLabelVisibilityProject = Join-Path $ModuleRoot 'CampaignLabelVisibility.csproj'
+$protectedBaselineGate = Join-Path $PSScriptRoot 'Verify-ProtectedPoliticalBaseline.ps1'
 if ($IncludeStrategicProvinceDiagnostics) {
     $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\AgesOfCalradia_Test_Win64_Shipping_Client'
     dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /p:IncludeStrategicProvinceDiagnostics=true /p:DefineConstants=TRACE%3BSTRATEGIC_PROVINCE_DIAGNOSTICS /p:OutputPath='bin\AgesOfCalradia_Test_Win64_Shipping_Client\' /v:minimal
 }
 else {
     $runtimeBinDirectory = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client'
-    dotnet msbuild $mainProject /t:Rebuild /p:Configuration=Release /v:minimal
-}
-if ($LASTEXITCODE -ne 0) {
-    throw "Main Release build failed with exit code $LASTEXITCODE."
+    & $protectedBaselineGate -Root $ModuleRoot
+    if (-not $?) {
+        throw 'Protected political-renderer gate failed.'
+    }
 }
 $mainDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.dll'
-$islandExclusionDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.IslandExclusion.dll'
-$politicalSettingsDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.PoliticalSettingsBridge.dll'
-$embeddedModuleProjects = @($islandExclusionProject, $politicalSettingsProject)
+$approvedFixesDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.Approved560CalendarFixes.dll'
+$campaignLabelVisibilityDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.CampaignLabelVisibility.dll'
+$embeddedModuleProjects = @(
+    $approvedFixesProject,
+    $campaignLabelVisibilityProject
+)
 foreach ($project in $embeddedModuleProjects) {
     dotnet msbuild $project /t:Rebuild /p:Configuration=Release /p:OutputPath=$runtimeBinDirectory /v:minimal
     if ($LASTEXITCODE -ne 0) {
         throw "Embedded module Release build failed: $project"
     }
 }
-foreach ($embeddedDll in @($islandExclusionDll, $politicalSettingsDll)) {
+foreach ($embeddedDll in @(
+    $approvedFixesDll,
+    $campaignLabelVisibilityDll
+)) {
     if (-not (Test-Path -LiteralPath $embeddedDll -PathType Leaf)) {
         throw "Embedded module output is missing: $embeddedDll"
     }
 }
-$harmonyPackageDll = Join-Path $env:USERPROFILE '.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll'
+$harmonyPackageDll = Join-Path $env:USERPROFILE '.nuget\packages\lib.harmony\2.4.2\lib\net472\0Harmony.dll'
 $harmonyDll = Join-Path $runtimeBinDirectory '0Harmony.dll'
 if (-not (Test-Path -LiteralPath $harmonyPackageDll -PathType Leaf)) {
     throw "Harmony package output is missing: $harmonyPackageDll"
@@ -60,8 +67,7 @@ else {
 if ($LASTEXITCODE -ne 0) {
     throw "MCM Release build failed with exit code $LASTEXITCODE."
 }
-# The MCM rebuild can clean the shared diagnostic output directory. Normalize
-# Harmony after both builds, before reflection checks and archive staging.
+# Normalize the one bundled Harmony provider after both builds.
 Copy-Item -LiteralPath $harmonyPackageDll -Destination $harmonyDll -Force
 $mcmDll = Join-Path $runtimeBinDirectory 'AgesOfCalradia.MCM.dll'
 $mcmCoreDll = Join-Path $runtimeBinDirectory 'MCMv5.dll'
@@ -264,9 +270,12 @@ $worldCalendarSpriteData = Join-Path $ModuleRoot 'GUI\RealisticCalendarTweaksSpr
 $worldCalendarSpriteConfig = Join-Path $ModuleRoot 'GUI\SpriteParts\Config.xml'
 $worldCalendarMap = Join-Path $ModuleRoot 'GUI\SpriteParts\world_calendar\world_calendar_map.png'
 $worldCalendarSheet = Join-Path $ModuleRoot 'AssetSources\GauntletUI\world_calendar_1.png'
+$worldEventsSkinRoot = Join-Path $ModuleRoot 'GUI\CustomUI\WorldEventsSkin'
+$worldEventsSkinManifest = Join-Path $worldEventsSkinRoot 'RuntimeAssetManifest.txt'
 $guiRoot = Join-Path $ModuleRoot 'GUI'
 $assetsRoot = Join-Path $ModuleRoot 'Assets'
 $assetSourcesRoot = Join-Path $ModuleRoot 'AssetSources'
+$runtimeDataCacheRoot = Join-Path $ModuleRoot 'RuntimeDataCache'
 $prefabsRoot = Join-Path $ModuleRoot 'Prefabs'
 $sceneObjRoot = Join-Path $ModuleRoot 'SceneObj'
 $allModuleSceneDirectories = if (Test-Path -LiteralPath $sceneObjRoot -PathType Container) {
@@ -286,11 +295,29 @@ else {
         -not (Test-Path -LiteralPath (Join-Path $_.FullName 'REFUGE_AUTHORING_REQUIRED.txt') -PathType Leaf)
     })
 }
-$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $islandExclusionDll, $politicalSettingsDll, $mcmDll, $mcmCoreDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml, $worldCalendarXml, $worldCalendarSpriteData, $worldCalendarSpriteConfig, $worldCalendarMap, $worldCalendarSheet)
+$runtimeFiles = @($moduleXml, $moduleStrings, $readme, $harmonyDll, $mainDll, $approvedFixesDll, $campaignLabelVisibilityDll, $mcmDll, $mcmCoreDll, $optionsXml, $optionItemXml, $calendarOptionItemXml, $calendarOptionsGroupedPageXml, $mapBarXml, $worldCalendarXml, $worldCalendarSpriteData, $worldCalendarSpriteConfig, $worldCalendarMap, $worldCalendarSheet, $worldEventsSkinManifest)
 foreach ($path in $runtimeFiles) {
     if (-not (Test-Path -LiteralPath $path)) {
         throw "Expected release output is missing: $path"
     }
+}
+$requiredWorldEventsSkinFiles = @(Get-Content -LiteralPath $worldEventsSkinManifest |
+    ForEach-Object { $_.Trim() } |
+    Where-Object { $_ -and -not $_.StartsWith('#') })
+if ($requiredWorldEventsSkinFiles.Count -ne 19) {
+    throw "World Events runtime asset manifest must contain exactly 19 active skin files; found $($requiredWorldEventsSkinFiles.Count)."
+}
+$missingWorldEventsSkinFiles = @($requiredWorldEventsSkinFiles | Where-Object {
+    -not (Test-Path -LiteralPath (Join-Path $worldEventsSkinRoot $_) -PathType Leaf)
+})
+if ($missingWorldEventsSkinFiles.Count -gt 0) {
+    throw "World Events runtime skin is incomplete: $($missingWorldEventsSkinFiles -join ', ')."
+}
+$unlistedWorldEventsSkinFiles = @(Get-ChildItem -LiteralPath $worldEventsSkinRoot -Filter '*.png' -File |
+    Where-Object { $_.Name -notin $requiredWorldEventsSkinFiles } |
+    Select-Object -ExpandProperty Name)
+if ($unlistedWorldEventsSkinFiles.Count -gt 0) {
+    throw "Unused World Events layouts remain in the runtime GUI folder: $($unlistedWorldEventsSkinFiles -join ', ')."
 }
 
 $worldCalendarViewModelText = Get-Content -Raw -LiteralPath $worldCalendarViewModelSource
@@ -300,14 +327,14 @@ if ($worldCalendarViewModelText -notmatch 'FirstCalendarMonth = 0' -or
     throw 'World Events summaries must use zero-based month indices 0 through 11.'
 }
 [xml]$worldCalendarDocument = Get-Content -Raw -LiteralPath $worldCalendarXml
-$strategicMapViewport = @($worldCalendarDocument.SelectNodes('//Widget[@IsVisible="@IsStrategicMap" and @SuggestedWidth="810" and @SuggestedHeight="610" and @MarginLeft="35"]'))
+$strategicMapViewport = @($worldCalendarDocument.SelectNodes('//Widget[@Id="StrategicMapPanel" and @IsVisible="@IsStrategicMap" and @SuggestedWidth="741" and @SuggestedHeight="427" and @MarginLeft="87"]'))
 $strategicMapScroller = @($worldCalendarDocument.SelectNodes('//StrategicMapZoomScrollablePanel[@Id="StrategicMapScroller"]'))
 $strategicMapCanvas = @($worldCalendarDocument.SelectNodes('//Widget[@Id="StrategicMapCanvas"]'))
 if ($strategicMapViewport.Count -ne 1 -or
     $strategicMapViewport[0].'Command.HoverBegin' -ne 'ExecuteStrategicMapHoverBegin' -or
     $strategicMapViewport[0].'Command.HoverEnd' -ne 'ExecuteStrategicMapHoverEnd' -or
     $strategicMapScroller.Count -ne 1 -or
-    $strategicMapScroller[0].'PanWithMouseEnabled' -ne 'true' -or
+    $strategicMapScroller[0].'PanWithMouseEnabled' -ne 'false' -or
     $strategicMapScroller[0].'AutoHideScrollBars' -ne 'false' -or
     $strategicMapScroller[0].'AutoHideScrollBarHandle' -ne 'false' -or
     $strategicMapScroller[0].'Command.HoverBegin' -ne 'ExecuteStrategicMapHoverBegin' -or
@@ -318,7 +345,7 @@ if ($strategicMapViewport.Count -ne 1 -or
     $worldCalendarViewModelText -notmatch '!_isPointerOverStrategicMap') {
     throw 'Strategic-map zoom and panning must remain bound to the hovered scroll viewport, with the canvas anchored from its top-left edge.'
 }
-$strategicTextureWidgets = @($worldCalendarDocument.SelectNodes('//TextureWidget'))
+$strategicTextureWidgets = @($worldCalendarDocument.SelectNodes('//TextureWidget[@TextureProviderName="CalendarStrategicCampaignAtlasTextureProvider"]'))
 $strategicLegendWidgets = @($worldCalendarDocument.SelectNodes('//StrategicLegendDrawWidget'))
 if ($strategicTextureWidgets.Count -ne 1 -or
     $strategicTextureWidgets[0].TextureProviderName -ne 'CalendarStrategicCampaignAtlasTextureProvider' -or
@@ -331,7 +358,7 @@ if ($strategicTextureWidgets.Count -ne 1 -or
 # CalendarSummaryPanel and its monthly/yearly children live inside the framed
 # CalendarContentPanel. The map legend and kingdom summary are now sections of
 # StrategicSidePanel, not standalone frame widgets.
-$goldFramedPanels = @('WorldEventsFrame','CalendarContentPanel','CalendarNotesPanel','SavedSummariesPanel','StrategicMapPanel','StrategicSidePanel')
+$goldFramedPanels = @('WorldEventsFrame','CalendarEditableContentPanel','CalendarEditableNotesPanel','SavedSummariesPanel','StrategicMapPanel','StrategicSidePanel')
 foreach ($panelId in $goldFramedPanels) {
     $panel = @($worldCalendarDocument.SelectNodes("//Widget[@Id='$panelId']"))
     if ($panel.Count -ne 1 -or @($panel[0].SelectNodes('.//BrushWidget[@Brush="TownManagement.GovernorPopup.GoldFrame"]')).Count -lt 1) {
@@ -343,7 +370,7 @@ foreach ($directory in @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRo
         throw "Expected release runtime directory is missing: $directory"
     }
 }
-$runtimeContentDirectories = @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $prefabsRoot) |
+$runtimeContentDirectories = @($moduleDataRoot, $guiRoot, $assetsRoot, $assetSourcesRoot, $runtimeDataCacheRoot, $prefabsRoot) |
     Where-Object { Test-Path -LiteralPath $_ -PathType Container }
 
 [xml]$mapBar = Get-Content -Raw -LiteralPath $mapBarXml
@@ -364,7 +391,7 @@ if ($seasonLabel.Count -ne 1 -or [int]$seasonLabel[0].SuggestedWidth -ne 150 -or
     throw 'Map bar season and year must use the lower line of the widened two-line calendar block.'
 }
 $clockLabel = @($mapBar.SelectNodes('//MapCurrentTimeVisualWidget[@Id="CenterPanel"]/Children/TextWidget[@Text="@TimeOfDay"]'))
-if ($clockLabel.Count -ne 1 -or [int]$clockLabel[0].SuggestedWidth -ne 90 -or $clockLabel[0].PositionXOffset -ne '55' -or $clockLabel[0].PositionYOffset -ne '0' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '18') {
+if ($clockLabel.Count -ne 1 -or [int]$clockLabel[0].SuggestedWidth -ne 70 -or $clockLabel[0].PositionXOffset -ne '47' -or $clockLabel[0].PositionYOffset -ne '0' -or $clockLabel[0].'Brush.TextHorizontalAlignment' -ne 'Center' -or $clockLabel[0].'Brush.FontSize' -ne '14') {
     throw 'Map bar clock must occupy the former season position just right of the sundial.'
 }
 
@@ -392,12 +419,21 @@ if ([string]::IsNullOrWhiteSpace($version) -or $version -notmatch '^v\d+\.\d+\.\
     throw 'SubModule.xml must define a valid Bannerlord version in vMajor.Minor.Patch format.'
 }
 if ($manifest.Module.Id.value -ne 'AgesOfCalradia' -or
-    $manifest.Module.Name.value -ne 'Ages of Calradia') {
-    throw 'The manifest must use the AgesOfCalradia ID and Ages of Calradia display name.'
+    $manifest.Module.Name.value -ne 'AOC CORE') {
+    throw 'The manifest must use the AgesOfCalradia ID and AOC CORE display name.'
+}
+if (-not (Test-Path -LiteralPath $harmonyDll -PathType Leaf)) {
+    throw 'The release must bundle exactly one Harmony runtime in the Ages module.'
 }
 $subModuleNames = @($manifest.Module.SubModules.SubModule.Name.value)
-if ($subModuleNames -notcontains 'Ages of Calradia') {
-    throw 'The runtime submodule must use the Ages of Calradia display name.'
+if ($subModuleNames -notcontains 'AOC CORE') {
+    throw 'The runtime submodule must use the AOC CORE display name.'
+}
+$declaredRuntimeDlls = @($manifest.Module.SubModules.SubModule.DLLName.value | Sort-Object -Unique)
+foreach ($declaredRuntimeDll in $declaredRuntimeDlls) {
+    if (-not (Test-Path -LiteralPath (Join-Path $runtimeBinDirectory $declaredRuntimeDll) -PathType Leaf)) {
+        throw "A DLL declared by the core manifest is missing from the release runtime: $declaredRuntimeDll"
+    }
 }
 $mcmMetadata = @($manifest.Module.DependedModuleMetadatas.DependedModuleMetadata | Where-Object { $_.id -eq 'Bannerlord.MBOptionScreen' })
 $additionalAssemblies = @($manifest.Module.SubModules.SubModule.Assemblies.Assembly | ForEach-Object { $_.value })
@@ -435,7 +471,7 @@ try {
         (Join-Path $moduleStage 'SceneObj') | Out-Null
     Copy-Item -LiteralPath $moduleXml, $readme -Destination $moduleStage
     Copy-Item -LiteralPath $runtimeContentDirectories -Destination $moduleStage -Recurse
-    Copy-Item -LiteralPath $harmonyDll, $mainDll, $islandExclusionDll, $politicalSettingsDll, $mcmDll, $mcmCoreDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
+    Copy-Item -LiteralPath $harmonyDll, $mainDll, $approvedFixesDll, $campaignLabelVisibilityDll, $mcmDll, $mcmCoreDll -Destination (Join-Path $moduleStage 'bin\Win64_Shipping_Client')
     foreach ($sceneDirectory in $runtimeSceneDirectories) {
         Get-ChildItem -LiteralPath $sceneDirectory.FullName -Recurse -File |
             Where-Object { $_.FullName -notmatch '[\\/]ShaderCache[\\/]' } |
@@ -461,8 +497,8 @@ $expectedEntries = @(
     'AgesOfCalradia/ModuleData/module_strings.xml',
     'AgesOfCalradia/bin/Win64_Shipping_Client/0Harmony.dll',
     'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.dll',
-    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.IslandExclusion.dll',
-    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.PoliticalSettingsBridge.dll',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.Approved560CalendarFixes.dll',
+    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.CampaignLabelVisibility.dll',
     'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.MCM.dll',
     'AgesOfCalradia/bin/Win64_Shipping_Client/MCMv5.dll'
 )

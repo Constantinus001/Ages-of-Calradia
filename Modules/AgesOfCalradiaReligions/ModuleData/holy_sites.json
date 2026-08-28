@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "purpose": "Canonical holy places used by the active access and religious-tension systems.",
+  "sites": [
+    { "id": "danustica_three_testaments", "settlementId": "town_ES1", "name": "Danustica, City of the Three Testaments", "sharedBy": ["asharim", "valeronism", "mazirism"], "status": "active" },
+    { "id": "lycaron_valeronist_see", "settlementId": "town_ES4", "name": "Lycaron Apostolic See", "sharedBy": ["valeronism"], "status": "active" },
+    { "id": "sanala_house_of_recitation", "settlementId": "town_A6", "name": "Sanala House of Recitation", "sharedBy": ["mazirism"], "status": "active" },
+    { "id": "quyaz_star_well", "settlementId": "town_A1", "name": "Quyaz Star-Well", "sharedBy": ["isharan_way"], "status": "active" },
+    { "id": "makeb_sky_shrine", "settlementId": "town_K3", "name": "Makeb Sky Shrine", "sharedBy": ["kok_orun_way"], "status": "active" },
+    { "id": "baltakhand_ancestral_field", "settlementId": "town_K1", "name": "Baltakhand Ancestral Field", "sharedBy": ["kok_orun_way"], "status": "active" },
+    { "id": "dunglanys_sacred_grove", "settlementId": "town_B2", "name": "Dunglanys Sacred Grove", "sharedBy": ["caerwydd"], "status": "active" },
+    { "id": "marunath_oak_court", "settlementId": "town_B1", "name": "Marunath Oak Court", "sharedBy": ["caerwydd"], "status": "active" },
+    { "id": "revyl_whale_stone", "settlementId": "town_S7", "name": "Revyl Whale-Stone", "sharedBy": ["veyrhold"], "status": "active" },
+    { "id": "varcheg_hall_of_oaths", "settlementId": "town_S1", "name": "Varcheg Hall of Oaths", "sharedBy": ["veyrhold"], "status": "active" }
+  ]
+}

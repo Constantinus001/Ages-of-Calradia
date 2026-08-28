@@ -1,0 +1,73 @@
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true">
+      <Children>
+        <!-- This sidecar owns only the compact strategic-map mode controls.
+             Realm Affairs and Census are hosted by the original World Events UI. -->
+        <Widget IsVisible="@IsVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1220" SuggestedHeight="871" HorizontalAlignment="Center" VerticalAlignment="Center" PositionXOffset="23" PositionYOffset="90" DoNotAcceptEvents="true">
+          <Children>
+            <ListPanel WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="286" SuggestedHeight="24" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="87" MarginTop="276" StackLayout.LayoutMethod="HorizontalLeftToRight">
+              <Children>
+                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="68" Command.Click="ExecutePolitical"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare" Color="#100C09D9" /><Widget IsVisible="@IsPolitical" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="1" MarginRight="1" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare" Color="#8A6738A8" /><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="11" Text="POL" Color="#F0D69AFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="68" MarginLeft="3" Command.Click="ExecuteReligion"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare" Color="#100C09D9" /><Widget IsVisible="@IsReligion" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="1" MarginRight="1" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare" Color="#8A6738A8" /><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="11" Text="REL" Color="#F0D69AFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="74" MarginLeft="3" Command.Click="ExecutePopulation"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare" Color="#100C09D9" /><Widget IsVisible="@IsPopulation" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="1" MarginRight="1" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare" Color="#8A6738A8" /><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="11" Text="POP" Color="#F0D69AFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="68" MarginLeft="3" Command.Click="ExecuteCulture"><Children><Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare" Color="#100C09D9" /><Widget IsVisible="@IsCulture" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="1" MarginRight="1" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare" Color="#8A6738A8" /><TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="11" Text="CUL" Color="#F0D69AFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" /></Children></ButtonWidget>
+              </Children>
+            </ListPanel>
+          </Children>
+        </Widget>
+        <!-- Compact sidecar Census control occupies the unused space left of
+             the three protected native Realm Affairs tabs. It does not resize,
+             replace, overlap, or redraw the original UI or its borders. -->
+        <Widget IsVisible="@IsRealmNavigationVisible" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1220" SuggestedHeight="871" HorizontalAlignment="Center" VerticalAlignment="Center" PositionXOffset="23" PositionYOffset="90" DoNotAcceptEvents="true">
+          <Children>
+            <ButtonWidget DoNotPassEventsToChildren="true" ClipContents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="101" SuggestedHeight="37" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="148" MarginTop="216" Command.Click="ExecuteCensus">
+              <Children>
+                <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="WorldEventsSubTabInactiveTextureProvider" />
+                <TextureWidget IsVisible="@IsCensusSelected" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="WorldEventsSubTabSelectedTextureProvider" />
+                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="13" Text="CENSUS" Color="#FFF6D6FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+              </Children>
+            </ButtonWidget>
+
+            <Widget IsVisible="@IsCensusPageVisible" ClipContents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1028" SuggestedHeight="454" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="254">
+              <Children>
+                <Widget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#0C0907FF" />
+                <TextureWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextureProviderName="AocCensusPageTextureProvider" />
+                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" MarginTop="14" Brush="Popup.Button.Text" Brush.FontSize="20" Text="CENSUS OF THE REALMS" Color="#E7CE94FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="18" MarginTop="43" Brush="Popup.Button.Text" Brush.FontSize="11" Text="LIVE POPULATION, CULTURE, AND RELIGION RECORDS — UPDATED MONTHLY" Color="#BFAE8BFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+
+                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="486" SuggestedHeight="343" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="22" MarginTop="98">
+                  <Children>
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="25" Brush="Popup.Button.Text" Brush.FontSize="17" Text="@CensusRealmName" Color="#F0D59CFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="37" MarginLeft="5" MarginTop="34" Brush="Popup.Button.Text" Brush.FontSize="23" Text="@CensusRealmPopulation" Color="#F2DEB2FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="17" MarginLeft="5" MarginTop="69" Brush="Popup.Button.Text" Brush.FontSize="10" Text="@CensusRealmShare" Color="#BFAE8BFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="215" SuggestedHeight="24" HorizontalAlignment="Right" MarginRight="9" MarginTop="39" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@CensusRealmProvinceText" Color="#D7C293FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="215" SuggestedHeight="24" HorizontalAlignment="Right" MarginRight="9" MarginTop="65" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@CensusRealmHappinessText" Color="#D7C293FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="22" MarginLeft="8" MarginTop="108" Brush="Popup.Button.Text" Brush.FontSize="13" Text="CULTURE" Color="#CFAE6DFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="232" MarginLeft="8" MarginTop="136" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@CensusRealmCultures" Color="#DDD0B8FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="22" HorizontalAlignment="Right" MarginRight="8" MarginTop="108" Brush="Popup.Button.Text" Brush.FontSize="13" Text="RELIGION" Color="#CFAE6DFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="232" HorizontalAlignment="Right" MarginRight="8" MarginTop="136" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@CensusRealmReligions" Color="#DDD0B8FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                  </Children>
+                </Widget>
+
+                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="486" SuggestedHeight="343" HorizontalAlignment="Right" VerticalAlignment="Top" MarginRight="22" MarginTop="98">
+                  <Children>
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="25" Brush="Popup.Button.Text" Brush.FontSize="17" Text="ALL CALRADIA" Color="#F0D59CFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="37" MarginLeft="5" MarginTop="34" Brush="Popup.Button.Text" Brush.FontSize="23" Text="@CensusCalradiaPopulation" Color="#F2DEB2FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="230" SuggestedHeight="17" MarginLeft="5" MarginTop="69" Brush="Popup.Button.Text" Brush.FontSize="10" Text="TOTAL RECORDED POPULATION" Color="#BFAE8BFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="215" SuggestedHeight="24" HorizontalAlignment="Right" MarginRight="9" MarginTop="39" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@CensusCalradiaProvinceText" Color="#D7C293FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="215" SuggestedHeight="24" HorizontalAlignment="Right" MarginRight="9" MarginTop="65" Brush="Popup.Button.Text" Brush.FontSize="13" Text="@CensusCalradiaHappinessText" Color="#D7C293FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="22" MarginLeft="8" MarginTop="108" Brush="Popup.Button.Text" Brush.FontSize="13" Text="CULTURE" Color="#CFAE6DFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="232" MarginLeft="8" MarginTop="136" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@CensusCalradiaCultures" Color="#DDD0B8FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="22" HorizontalAlignment="Right" MarginRight="8" MarginTop="108" Brush="Popup.Button.Text" Brush.FontSize="13" Text="RELIGION" Color="#CFAE6DFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" />
+                    <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="224" SuggestedHeight="232" HorizontalAlignment="Right" MarginRight="8" MarginTop="136" Brush="Popup.Button.Text" Brush.FontSize="12" Text="@CensusCalradiaReligions" Color="#DDD0B8FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" />
+                  </Children>
+                </Widget>
+              </Children>
+            </Widget>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

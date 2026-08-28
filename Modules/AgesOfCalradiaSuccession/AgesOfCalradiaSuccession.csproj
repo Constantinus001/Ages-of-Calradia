@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CF6C8A2B-C832-4AD3-AB17-75E1D7834D91}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>AgesOfCalradiaSuccession</RootNamespace>
+    <AssemblyName>AgesOfCalradiaSuccession</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <BannerlordDir Condition=" '$(BannerlordDir)' == '' ">C:\Program Files\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</BannerlordDir>
+    <ReligionsAssemblyPath Condition=" '$(ReligionsAssemblyPath)' == '' ">..\AgesOfCalradiaReligions\bin\Win64_Shipping_Client\AgesOfCalradiaReligions.dll</ReligionsAssemblyPath>
+    <OutputPath>bin\Win64_Shipping_Client\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols><DebugType>full</DebugType><Optimize>false</Optimize><DefineConstants>DEBUG;TRACE</DefineConstants><WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType><Optimize>true</Optimize><DefineConstants>TRACE</DefineConstants><WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" /><Reference Include="System.Core" />
+    <Reference Include="AgesOfCalradiaReligions"><HintPath>$(ReligionsAssemblyPath)</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.CampaignSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Core"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Library"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Localization"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.MountAndBlade"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.ObjectSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ObjectSystem.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="SuccessionSubModule.cs" />
+    <Compile Include="SuccessionCampaignBehavior.cs" />
+    <Compile Include="SuccessionLaw.cs" />
+    <Compile Include="SuccessionClaim.cs" />
+    <Compile Include="SuccessionResolver.cs" />
+    <Compile Include="SuccessionPersistence.cs" />
+    <Compile Include="SuccessionService.cs" />
+    <Compile Include="SuccessionDebugMenu.cs" />
+    <Compile Include="SuccessionRecognition.cs" />
+    <Compile Include="SuccessionPoliticsPersistence.cs" />
+    <Compile Include="SuccessionCoronationMenu.cs" />
+    <Compile Include="SuccessionCivilWar.cs" />
+    <Compile Include="SuccessionCampaignMapBorderBridge.cs" />
+    <Compile Include="SuccessionReligionBridge.cs" />
+    <Compile Include="SuccessionDiagnostics.cs" />
+    <None Include="SubModule.xml" />
+    <None Include="README.md" />
+    <None Include="Tests\Verify-SuccessionModule.ps1" />
+    <None Include="Tests\SuccessionPersistenceVerifier.cs" />
+    <None Include="Tests\SuccessionPersistenceVerifier.csproj" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

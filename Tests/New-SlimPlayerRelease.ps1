@@ -34,12 +34,17 @@ $harmonySourcePath = Join-Path $env:USERPROFILE '.nuget\packages\lib.harmony\2.4
 $harmonyEntryName = 'AgesOfCalradia/bin/Win64_Shipping_Client/0Harmony.dll'
 $worldEventsPrefabEntryName = 'AgesOfCalradia/GUI/Prefabs/WorldCalendar/WorldCalendar.xml'
 $spriteConfigEntryName = 'AgesOfCalradia/GUI/SpriteParts/Config.xml'
-$approvedFixesSourcePath = Join-Path $ModuleRoot 'Builds\Approved560CalendarFixes\bin\Win64_Shipping_Client\AgesOfCalradia.Approved560CalendarFixes.dll'
+$approvedFixesSourcePath = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\AgesOfCalradia.Approved560CalendarFixes.dll'
 $approvedFixesEntryName = 'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.Approved560CalendarFixes.dll'
+$campaignLabelSourcePath = Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\AgesOfCalradia.CampaignLabelVisibility.dll'
+$campaignLabelEntryName = 'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.CampaignLabelVisibility.dll'
 $releaseSourceEntries = [ordered]@{
     'AgesOfCalradia/SubModule.xml' = (Join-Path $ModuleRoot 'SubModule.xml')
     'AgesOfCalradia/README.md' = (Join-Path $ModuleRoot 'README.md')
     'AgesOfCalradia/GUI/Prefabs/Map/MapBar.xml' = (Join-Path $ModuleRoot 'GUI\Prefabs\Map\MapBar.xml')
+    'AgesOfCalradia/bin/Win64_Shipping_Client/AgesOfCalradia.MCM.dll' = (Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\AgesOfCalradia.MCM.dll')
+    'AgesOfCalradia/bin/Win64_Shipping_Client/MCMv5.dll' = (Join-Path $ModuleRoot 'bin\Win64_Shipping_Client\MCMv5.dll')
+    $campaignLabelEntryName = $campaignLabelSourcePath
 }
 if ($sourcePath -eq $destinationPath) {
     throw 'SourceArchive and DestinationArchive must be different files.'
@@ -92,6 +97,8 @@ foreach ($assetName in $requiredWorldEventsAssets) {
 function Test-IsDevelopmentEntry {
     param([string]$EntryName)
 
+    $EntryName = $EntryName.Replace('\', '/')
+
     if ($EntryName.StartsWith(
         'AgesOfCalradia/AssetSources/',
         [StringComparison]::OrdinalIgnoreCase)) {
@@ -129,26 +136,27 @@ try {
     $writtenEntries = [Collections.Generic.HashSet[string]]::new(
         [StringComparer]::OrdinalIgnoreCase)
     foreach ($entry in $inputArchive.Entries) {
-        if ((Test-IsDevelopmentEntry -EntryName $entry.FullName) -or
-            $entry.FullName.StartsWith(
+        $entryName = $entry.FullName.Replace('\', '/')
+        if ((Test-IsDevelopmentEntry -EntryName $entryName) -or
+            $entryName.StartsWith(
                 'AgesOfCalradia/GUI/CustomUI/WorldEventsSkin/',
                 [StringComparison]::OrdinalIgnoreCase)) {
             continue
         }
 
-        if ($entry.FullName.Equals($harmonyEntryName, [StringComparison]::OrdinalIgnoreCase) -or
-            $entry.FullName.Equals($worldEventsPrefabEntryName, [StringComparison]::OrdinalIgnoreCase) -or
-            $entry.FullName.Equals($spriteConfigEntryName, [StringComparison]::OrdinalIgnoreCase) -or
-            $entry.FullName.Equals($approvedFixesEntryName, [StringComparison]::OrdinalIgnoreCase) -or
-            $releaseSourceEntries.Contains($entry.FullName) -or
-            $protectedWorldEventsEntries.Contains($entry.FullName)) {
+        if ($entryName.Equals($harmonyEntryName, [StringComparison]::OrdinalIgnoreCase) -or
+            $entryName.Equals($worldEventsPrefabEntryName, [StringComparison]::OrdinalIgnoreCase) -or
+            $entryName.Equals($spriteConfigEntryName, [StringComparison]::OrdinalIgnoreCase) -or
+            $entryName.Equals($approvedFixesEntryName, [StringComparison]::OrdinalIgnoreCase) -or
+            $releaseSourceEntries.Contains($entryName) -or
+            $protectedWorldEventsEntries.Contains($entryName)) {
             continue
         }
 
         $newEntry = $outputArchive.CreateEntry(
-            $entry.FullName,
+            $entryName,
             [IO.Compression.CompressionLevel]::Optimal)
-        [void]$writtenEntries.Add($entry.FullName)
+        [void]$writtenEntries.Add($entryName)
         $newEntry.LastWriteTime = $entry.LastWriteTime
         if ([string]::IsNullOrEmpty($entry.Name)) {
             continue
@@ -294,9 +302,10 @@ try {
     $entryNames = [Collections.Generic.HashSet[string]]::new(
         [StringComparer]::OrdinalIgnoreCase)
     foreach ($entry in $archive.Entries) {
-        [void]$entryNames.Add($entry.FullName)
-        if (Test-IsDevelopmentEntry -EntryName $entry.FullName) {
-            throw "Development entry remained in player archive: $($entry.FullName)"
+        $entryName = $entry.FullName.Replace('\', '/')
+        [void]$entryNames.Add($entryName)
+        if (Test-IsDevelopmentEntry -EntryName $entryName) {
+            throw "Development entry remained in player archive: $entryName"
         }
     }
 

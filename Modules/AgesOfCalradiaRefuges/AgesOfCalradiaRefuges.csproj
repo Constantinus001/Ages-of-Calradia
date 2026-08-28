@@ -33,7 +33,7 @@
     <Reference Include="System" /><Reference Include="System.Core" /><Reference Include="System.Xml" />
     <Reference Include="System.ValueTuple"><HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ValueTuple.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="netstandard"><HintPath>$(NetStandardPath)</HintPath><Private>false</Private></Reference>
-    <Reference Include="0Harmony"><HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.4.2\lib\net472\0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="AgesOfCalradia"><HintPath>$(BaseModuleDirectory)\bin\Win64_Shipping_Client\AgesOfCalradia.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.CampaignSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Core"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath><Private>false</Private></Reference>
@@ -52,7 +52,7 @@
     <Reference Include="SandBox.View"><HintPath>$(BannerlordDir)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <Compile Include="AgesOfCalradiaRefugesSubModule.cs" />
     <Compile Include="CalendarCampBehavior.cs" /><Compile Include="CalendarRefugeBehavior.cs" />
     <Compile Include="CalendarRefugeBuilderHudView.cs" /><Compile Include="CalendarRefugeLayoutBuilderBehavior.cs" />

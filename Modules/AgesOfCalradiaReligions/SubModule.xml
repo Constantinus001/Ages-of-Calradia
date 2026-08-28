@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="Ages of Calradia Religions" />
+  <Id value="AgesOfCalradiaReligions" />
+  <Version value="v0.9.3" />
+  <SingleplayerModule value="true" />
+  <MultiplayerModule value="false" />
+  <Official value="false" />
+  <DefaultModule value="false" />
+  <ModuleCategory value="Singleplayer" />
+  <ModuleType value="Community" />
+  <DependedModules>
+    <DependedModule Id="Native" DependentVersion="v1.4.8" />
+    <DependedModule Id="SandBoxCore" DependentVersion="v1.4.8" />
+    <DependedModule Id="Sandbox" DependentVersion="v1.4.8" />
+    <DependedModule Id="AgesOfCalradia" DependentVersion="v1.5.12" />
+  </DependedModules>
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Native" order="LoadBeforeThis" version="v1.4.8" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" version="v1.4.8" />
+    <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" version="v1.4.8" />
+    <DependedModuleMetadata id="AgesOfCalradia" order="LoadBeforeThis" version="v1.5.12" />
+    <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" version="v1.4.8" optional="true" />
+  </DependedModuleMetadatas>
+  <SubModules>
+    <SubModule>
+      <Name value="Ages of Calradia Religions" />
+      <DLLName value="AgesOfCalradiaReligions.dll" />
+      <SubModuleClassType value="AgesOfCalradiaReligions.ReligionSubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>

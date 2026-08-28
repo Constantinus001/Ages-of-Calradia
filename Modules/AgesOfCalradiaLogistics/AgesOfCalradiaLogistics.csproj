@@ -40,7 +40,7 @@
     <Reference Include="TaleWorlds.DotNet"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.DotNet.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LogisticsSubModule.cs" /><Compile Include="LogisticsDiagnostics.cs" /><Compile Include="LogisticsReserveBehavior.cs" /><Compile Include="BaggageTrainMissionBehavior.cs" /><Compile Include="BaggageTrainRegistry.cs" /><Compile Include="BaggageResupplyMissionBehavior.cs" /><Compile Include="BaggageGuardMissionBehavior.cs" />
+    <Compile Include="LogisticsSubModule.cs" /><Compile Include="LogisticsPartySpeedModel.cs" /><Compile Include="LogisticsDiagnostics.cs" /><Compile Include="LogisticsReserveBehavior.cs" /><Compile Include="BaggageTrainMissionBehavior.cs" /><Compile Include="BaggageTrainRegistry.cs" /><Compile Include="BaggageResupplyMissionBehavior.cs" /><Compile Include="BaggageGuardMissionBehavior.cs" />
     <None Include="SubModule.xml" /><None Include="README.md" />
     <None Include="ModuleData\supply_items.xml" /><None Include="ModuleData\module_strings.xml" />
     <None Include="Tests\Verify-SupplyItem.ps1" />

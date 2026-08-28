@@ -1,7 +1,26 @@
 # Changelog
 
+## Complete Suite v1.0.0 — 2026-08-28
+
+- Added one install-ready GitHub package containing AOC Core v1.5.14,
+  AOC Systems L & R v1.0.0, and AOC Systems R & S v1.0.0.
+- Included the complete Logistics, nine-scene Refuges, Religions, Population,
+  Census/map-mode, and hereditary Succession runtimes with their UI and data.
+- Added black campaign political-map kingdom labels with outlines derived from
+  darker variants of their kingdom colors, plus land-safe Aserai and Nord label
+  anchors in the Religions/Population sidecar.
+- Hardened release verification so every manifest-declared DLL must exist,
+  required World Events and Census UI assets must be present, all nine Refuge
+  scene profiles must include scene/terrain/navmesh data, and retired or
+  development modules cannot enter the player archive.
+- Preserved the approved Core renderer and World Events prefab byte-for-byte.
+
 ## v1.5.14 — 2026-08-28
 
+- Standardized the launcher-facing products as `AOC CORE`,
+  `AOC SYSTEMS L & R`, and `AOC SYSTEMS R & S`. L & R combines Logistics with
+  Refuges; R & S combines Religions with Succession. Both preserve the feature
+  DLL names, namespaces, Harmony IDs, and campaign save keys.
 - Preserved the user-approved core renderer exactly at SHA-256 `560F1B51...`
   and the approved World Events prefab at `E7013CF2...`.
 - Corrected Gregorian town food accounting: food production, demand, workshop

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A0D62C8D-51C9-48BD-AE1C-E0EBC49852BB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>AgesOfCalradiaReligions</RootNamespace>
+    <AssemblyName>AgesOfCalradiaReligions</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <BannerlordDir Condition=" '$(BannerlordDir)' == '' ">C:\Program Files\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</BannerlordDir>
+    <CoreModuleDirectory Condition=" '$(CoreModuleDirectory)' == '' ">$(BannerlordDir)\Modules\Ages Of Calradia</CoreModuleDirectory>
+    <ModuleOutputDir Condition=" '$(ModuleOutputDir)' == '' ">$(MSBuildProjectDirectory)\bin\Win64_Shipping_Client\</ModuleOutputDir>
+    <OutputPath>$(ModuleOutputDir)</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols><DebugType>full</DebugType><Optimize>false</Optimize><DefineConstants>DEBUG;TRACE</DefineConstants><WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType><Optimize>true</Optimize><DefineConstants>TRACE</DefineConstants><WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" /><Reference Include="System.Core" /><Reference Include="System.Drawing" />
+    <Reference Include="0Harmony"><HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.4.2\lib\net472\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="AgesOfCalradia"><HintPath>$(CoreModuleDirectory)\bin\Win64_Shipping_Client\AgesOfCalradia.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.CampaignSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Core"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.DotNet"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.DotNet.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Engine.GauntletUI"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.GauntletUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Engine"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.GauntletUI"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.GauntletUI.Data"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.Data.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.ScreenSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ScreenSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.TwoDimension"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.TwoDimension.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Library"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Localization"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.MountAndBlade"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.ObjectSystem"><HintPath>$(BannerlordDir)\bin\Win64_Shipping_Client\TaleWorlds.ObjectSystem.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
+    <Compile Include="ReligionSubModule.cs" />
+    <Compile Include="ReligionCampaignBehavior.cs" />
+    <Compile Include="ReligionCatalog.cs" />
+    <Compile Include="ReligionModels.cs" />
+    <Compile Include="ReligionPersistence.cs" />
+    <Compile Include="ReligionService.cs" />
+    <Compile Include="ReligionSimulationMath.cs" />
+    <Compile Include="CharacterReligionMath.cs" />
+    <Compile Include="ReligionDiagnostics.cs" />
+    <Compile Include="PopulationModels.cs" />
+    <Compile Include="PopulationMath.cs" />
+    <Compile Include="PopulationPersistence.cs" />
+    <Compile Include="PopulationCampaignBehavior.cs" />
+    <Compile Include="PopulationService.cs" />
+    <Compile Include="PopulationHarmonyPatches.cs" />
+    <Compile Include="OpeningPeaceBehavior.cs" />
+    <Compile Include="StrategicMapModeIntegration.cs" />
+    <Compile Include="MapOverlayTextColorIntegration.cs" />
+    <Compile Include="CensusReportBuilder.cs" />
+    <Compile Include="CensusPageTextureProvider.cs" />
+    <None Include="SubModule.xml" /><None Include="README.md" />
+    <None Include="ModuleData\religions.json" /><None Include="ModuleData\holy_sites.json" />
+    <None Include="GUI\Prefabs\AocStrategicMapModes.xml" />
+    <None Include="GUI\CustomUI\WorldEventsSkin\page_cabinet_census_v1.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

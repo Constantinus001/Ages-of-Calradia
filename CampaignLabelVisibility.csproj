@@ -26,7 +26,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="0Harmony">
-      <HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.2.2\lib\net472\0Harmony.dll</HintPath>
+      <HintPath>$(UserProfile)\.nuget\packages\lib.harmony\2.4.2\lib\net472\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="TaleWorlds.Library">
@@ -39,7 +39,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <Compile Include="CampaignLabelVisibilitySubModule.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
