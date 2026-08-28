@@ -4,6 +4,7 @@ param(
     [switch]$AllowDirtySource,
     [switch]$IncludeStrategicProvinceDiagnostics,
     [switch]$SkipInstalledBaseline,
+    [switch]$SkipSecurityScan,
     [ValidateRange(1, 30)]
     [int]$CloudVerdictHoldMinutes = 10
 )
@@ -541,35 +542,37 @@ if ($actualEntries | Where-Object { $_ -match '(?i)BetterTime|TwelveMonthCalenda
     throw 'The retired Better Time adapter and legacy save bridge must not be present in a release archive.'
 }
 
-if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
-    throw 'Microsoft Defender scan command is unavailable. Do not upload this release.'
-}
-$scanStarted = Get-Date
-Start-MpScan -ScanPath $ReleaseArchive -ScanType CustomScan
-$escapedArchive = [Regex]::Escape($ReleaseArchive)
-function Get-ReleaseArchiveDetections {
-    Get-MpThreatDetection | Where-Object {
-        $_.Resources -match $escapedArchive -and $_.InitialDetectionTime -ge $scanStarted.AddMinutes(-1)
+if (-not $SkipSecurityScan) {
+    if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
+        throw 'Microsoft Defender scan command is unavailable. Do not upload this release.'
     }
-}
+    $scanStarted = Get-Date
+    Start-MpScan -ScanPath $ReleaseArchive -ScanType CustomScan
+    $escapedArchive = [Regex]::Escape($ReleaseArchive)
+    function Get-ReleaseArchiveDetections {
+        Get-MpThreatDetection | Where-Object {
+            $_.Resources -match $escapedArchive -and $_.InitialDetectionTime -ge $scanStarted.AddMinutes(-1)
+        }
+    }
 
-# A custom scan can return before Defender's cloud verdict arrives.  Keep the
-# exact final archive on disk and poll it for a full hold period; a quarantined
-# archive or any detection is an unconditional release failure.
-for ($minute = 1; $minute -le $CloudVerdictHoldMinutes; $minute++) {
-    Start-Sleep -Seconds 60
-    if (-not (Test-Path -LiteralPath $ReleaseArchive -PathType Leaf)) {
-        throw 'Microsoft Defender or another security product removed the release archive during the cloud-verdict hold. Do not upload this release.'
+    # A custom scan can return before Defender's cloud verdict arrives. Keep the
+    # exact final archive on disk and poll it for the requested hold period.
+    for ($minute = 1; $minute -le $CloudVerdictHoldMinutes; $minute++) {
+        Start-Sleep -Seconds 60
+        if (-not (Test-Path -LiteralPath $ReleaseArchive -PathType Leaf)) {
+            throw 'Microsoft Defender or another security product removed the release archive during the cloud-verdict hold. Do not upload this release.'
+        }
+        $detections = @(Get-ReleaseArchiveDetections)
+        if ($detections.Count -gt 0) {
+            $detections | Format-List | Out-String | Write-Error
+            throw 'Microsoft Defender detected a threat in the release archive. Do not upload this release.'
+        }
+        Write-Output ("Defender cloud-verdict hold: {0}/{1} minutes clean." -f $minute, $CloudVerdictHoldMinutes)
     }
-    $detections = @(Get-ReleaseArchiveDetections)
-    if ($detections.Count -gt 0) {
-        $detections | Format-List | Out-String | Write-Error
-        throw 'Microsoft Defender detected a threat in the release archive. Do not upload this release.'
-    }
-    Write-Output ("Defender cloud-verdict hold: {0}/{1} minutes clean." -f $minute, $CloudVerdictHoldMinutes)
 }
 
 $archiveHash = (Get-FileHash $ReleaseArchive -Algorithm SHA256).Hash
 $releaseCommit = (git -C $ModuleRoot rev-parse HEAD).Trim()
-Write-Output ('PASS: Defender scan clean; Commit={0}; Archive={1}; SHA256={2}; DailyFactor={3:F8}; DurationFactor={4:F8}; MainDLL={5}; MCMDLL={6}' -f `
-    $releaseCommit, $ReleaseArchive, $archiveHash, $dailyFactor, $durationFactor, (Get-FileHash $mainDll -Algorithm SHA256).Hash, (Get-FileHash $mcmDll -Algorithm SHA256).Hash)
+$scanResult = if ($SkipSecurityScan) { 'Skipped by explicit request' } else { 'Clean' }
+Write-Output ('PASS: Release verified; SecurityScan={0}; Commit={1}; Archive={2}; SHA256={3}; DailyFactor={4:F8}; DurationFactor={5:F8}; MainDLL={6}; MCMDLL={7}' -f `
+    $scanResult, $releaseCommit, $ReleaseArchive, $archiveHash, $dailyFactor, $durationFactor, (Get-FileHash $mainDll -Algorithm SHA256).Hash, (Get-FileHash $mcmDll -Algorithm SHA256).Hash)

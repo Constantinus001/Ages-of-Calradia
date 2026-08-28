@@ -109,23 +109,7 @@ function Test-IsDevelopmentEntry {
         return $false
     }
 
-    $isRedundantSpriteSource = $EntryName.StartsWith(
-        'AgesOfCalradia/GUI/SpriteParts/',
-        [StringComparison]::OrdinalIgnoreCase) -and
-        -not $EntryName.Equals(
-            'AgesOfCalradia/GUI/SpriteParts/Config.xml',
-            [StringComparison]::OrdinalIgnoreCase) -and
-        -not $EntryName.StartsWith(
-            'AgesOfCalradia/GUI/SpriteParts/ui_world_calendar/',
-            [StringComparison]::OrdinalIgnoreCase)
-
-    $isWorldEventsRuntimeAsset = $requiredWorldEventsEntryNames.Contains($EntryName)
-    $isDiscardableCustomUi = $EntryName.StartsWith(
-        'AgesOfCalradia/GUI/CustomUI/',
-        [StringComparison]::OrdinalIgnoreCase) -and -not $isWorldEventsRuntimeAsset
-
-    return $isRedundantSpriteSource -or $isDiscardableCustomUi -or
-        $EntryName -match '(?i)(\.bak$|\.before-|\.backup-)'
+    return $EntryName -match '(?i)(\.bak$|\.before-|\.backup-)'
 }
 
 $inputArchive = [IO.Compression.ZipFile]::OpenRead($sourcePath)
@@ -137,10 +121,7 @@ try {
         [StringComparer]::OrdinalIgnoreCase)
     foreach ($entry in $inputArchive.Entries) {
         $entryName = $entry.FullName.Replace('\', '/')
-        if ((Test-IsDevelopmentEntry -EntryName $entryName) -or
-            $entryName.StartsWith(
-                'AgesOfCalradia/GUI/CustomUI/WorldEventsSkin/',
-                [StringComparison]::OrdinalIgnoreCase)) {
+        if (Test-IsDevelopmentEntry -EntryName $entryName) {
             continue
         }
 
@@ -441,6 +422,44 @@ try {
         throw "Player archive is missing directly loaded textures: $($missingDirectTextures -join ', ')"
     }
 
+    $requiredGuiFiles = @(Get-ChildItem -LiteralPath (Join-Path $ModuleRoot 'GUI') -File -Recurse)
+    $requiredGuiEntries = @($requiredGuiFiles | ForEach-Object {
+        'AgesOfCalradia/' + $_.FullName.Substring($ModuleRoot.Length + 1).Replace('\', '/')
+    })
+    $missingGuiEntries = @($requiredGuiEntries | Where-Object {
+        -not $entryNames.Contains($_)
+    })
+    if ($missingGuiEntries.Count -gt 0) {
+        throw "Player archive is missing GUI files: $($missingGuiEntries -join ', ')"
+    }
+    $mismatchedGuiEntries = @()
+    foreach ($guiFile in $requiredGuiFiles) {
+        $guiEntryName = 'AgesOfCalradia/' +
+            $guiFile.FullName.Substring($ModuleRoot.Length + 1).Replace('\', '/')
+        $guiEntry = $archive.GetEntry($guiEntryName)
+        $guiStream = $guiEntry.Open()
+        try {
+            $sha = [Security.Cryptography.SHA256]::Create()
+            try {
+                $archiveGuiHash = ([BitConverter]::ToString(
+                    $sha.ComputeHash($guiStream))).Replace('-', '')
+            }
+            finally {
+                $sha.Dispose()
+            }
+        }
+        finally {
+            $guiStream.Dispose()
+        }
+        $sourceGuiHash = (Get-FileHash -LiteralPath $guiFile.FullName -Algorithm SHA256).Hash
+        if ($archiveGuiHash -ne $sourceGuiHash) {
+            $mismatchedGuiEntries += $guiEntryName
+        }
+    }
+    if ($mismatchedGuiEntries.Count -gt 0) {
+        throw "Player archive contains changed GUI files: $($mismatchedGuiEntries -join ', ')"
+    }
+
     $missingCategoryAssets = @()
     foreach ($category in $spriteData.SpriteData.SpriteCategories.SpriteCategory) {
         for ($sheetId = 1; $sheetId -le [int]$category.SpriteSheetCount; $sheetId++) {
@@ -463,6 +482,8 @@ try {
         DeclaredSpriteParts = @($spriteData.SpriteData.SpriteParts.SpritePart).Count
         MissingDirectTextures = $missingDirectTextures.Count
         MissingCategoryAssets = $missingCategoryAssets.Count
+        MissingGuiFiles = $missingGuiEntries.Count
+        ChangedGuiFiles = $mismatchedGuiEntries.Count
         SHA256 = (Get-FileHash -LiteralPath $destinationPath -Algorithm SHA256).Hash
     }
 }

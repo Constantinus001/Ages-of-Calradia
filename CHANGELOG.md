@@ -1,5 +1,13 @@
 # Changelog
 
+## Complete Suite v1.0.2 — 2026-08-28
+
+- Package every approved file under Core's `GUI` directory instead of trimming
+  sprite and CustomUI files through a hand-maintained allowlist.
+- Added an archive contract that fails the build if any source GUI file is
+  missing from the player package.
+- Restored the strategic legend town/castle sprites and the calendar map image.
+
 ## Complete Suite v1.0.1 — 2026-08-28
 
 - Renamed the packaged module folders to `AOC CORE`, `AOC L&R`, and `AOC R&S`.

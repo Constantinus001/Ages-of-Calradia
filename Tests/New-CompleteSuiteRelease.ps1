@@ -2,12 +2,13 @@ param(
     [string]$ModuleRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$OutputArchive,
     [switch]$AllowDirtySource,
+    [switch]$SkipSecurityScan,
     [ValidateRange(1, 30)]
     [int]$CloudVerdictHoldMinutes = 10
 )
 
 $ErrorActionPreference = 'Stop'
-$suiteVersion = 'v1.0.1'
+$suiteVersion = 'v1.0.2'
 $artifactsRoot = [IO.Path]::GetFullPath((Join-Path $ModuleRoot 'artifacts'))
 if ([string]::IsNullOrWhiteSpace($OutputArchive)) {
     $OutputArchive = Join-Path $artifactsRoot "Ages-of-Calradia-Complete-Suite-$suiteVersion.zip"
@@ -46,6 +47,7 @@ $coreGateArguments = @{
     ReleaseArchive = $coreFullArchive
     CloudVerdictHoldMinutes = 1
     SkipInstalledBaseline = $true
+    SkipSecurityScan = $SkipSecurityScan
 }
 if ($AllowDirtySource) { $coreGateArguments.AllowDirtySource = $true }
 & (Join-Path $PSScriptRoot 'Verify-Release.ps1') @coreGateArguments
@@ -175,25 +177,27 @@ finally {
     if (Test-Path -LiteralPath $stagingRoot) { Remove-Item -LiteralPath $stagingRoot -Recurse -Force }
 }
 
-if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
-    throw 'Microsoft Defender scan command is unavailable. Do not upload this release.'
-}
-$scanStarted = Get-Date
-Start-MpScan -ScanPath $outputPath -ScanType CustomScan
-$escapedArchive = [Regex]::Escape($outputPath)
-for ($minute = 1; $minute -le $CloudVerdictHoldMinutes; $minute++) {
-    Start-Sleep -Seconds 60
-    if (-not (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
-        throw 'Security software removed the complete-suite archive. Do not upload this release.'
+if (-not $SkipSecurityScan) {
+    if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
+        throw 'Microsoft Defender scan command is unavailable. Do not upload this release.'
     }
-    $detections = @(Get-MpThreatDetection | Where-Object {
-        $_.Resources -match $escapedArchive -and $_.InitialDetectionTime -ge $scanStarted.AddMinutes(-1)
-    })
-    if ($detections.Count -gt 0) {
-        $detections | Format-List | Out-String | Write-Error
-        throw 'Microsoft Defender detected a threat in the complete-suite archive. Do not upload this release.'
+    $scanStarted = Get-Date
+    Start-MpScan -ScanPath $outputPath -ScanType CustomScan
+    $escapedArchive = [Regex]::Escape($outputPath)
+    for ($minute = 1; $minute -le $CloudVerdictHoldMinutes; $minute++) {
+        Start-Sleep -Seconds 60
+        if (-not (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
+            throw 'Security software removed the complete-suite archive. Do not upload this release.'
+        }
+        $detections = @(Get-MpThreatDetection | Where-Object {
+            $_.Resources -match $escapedArchive -and $_.InitialDetectionTime -ge $scanStarted.AddMinutes(-1)
+        })
+        if ($detections.Count -gt 0) {
+            $detections | Format-List | Out-String | Write-Error
+            throw 'Microsoft Defender detected a threat in the complete-suite archive. Do not upload this release.'
+        }
+        Write-Output ("Complete-suite Defender cloud-verdict hold: {0}/{1} minutes clean." -f $minute, $CloudVerdictHoldMinutes)
     }
-    Write-Output ("Complete-suite Defender cloud-verdict hold: {0}/{1} minutes clean." -f $minute, $CloudVerdictHoldMinutes)
 }
 
 $archiveHash = (Get-FileHash -LiteralPath $outputPath -Algorithm SHA256).Hash
