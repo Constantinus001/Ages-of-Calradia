@@ -21,6 +21,10 @@ namespace AgesOfCalradiaReligions
         private const string RealmKey = "AgesOfCalradiaReligions.RealmFaithV1";
         private const string SitesKey = "AgesOfCalradiaReligions.HolySitesV1";
         private const string ClergyOfficesKey = "AgesOfCalradiaReligions.ClergyOfficesV1";
+        private const string HeroChunksKey = "AgesOfCalradiaReligions.HeroFaithV2Chunks";
+        private const string RealmChunksKey = "AgesOfCalradiaReligions.RealmFaithV2Chunks";
+        private const string SitesChunksKey = "AgesOfCalradiaReligions.HolySitesV2Chunks";
+        private const string ClergyOfficesChunksKey = "AgesOfCalradiaReligions.ClergyOfficesV2Chunks";
         private Dictionary<string, HeroReligionState> _heroes = new Dictionary<string, HeroReligionState>(StringComparer.Ordinal);
         private Dictionary<string, RealmReligionState> _realms = new Dictionary<string, RealmReligionState>(StringComparer.Ordinal);
         private Dictionary<string, HolySiteState> _sites = new Dictionary<string, HolySiteState>(StringComparer.Ordinal);
@@ -29,6 +33,10 @@ namespace AgesOfCalradiaReligions
         private string _realmPayload = string.Empty;
         private string _sitePayload = string.Empty;
         private string _clergyOfficePayload = string.Empty;
+        private List<string> _heroPayloadChunks = new List<string>();
+        private List<string> _realmPayloadChunks = new List<string>();
+        private List<string> _sitePayloadChunks = new List<string>();
+        private List<string> _clergyOfficePayloadChunks = new List<string>();
         private bool _initializingExistingHeroes;
 
         public ReligionCampaignBehavior()
@@ -49,13 +57,25 @@ namespace AgesOfCalradiaReligions
                 _realmPayload = ReligionPersistence.SerializeRealms(_realms.Values.OrderBy(value => value.KingdomId, StringComparer.Ordinal));
                 _sitePayload = ReligionPersistence.SerializeHolySites(_sites.Values.OrderBy(value => value.SiteId, StringComparer.Ordinal));
                 _clergyOfficePayload = ReligionPersistence.SerializeClergyOffices(_clergyOffices.Values.OrderBy(value => value.SettlementId, StringComparer.Ordinal));
+                _heroPayloadChunks = ChunkedSavePayload.Split(_heroPayload);
+                _realmPayloadChunks = ChunkedSavePayload.Split(_realmPayload);
+                _sitePayloadChunks = ChunkedSavePayload.Split(_sitePayload);
+                _clergyOfficePayloadChunks = ChunkedSavePayload.Split(_clergyOfficePayload);
             }
-            dataStore.SyncData(HeroKey, ref _heroPayload);
-            dataStore.SyncData(RealmKey, ref _realmPayload);
-            dataStore.SyncData(SitesKey, ref _sitePayload);
-            dataStore.SyncData(ClergyOfficesKey, ref _clergyOfficePayload);
+            dataStore.SyncData(HeroChunksKey, ref _heroPayloadChunks);
+            dataStore.SyncData(RealmChunksKey, ref _realmPayloadChunks);
+            dataStore.SyncData(SitesChunksKey, ref _sitePayloadChunks);
+            dataStore.SyncData(ClergyOfficesChunksKey, ref _clergyOfficePayloadChunks);
             if (dataStore.IsLoading)
             {
+                if (ChunkedSavePayload.HasPayload(_heroPayloadChunks)) _heroPayload = ChunkedSavePayload.Join(_heroPayloadChunks);
+                else dataStore.SyncData(HeroKey, ref _heroPayload);
+                if (ChunkedSavePayload.HasPayload(_realmPayloadChunks)) _realmPayload = ChunkedSavePayload.Join(_realmPayloadChunks);
+                else dataStore.SyncData(RealmKey, ref _realmPayload);
+                if (ChunkedSavePayload.HasPayload(_sitePayloadChunks)) _sitePayload = ChunkedSavePayload.Join(_sitePayloadChunks);
+                else dataStore.SyncData(SitesKey, ref _sitePayload);
+                if (ChunkedSavePayload.HasPayload(_clergyOfficePayloadChunks)) _clergyOfficePayload = ChunkedSavePayload.Join(_clergyOfficePayloadChunks);
+                else dataStore.SyncData(ClergyOfficesKey, ref _clergyOfficePayload);
                 Dictionary<string, HeroReligionState> heroes;
                 Dictionary<string, RealmReligionState> realms;
                 Dictionary<string, HolySiteState> sites;

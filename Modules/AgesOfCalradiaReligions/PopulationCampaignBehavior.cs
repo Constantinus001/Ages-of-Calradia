@@ -18,6 +18,7 @@ namespace AgesOfCalradiaReligions
     public sealed class PopulationCampaignBehavior : CampaignBehaviorBase
     {
         private const string PopulationStateKey = "AgesOfCalradiaReligions.PopulationStateV1";
+        private const string PopulationStateChunksKey = "AgesOfCalradiaReligions.PopulationStateV2Chunks";
         private const string LastMonthKey = "AgesOfCalradiaReligions.LastPopulationMonthV1";
         private const string PolicyMenuId = "aoc_population_policies";
         private const string DebugMenuId = "aoc_population_debug";
@@ -31,6 +32,7 @@ namespace AgesOfCalradiaReligions
 
         private Dictionary<string, ProvincePopulationState> _states = new Dictionary<string, ProvincePopulationState>(StringComparer.Ordinal);
         private string _serializedState = string.Empty;
+        private List<string> _serializedStateChunks = new List<string>();
         private int _lastProcessedMonth = -1;
         private int _mapRevision;
 
@@ -50,8 +52,19 @@ namespace AgesOfCalradiaReligions
 
         public override void SyncData(IDataStore dataStore)
         {
-            if (dataStore.IsSaving) _serializedState = PopulationPersistence.Serialize(_states.Values.OrderBy(state => state.SettlementId, StringComparer.Ordinal));
-            dataStore.SyncData(PopulationStateKey, ref _serializedState);
+            if (dataStore.IsSaving)
+            {
+                _serializedState = PopulationPersistence.Serialize(_states.Values.OrderBy(state => state.SettlementId, StringComparer.Ordinal));
+                _serializedStateChunks = ChunkedSavePayload.Split(_serializedState);
+            }
+            dataStore.SyncData(PopulationStateChunksKey, ref _serializedStateChunks);
+            if (dataStore.IsLoading)
+            {
+                if (ChunkedSavePayload.HasPayload(_serializedStateChunks))
+                    _serializedState = ChunkedSavePayload.Join(_serializedStateChunks);
+                else
+                    dataStore.SyncData(PopulationStateKey, ref _serializedState);
+            }
             dataStore.SyncData(LastMonthKey, ref _lastProcessedMonth);
             if (dataStore.IsLoading && !string.IsNullOrWhiteSpace(_serializedState))
             {

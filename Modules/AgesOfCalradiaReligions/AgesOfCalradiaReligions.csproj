@@ -51,6 +51,7 @@
     <Compile Include="ReligionSimulationMath.cs" />
     <Compile Include="CharacterReligionMath.cs" />
     <Compile Include="ReligionDiagnostics.cs" />
+    <Compile Include="ChunkedSavePayload.cs" />
     <Compile Include="PopulationModels.cs" />
     <Compile Include="PopulationMath.cs" />
     <Compile Include="PopulationPersistence.cs" />
