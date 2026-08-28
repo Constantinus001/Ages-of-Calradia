@@ -8,7 +8,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$suiteVersion = 'v1.0.2'
+$suiteVersion = 'v1.0.3'
 $artifactsRoot = [IO.Path]::GetFullPath((Join-Path $ModuleRoot 'artifacts'))
 if ([string]::IsNullOrWhiteSpace($OutputArchive)) {
     $OutputArchive = Join-Path $artifactsRoot "Ages-of-Calradia-Complete-Suite-$suiteVersion.zip"
@@ -117,6 +117,15 @@ try {
     }
     if ((Get-FileHash -LiteralPath (Join-Path $corePath 'GUI\Prefabs\WorldCalendar\WorldCalendar.xml') -Algorithm SHA256).Hash -ne $approvedWorldEventsHash) {
         throw 'Complete suite does not contain the approved protected World Events prefab.'
+    }
+    $legacySpriteRegistry = Join-Path $corePath 'GUI\Ages Of CalradiaSpriteData.xml'
+    $folderMatchedSpriteRegistry = Join-Path $corePath 'GUI\AOC CORESpriteData.xml'
+    if (-not (Test-Path -LiteralPath $folderMatchedSpriteRegistry -PathType Leaf)) {
+        throw 'AOC CORE is missing its folder-matched sprite registry; Bannerlord would hide the World Events shell.'
+    }
+    if ((Get-FileHash -LiteralPath $legacySpriteRegistry -Algorithm SHA256).Hash -ne
+        (Get-FileHash -LiteralPath $folderMatchedSpriteRegistry -Algorithm SHA256).Hash) {
+        throw 'AOC CORE sprite registries differ; the packaged World Events UI is not deterministic.'
     }
 
     $worldEventsRoot = Join-Path $corePath 'GUI\CustomUI\WorldEventsSkin'

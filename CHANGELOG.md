@@ -1,5 +1,14 @@
 # Changelog
 
+## Complete Suite v1.0.3 — 2026-08-28
+
+- Added `AOC CORESpriteData.xml`, matching the physical `AOC CORE` folder name,
+  so Bannerlord discovers the TPAC-backed World Events shell and controls.
+- Kept the original `Ages Of CalradiaSpriteData.xml` registry and require both
+  registries to be byte-identical during packaging.
+- Built the published package directly from the complete installed module
+  folders with 299/299 runtime files verified byte-for-byte and no omissions.
+
 ## Complete Suite v1.0.2 — 2026-08-28
 
 - Package every approved file under Core's `GUI` directory instead of trimming
