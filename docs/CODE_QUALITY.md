@@ -9,7 +9,7 @@ The amount of inspection, documentation, and testing may be scaled to the
 risk of the change, but no code change is exempt from verification and a clear
 handoff.
 
-The project is a Bannerlord v1.4.7 single-player module targeting .NET
+The project is a Bannerlord v1.4.8 single-player module targeting .NET
 Framework 4.7.2. Bannerlord's APIs, Harmony patch behavior, native UI
 lifecycles, save behavior, and asset loading are compatibility boundaries.
 Code must be designed around those boundaries rather than treating the game as

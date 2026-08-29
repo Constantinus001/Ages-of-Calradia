@@ -1,7 +1,48 @@
 # Changelog
 
+## Complete Suite v1.0.3 — 2026-08-28
+
+- Added `AOC CORESpriteData.xml`, matching the physical `AOC CORE` folder name,
+  so Bannerlord discovers the TPAC-backed World Events shell and controls.
+- Kept the original `Ages Of CalradiaSpriteData.xml` registry and require both
+  registries to be byte-identical during packaging.
+- Built the published package directly from the complete installed module
+  folders with 299/299 runtime files verified byte-for-byte and no omissions.
+
+## Complete Suite v1.0.2 — 2026-08-28
+
+- Package every approved file under Core's `GUI` directory instead of trimming
+  sprite and CustomUI files through a hand-maintained allowlist.
+- Added an archive contract that fails the build if any source GUI file is
+  missing from the player package.
+- Restored the strategic legend town/castle sprites and the calendar map image.
+
+## Complete Suite v1.0.1 — 2026-08-28
+
+- Renamed the packaged module folders to `AOC CORE`, `AOC L&R`, and `AOC R&S`.
+- Preserved the existing internal module IDs, dependencies, and save contracts.
+
+## Complete Suite v1.0.0 — 2026-08-28
+
+- Added one install-ready GitHub package containing AOC Core v1.5.14,
+  AOC Systems L & R v1.0.0, and AOC Systems R & S v1.0.0.
+- Included the complete Logistics, nine-scene Refuges, Religions, Population,
+  Census/map-mode, and hereditary Succession runtimes with their UI and data.
+- Added black campaign political-map kingdom labels with outlines derived from
+  darker variants of their kingdom colors, plus land-safe Aserai and Nord label
+  anchors in the Religions/Population sidecar.
+- Hardened release verification so every manifest-declared DLL must exist,
+  required World Events and Census UI assets must be present, all nine Refuge
+  scene profiles must include scene/terrain/navmesh data, and retired or
+  development modules cannot enter the player archive.
+- Preserved the approved Core renderer and World Events prefab byte-for-byte.
+
 ## v1.5.14 — 2026-08-28
 
+- Standardized the launcher-facing products as `AOC CORE`,
+  `AOC SYSTEMS L & R`, and `AOC SYSTEMS R & S`. L & R combines Logistics with
+  Refuges; R & S combines Religions with Succession. Both preserve the feature
+  DLL names, namespaces, Harmony IDs, and campaign save keys.
 - Preserved the user-approved core renderer exactly at SHA-256 `560F1B51...`
   and the approved World Events prefab at `E7013CF2...`.
 - Corrected Gregorian town food accounting: food production, demand, workshop

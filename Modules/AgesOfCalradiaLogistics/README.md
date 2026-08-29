@@ -15,6 +15,9 @@ main module later without changing its existing source tree.
 - Town markets replenish Supply crates gradually, up to 3 per normal town and
   5 in prosperous towns. At a town, use **Load supplies into baggage train**
   to consume carried crates and refill the player party reserve.
+- Calibrates neutral land travel to map speed 4.0 and caps campaign-map
+  movement at 8.0. Native terrain, weather, cargo, herd, army, prisoner,
+  wound, skill, and party-composition modifiers remain active.
 - In player field battles, every non-bandit side with an eligible lord,
   caravan, or player party spawns a physical baggage train using the native
   cart prefabs and scattered-goods props. Twelve forced wagons and eight

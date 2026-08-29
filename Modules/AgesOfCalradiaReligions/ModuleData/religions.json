@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "purpose": "Canonical definitions mirrored by the active personal, realm, clergy, tension, conversion, and holy-site systems.",
+  "faiths": [
+    { "id": "asharim", "name": "Asharim", "family": "aserac", "clergy": "Keeper", "mechanicsStatus": "active" },
+    { "id": "valeronism", "name": "Valeronism", "family": "aserac", "clergy": "Priest", "mechanicsStatus": "active" },
+    { "id": "mazirism", "name": "Mazirism", "family": "aserac", "clergy": "Judge-Reciter", "mechanicsStatus": "active" },
+    { "id": "isharan_way", "name": "Isharan Way", "family": "isharan", "clergy": "Star-Reader", "mechanicsStatus": "active" },
+    { "id": "kok_orun_way", "name": "Kok-Orun Way", "family": "steppe", "clergy": "Shaman", "mechanicsStatus": "active" },
+    { "id": "caerwydd", "name": "Caerwydd", "family": "western_pagan", "clergy": "Druid", "mechanicsStatus": "active" },
+    { "id": "veyrhold", "name": "Veyrhold", "family": "northern_pagan", "clergy": "Godi", "mechanicsStatus": "active" },
+    { "id": "calradic_old_faith", "name": "Calradic Old Faith", "family": "calradic_pagan", "clergy": "Augur", "mechanicsStatus": "active" }
+  ]
+}

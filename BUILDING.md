@@ -1,6 +1,6 @@
 # Building Ages of Calradia
 
-Build against Bannerlord v1.4.7 with either MSBuild properties or environment variables:
+Build against Bannerlord v1.4.8 with either MSBuild properties or environment variables:
 
 ```powershell
 dotnet msbuild TwelveMonthCalendar.csproj /t:Rebuild /p:Configuration=Release /p:BannerlordDir='C:\Program Files\Steam\steamapps\common\Mount & Blade II Bannerlord'

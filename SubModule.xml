@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Ages of Calradia" />
+  <Name value="AOC CORE" />
   <Id value="AgesOfCalradia" />
   <Version value="v1.5.14" />
   <SingleplayerModule value="true" />
@@ -34,7 +34,7 @@
   </Xmls>
   <SubModules>
     <SubModule>
-      <Name value="Ages of Calradia" />
+      <Name value="AOC CORE" />
       <DLLName value="AgesOfCalradia.dll" />
       <SubModuleClassType value="AgesOfCalradia.MySubModule" />
       <Assemblies>
@@ -47,7 +47,7 @@
       </Tags>
     </SubModule>
     <SubModule>
-      <Name value="Ages of Calradia Island Exclusion" />
+      <Name value="AOC CORE: Island Exclusion" />
       <DLLName value="AgesOfCalradia.dll" />
       <SubModuleClassType value="AgesOfCalradia.IslandExclusion.IslandExclusionSubModule" />
       <Tags>
@@ -56,7 +56,7 @@
       </Tags>
     </SubModule>
     <SubModule>
-      <Name value="Ages of Calradia Native Lake Fill" />
+      <Name value="AOC CORE: Native Lake Fill" />
       <DLLName value="AgesOfCalradia.dll" />
       <SubModuleClassType value="AgesOfCalradia.RestoredLakeFill.RestoredLakeFillSubModule" />
       <Tags>
@@ -65,7 +65,7 @@
       </Tags>
     </SubModule>
     <SubModule>
-      <Name value="Ages of Calradia v1.5.14 Combined Fixes" />
+      <Name value="AOC CORE: v1.5.14 Combined Fixes" />
       <DLLName value="AgesOfCalradia.Approved560CalendarFixes.dll" />
       <SubModuleClassType value="AgesOfCalradia.Approved560CalendarFixes.Approved560CalendarFixesSubModule" />
       <Tags>
@@ -74,7 +74,7 @@
       </Tags>
     </SubModule>
     <SubModule>
-      <Name value="Ages of Calradia Campaign Label Visibility" />
+      <Name value="AOC CORE: Campaign Label Visibility" />
       <DLLName value="AgesOfCalradia.CampaignLabelVisibility.dll" />
       <SubModuleClassType value="AgesOfCalradia.CampaignLabelVisibility.CampaignLabelVisibilitySubModule" />
       <Tags>

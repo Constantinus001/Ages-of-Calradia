@@ -52,9 +52,9 @@ Any mismatch is a failed deployment and must be rolled back before testing.
   hero ages while applying the 365-day calendar to future time. Saves from the
   old hard-marker era must first be migrated with v1.4.5.
 
-The camp and refuge system is now distributed as the separate
-`AgesOfCalradiaRefuges` module. Load it after Ages of Calradia; the base module
-remains fully usable without it.
+Logistics and Refuges are distributed as `AOC SYSTEMS L & R`. Religions,
+population, and Succession are distributed as `AOC SYSTEMS R & S`. Load either
+or both after `AOC CORE`; Core remains fully usable without them.
 
 ## Documentation location
 
@@ -69,7 +69,7 @@ The canonical folder is the source of truth for development and design guides.
 The module keeps this root README only because the release archive requires a
 player-facing README.
 
-This Bannerlord v1.4.7 module changes the campaign calendar to a 365-day year
+This Bannerlord v1.4.8 module changes the campaign calendar to a 365-day year
 with Gregorian-style month lengths:
 
 ```text
@@ -134,11 +134,23 @@ Open `TwelveMonthCalendar.csproj` in Visual Studio, or run:
 & .\Tests\Verify-Release.ps1
 ```
 
-This command builds the module, creates the complete runtime ZIP in
+This command builds the Core release, creates its runtime ZIP in
 `artifacts`, verifies its exact file list, and runs a mandatory Microsoft
 Defender scan. It also refuses uncommitted sources and rejects an invalid
 Bannerlord module-version format. Only upload an archive after it reports
 `PASS`.
+
+To build and verify the single player-facing archive containing Core and every
+system, run:
+
+```powershell
+& .\Tests\New-CompleteSuiteRelease.ps1
+```
+
+The complete-suite gate builds and verifies Core, Systems L & R, and Systems
+R & S; checks every manifest-declared DLL and required UI/scene asset; confirms
+the protected Core and World Events hashes; excludes source, diagnostics, and
+retired standalone modules; and scans the final combined archive before upload.
 
 For the diagnostics-enabled **v1.5.9 Test** archive, run:
 
@@ -147,12 +159,15 @@ For the diagnostics-enabled **v1.5.9 Test** archive, run:
 ```
 
 This produces `artifacts\AgesOfCalradia-v1.5.9-Test.zip`. It is for testers
-and includes strategic-province snapshot diagnostics. Refuge scenes and their
-runtime behavior are packaged by the separate `AgesOfCalradiaRefuges` module.
+and includes strategic-province snapshot diagnostics. Refuge and Logistics
+content is packaged by `AOC SYSTEMS L & R`; Religion and Succession content is
+packaged by `AOC SYSTEMS R & S`.
 
 The build output is written to `bin\Win64_Shipping_Client`. Install the
 `AgesOfCalradia` module folder in the game's `Modules` directory, then
-enable **Ages of Calradia** in the Bannerlord launcher. The legacy internal
+enable **AOC CORE** in the Bannerlord launcher. Enable **AOC SYSTEMS L & R**,
+**AOC SYSTEMS R & S**, or both after it when those optional features are
+desired. The legacy internal
 identity was retired in v1.5.9. Remove an older `RealisticCalendarTweaks`
 module folder before installing this release so Bannerlord cannot load both
 identities at once.
@@ -184,7 +199,7 @@ module from later save metadata.
 
 Removing the module restores Bannerlord's native calendar and pacing
 immediately; it does not preserve the mod's Gregorian presentation or annual
-balance. Before disabling `AgesOfCalradiaRefuges`, retrieve anything kept in a
+balance. Before disabling `AOC SYSTEMS L & R`, retrieve anything kept in a
 refuge stash. Saves
 from the old hard-marker era should first be migrated with v1.4.5; the normal
 runtime no longer registers those retired custom save types.

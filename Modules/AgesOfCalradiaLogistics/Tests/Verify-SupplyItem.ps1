@@ -47,4 +47,14 @@ $subModule = Get-Content -Raw (Join-Path $ModuleRoot 'LogisticsSubModule.cs')
 if ($subModule -match 'mission != null && mission.IsFieldBattle') {
     throw 'Mission behaviours must be registered before Bannerlord assigns field-battle state.'
 }
+$speedModelPath = Join-Path $ModuleRoot 'LogisticsPartySpeedModel.cs'
+if (-not (Test-Path -LiteralPath $speedModelPath)) { throw 'The logistics campaign speed model is missing.' }
+$speedModel = Get-Content -Raw -LiteralPath $speedModelPath
+foreach ($required in @('BaseTravelSpeed = 4f', 'MaximumMapSpeed = 8f',
+    'nativeFinalSpeed / nativeBaseSpeed * BaseTravelSpeed',
+    'LimitMax(LogisticsPartySpeedMath.MaximumMapSpeed)',
+    'TwelveMonthCalendar.CalendarPartySpeedModel')) {
+    if ($speedModel -notmatch [regex]::Escape($required)) { throw "The 4/8 campaign speed contract is missing: $required" }
+}
+if ($subModule -notmatch 'AddModel\(new LogisticsPartySpeedModel') { throw 'The logistics campaign speed model is not registered.' }
 Write-Host 'Supply item and module dependency contract verified.'

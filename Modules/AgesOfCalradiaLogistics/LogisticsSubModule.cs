@@ -1,6 +1,7 @@
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.Core;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
 
 namespace AgesOfCalradiaLogistics
 {
@@ -10,7 +11,7 @@ namespace AgesOfCalradiaLogistics
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
-            LogisticsDiagnostics.Info("Module loaded. Version=v0.1.0");
+            LogisticsDiagnostics.Info("Module loaded. Version=v0.2.0");
         }
 
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
@@ -20,6 +21,21 @@ namespace AgesOfCalradiaLogistics
             CampaignGameStarter campaignStarter = gameStarterObject as CampaignGameStarter;
             if (campaignStarter != null)
             {
+                PartySpeedModel installedSpeedModel = campaignStarter.GetModel<PartySpeedModel>();
+                if (installedSpeedModel == null)
+                {
+                    LogisticsDiagnostics.Info("The 4/8 campaign speed model was not installed because no PartySpeedModel was available.");
+                }
+                else if (installedSpeedModel is LogisticsPartySpeedModel)
+                {
+                    LogisticsDiagnostics.Info("The 4/8 campaign speed model was already installed.");
+                }
+                else
+                {
+                    campaignStarter.AddModel(new LogisticsPartySpeedModel(installedSpeedModel));
+                    LogisticsDiagnostics.Info("Campaign speed model installed: base=4.0, maximum=8.0, native debuffs preserved.");
+                }
+
                 campaignStarter.AddBehavior(new LogisticsReserveBehavior());
                 LogisticsDiagnostics.Info("Campaign reserve behaviour registered.");
             }
