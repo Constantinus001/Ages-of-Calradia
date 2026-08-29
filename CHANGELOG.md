@@ -1,5 +1,27 @@
 # Changelog
 
+## Complete Suite v1.0.5 — 2026-08-28
+
+- Published the approved, tested three-module baseline with all 332 installed
+  runtime files and all 201 AOC Core GUI files present.
+- Fixed the World Events eagle transition so tab changes no longer briefly
+  display the retired eagle artwork.
+- Retained the chunked Religion and Population persistence fix so newly created
+  campaign saves reload successfully.
+- Verified zero missing files and zero hash mismatches against the tested
+  installation. Release archive SHA-256:
+  `C44BD1E639C20A49F07F1035ECD113C6BE9A139E0CB2A88406C5A93E2E594860`.
+
+## Complete Suite v1.0.4 — 2026-08-28
+
+- Rebuilt the complete suite directly from the tested live Bannerlord
+  installation, retaining the complete World Events GUI tree and correct shell
+  and tab artwork.
+- Added chunked Religion and Population save persistence, preventing new saves
+  from exceeding Bannerlord's string-field limit.
+- Verified all 332 installed files, including all 201 AOC Core GUI files, with
+  zero omissions and zero hash mismatches.
+
 ## Complete Suite v1.0.3 — 2026-08-28
 
 - Added `AOC CORESpriteData.xml`, matching the physical `AOC CORE` folder name,

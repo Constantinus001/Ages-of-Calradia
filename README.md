@@ -1,5 +1,7 @@
 # Ages of Calradia
 
+**Current complete-suite release:** [v1.0.5](https://github.com/Constantinus001/Ages-of-Calradia/releases/tag/complete-suite-v1.0.5)
+
 See [CHANGELOG.md](CHANGELOG.md) for the complete release history, including v1.5.9.
 
 ## PERMANENT PROTECTED-CORE RULE — DO NOT MODIFY

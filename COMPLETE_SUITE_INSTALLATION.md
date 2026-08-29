@@ -1,4 +1,4 @@
-# Ages of Calradia Complete Suite
+# Ages of Calradia Complete Suite v1.0.5
 
 This archive contains the complete player runtime for Bannerlord v1.4.8:
 
